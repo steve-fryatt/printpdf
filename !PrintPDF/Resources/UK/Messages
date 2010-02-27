@@ -1,0 +1,163 @@
+# Messages for PrintPDF
+# (c) Stephen Fryatt, 2007
+#
+# UK Version
+
+# General application details
+
+TaskName:PrintPDF
+Version:0.61 (%0)
+
+ChildTaskName:PrintPDF Child
+
+TaskSpr:!printpdf
+
+SupportURL:http://www.stevefryatt.org.uk/software/printpdf/
+
+FileName:PDFFile/pdf
+
+Encrypt0:Unprotected
+Encrypt1:Encrypted
+Custom:Custom
+
+DepthOff:Off
+
+# Messages and errors
+
+DragSave:To save, enter a full pathname or drag the file to a directory viewer.
+NoQueueDir:The queue directory is invalid.
+FOpenFailed:The PDF file could not be created: does it already exist?
+
+# ps2pdf command-line option lists.
+
+VersionMenu:Version,1.2 (Acrobat 3),1.3 (Acrobat 4),1.4 (Acrobat 5)
+OptimizationMenu:Optimization,Default,Prepress,Printer,EBook,Screen,-Custom...
+
+VersionList:1.2,1.3,1.4
+OptimizationList:/default,/prepress,/printer,/ebook,/screen
+DownsampleList:/Subsample,/Average,/Bicubic
+EncodeList1:/DCTEncode,/FlateEncode
+EncodeList2:/CCITTFaxEncode,/FlateEncode,/RunLengthEncode
+AutoPageRotateList:/None,/All,/PageByPage
+
+# Interactive Help for windows and icons.
+#
+# Window icon data (particularly toolbar items) may be in menu data when duplicates exist.
+
+Help.IconBar:\TPrintPDF application.|M\Sset the conversion options.|MDrag a PostScript file here to create a PDF.
+
+Help.ProgInfo:\TPrintPDF information \w.
+Help.ProgInfo.Website:\Svisit the PrintPDF website, if you have Internet access.
+
+Help.SavePDF:\TSave PDF \w.
+Help.SavePDF.Icon3:Drag this icon to the directory display where the PDF is to be saved.
+Help.SavePDF.Name:Enter a new filename, or full pathname, for the file here.
+Help.SavePDF.Save:\Ssave the file if there is a full pathname above.
+Help.SavePDF.Cancel:\Scancel the PDF creation.
+Help.SavePDF.Queue:\Sdefer creating this PDF, and add it to the queue.|MThis will allow it to be merged into a single PDF with other files.
+Help.SavePDF.Version:\Tversion of PDF file that will be generated.
+Help.SavePDF.SetVersion:\Schange the version of PDF file that will be generated.
+Help.SavePDF.Optimize:\Toptimization that will be used for the PDF file.
+Help.SavePDF.SetOptimize:\Schange the optimization that will be used for the PDF file.
+Help.SavePDF.Encrypt:\Tencryption and protection that will be used for the PDF file.
+Help.SavePDF.SetEncrypt:\Schange the encryption and protection options that will be used for the PDF file.
+Help.SavePDF.Preprocess:\Stoggle whether the data for the PDF file will pre-processed by GhostScript before the conversion.
+
+Help.Queue/Help.QueuePane:\TPDF print queue, containing print jobs which have yet to be converted into PDFs.
+Help.Queue.Close:\Sclose the queue window.|MAny entries marked for deletion will be removed.
+Help.Queue.Create:\Sclose the queue window and turn the selected jobs into a single PDF.|MAny entries marked for deletion will be removed.
+
+Help.QueuePane.Col0:\Stoggle whether this this item will be included in the next PDF to be created.
+Help.QueuePane.Col1:\Dmove this item up or down the queue.|MThis will change the order in which jobs are placed in the PDF.
+Help.QueuePane.Col2:\Stoggle whether this item will be deleted when the dialogue is closed.
+
+Help.Optimize:\Tcustom optimization \w.
+Help.Optimize.DColour:\Senable or disable downsampling of colour images.
+Help.Optimize.DGrey:\Senable or disable downsampling of greyscale images.
+Help.Optimize.DMono:\Senable or disable downsampling of mono images.
+Help.Optimize.DColourSub:\Suse subsample downsampling on colour images.
+Help.Optimize.DColourAve:\Suse average downsampling on colour images.
+Help.Optimize.DColourRes:\Ttarget resolution for colour images.
+Help.Optimize.DColourResU/Help.Optimize.DGreyResU/Help.Optimize.DMonoResU:\Sincrease the target resolution.
+Help.Optimize.DColourResD/Help.Optimize.DGreyResD/Help.Optimize.DMonoResD:\Sdecrease the target resolution.
+Help.Optimize.DColourThr:\Tdownsampling threshold for colour images.
+Help.Optimize.DColourThrU/Help.Optimize.DGreyThrU/Help.Optimize.DMonoThrU:\Sincrease the threshold.
+Help.Optimize.DColourThrD/Help.Optimize.DGreyThrD/Help.Optimize.DMonoThrD:\Sdecrease the threshold.
+Help.Optimize.DColourDep:\Tdepth for downsampled colour images.
+Help.Optimize.DColourDepU/Help.Optimize.DGreyDepU/Help.Optimize.DMonoDepU:\Sincrease the depth.
+Help.Optimize.DColourDepD/Help.Optimize.DGreyDepD/Help.Optimize.DMonoDepD:\Sdecrease the depth.
+Help.Optimize.DGreySub:\Suse subsample downsampling on greyscale images.
+Help.Optimize.DGreyAve:\Suse average downsampling on greyscale images.
+Help.Optimize.DGreyRes:\Ttarget resolution for greyscale images.
+Help.Optimize.DGreyThr:\Tdownsampling threshold for greyscale images.
+Help.Optimize.DGreyDep:\Tdepth for downsampled greyscale images.
+Help.Optimize.DMonoSub:\Suse subsample downsampling on mono images.
+Help.Optimize.DMonoAve:\Suse average downsampling on mono images.
+Help.Optimize.DMonoRes:\Ttarget resolution for mono images.
+Help.Optimize.DMonoThr:\Tdownsampling threshold for mono images.
+Help.Optimize.DMonoDep:\Tdepth for downsampledmono images.
+Help.Optimize.CColour:\Senable or disable compression of colour images.
+Help.Optimize.CGrey:\Senable or disable compression of greyscale images.
+Help.Optimize.CMono:\Senable or disable compression of mono images.
+Help.Optimize.CColourDCT:\Suse DCT (JPEG) compression on colour images.
+Help.Optimize.CColourZip:\Suse Flate (Zip) compression on colour images.
+Help.Optimize.CGreyDCT:\Suse DCT (JPEG) compression on greyscale images.
+Help.Optimize.CGreyZip:\Suse Flate (Zip) compression on greyscale images.
+Help.Optimize.CMonoCCITT:\Suse CCITT Fax compression on mono images.
+Help.Optimize.CMonoZip:\Suse Flate (Zip) compression on mono images.
+Help.Optimize.CMonoRun:\Suse Run length compression on mono images.
+Help.Optimize.RotNone:\Sleave all pages in their original orientation.
+Help.Optimize.RotAll:\Srotate all pages based on the predominant text direction.
+Help.Optimize.RotPage:\Srotate each page based on its predominant text direction.
+Help.Optimize.Compress:\Sdetermine whether page content is compressed.
+Help.Optimize.Set:\Sstore the changes and close the window.
+Help.Optimize.Cancel:\Sclose the window and discard any changes.
+
+Help.Security?:\Tdocument encryption \w.
+Help.Security?.OwnerPass:\Tcreation password, which must be entered to modify the document.|MIf the field is blank, the document will not be encrypted and no protection features can be used.
+Help.Security?.UserPass:\Taccess password, which must be entered to view the document.|MIf the field is blank, no password is used and the document can be accessed freely.
+Help.Security2.Print:This determines whether the document can be printed or not.
+Help.Security2.Mods:This determines whether the document can be modified by third parties.
+Help.Security2.Extract:This determines whether text and graphics can be extracted from the document.
+Help.Security2.Fill:This determines if forms can be filled in and the document annotated.
+Help.Security3.Print:This determines whether the document can be printed or not.
+Help.Security3.PrintHi:This determines if the document can be printed at high quality.
+Help.Security3.Extract:This determines whether text and graphics can be extracted from the document for disabled accessibility purposes.
+Help.Security3.ExtractAll:This determines whether text and graphics can be extracted from the document without limitation.
+Help.Security3.Fill:This determines if forms can be filled in.
+Help.Security3.Annotate:This determines if the document can be annotated.
+Help.Security3.Mods:This determines whether the document can be modified by third parties over and above that allowed by the other options.
+Help.Security3.Assembly:This determines whether the document can be assembled (rotate, insert and delete pages, or create bookarks and thumbnails).
+Help.Security?.Set:\Sstore the changes and close the window.
+Help.Security?.Cancel:\Sclose the window and discard any changes.
+
+Help.Choices:\Tchoices \w.
+Help.Choices.Apply:\Sapply the current settings (\a will leave the \w open).
+Help.Choices.Save:\Ssave and apply the current settings (\a will leave the \w open).
+Help.Choices.Cancel:\Scancel the changes.|M\Ato reset the window contents.
+Help.Choices.Version:\Tversion of PDF file that will be generated.
+Help.Choices.SetVersion:\Schange the version of PDF file that will be generated.
+Help.Choices.Optimize:\Toptimization that will be used for PDF files.
+Help.Choices.SetOptimize:\Schange the optimization that will be used for PDF files.
+Help.Choices.Encrypt:\Tencryption and protection that will be used for PDF files.
+Help.Choices.SetEncrypt:\Schange the encryption and protection options that will be used for PDF files.
+Help.Choices.DefFile:\Tdefault filename offered when saving a new PDF.
+Help.Choices.Preprocess:\Stoggle whether data for PDF files will pre-processed by GhostScript before conversion.
+Help.Choices.ResetEvery:\Sdetermine whether options in the Save PDF dialogue are reset each time or remembered between conversions in the same session.
+Help.Choices.IBar:\Sdermine whether PrintPDF places an icon on the iconbar.|MWithout an icon, run !PrintPDF from the filer a second time to open this Choices \w.
+Help.Choices.Popup:\Sdermine whether PrintPDF shows a message on screen when a PDF conversion is completed.
+Help.Choices.TaskMem:\Tamount of memory in kilobytes which is allocated to GhostScript when conversions are started.
+
+Help.PopUp:This \w is indicating a message from PrintPDF.
+
+# Interactive help for menus.
+#
+# Where duplicate menu entries exist, items may be grouped and numbering will not be contiguous.
+
+Help.IconBarMenu.00:\Rsee information about PrintPDF.
+Help.IconBarMenu.01:\Sread the online manual.
+Help.IconBarMenu.02:\Sopen the list of queued print jobs.
+Help.IconBarMenu.03:\Schange the PrintPDF options.
+Help.IconBarMenu.04:\Squit PrintPDF.
+
+Help.ParamsMenu.??:\Tlist of available options.|M\Schoose the one under the pointer.

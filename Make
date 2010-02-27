@@ -1,0 +1,69 @@
+# PrintPDF - Makefile
+#
+# (C) Stephen Fryatt, 2007
+
+#Compiler
+
+CC = gcc
+
+# Flags
+
+CCFlags = -mlibscl -mthrowback -Wall -O2 -fno-strict-aliasing -mpoke-function-name
+Include = -IOSLib: -IOSLibSupport: -ISFLib: -IC:
+Links = -lOSLib:o.OsLib32 -lOSLibSupport:o.OsLibSupport -lSFLib:o.SFLib -lC:o.flexlib
+
+# Final target
+
+OBJS = o.choices o.convert o.dataxfer o.encrypt o.ihelp o.init o.main o.menus o.optimize o.pmenu o.popup o.taskman o.version o.windows
+      
+!PrintPDF/!RunImage: $(OBJS)
+	$(CC) $(CCFlags) $(Include) $(Links) -o !PrintPDF/!RunImage $(OBJS)
+
+# Individual source files
+#
+# NB: windows.o is recompiled if compiledate.h changes, which means that it will be re-compiled
+# each time the makefile is run.  This is to ensure that the info window date constant is
+# updated correctly.
+
+o.choices: h.choices c.choices h.encrypt h.optimize h.pmenu h.version h.windows
+	$(CC) $(CCFlags) $(Include) -o o.choices -c c.choices
+
+o.convert: h.convert c.convert h.encrypt h.main h.optimize h.pmenu h.popup h.version h.windows
+	$(CC) $(CCFlags) $(Include) -o o.convert -c c.convert
+
+o.dataxfer: h.dataxfer c.dataxfer h.choices h.convert h.main h.windows
+	$(CC) $(CCFlags) $(Include) -o o.dataxfer -c c.dataxfer
+
+o.encrypt: h.encrypt c.encrypt h.pmenu h.windows
+	$(CC) $(CCFlags) $(Include) -o o.encrypt -c c.encrypt
+
+o.ihelp: h.ihelp c.ihelp h.menus
+	$(CC) $(CCFlags) $(Include) -o o.ihelp -c c.ihelp
+
+o.init: h.init c.init h.menus h.windows h.convert h.pmenu h.taskman
+	$(CC) $(CCFlags) $(Include) -o o.init -c c.init
+
+o.main: h.main c.main h.choices h.convert h.dataxfer h.encrypt h.ihelp h.init h.menus h.optimize \
+        h.pmenu h.popup h.taskman h.version h.windows
+	$(CC) $(CCFlags) $(Include) -o o.main -c c.main
+
+o.menus: h.menus c.menus h.choices h.windows h.convert h.pmenu
+	$(CC) $(CCFlags) $(Include) -o o.menus -c c.menus
+
+o.optimize: h.optimize c.optimize h.menus h.pmenu h.windows
+	$(CC) $(CCFlags) $(Include) -o o.optimize -c c.optimize
+
+o.pmenu: h.pmenu c.pmenu h.menus
+	$(CC) $(CCFlags) $(Include) -o o.pmenu -c c.pmenu
+
+o.popup: h.popup c.popup h.windows
+	$(CC) $(CCFlags) $(Include) -o o.popup -c c.popup
+
+o.taskman: h.taskman c.taskman c.choices
+	$(CC) $(CCFlags) $(Include) -o o.taskman -c c.taskman
+
+o.version: h.version c.version h.menus h.pmenu h.windows
+	$(CC) $(CCFlags) $(Include) -o o.version -c c.version
+
+o.windows:h.windows c.windows  h.compiledate h.convert h.ihelp
+	$(CC) $(CCFlags) $(Include) -o o.windows -c c.windows

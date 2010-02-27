@@ -1,0 +1,23 @@
+| >!Run	
+|
+| Run file for PrintPDF
+|
+| (c) Stephen Fryatt, 2005
+
+Set PrintPDF$Help <Obey$Dir>.!Help
+Set PrintPDF$Version "0.10"
+Set PrintPDF$Web "http://www.stevefryatt.org.uk/software/printpdf/"
+Set PrintPDF$Title "PrintPDF"
+Set PrintPDF$Publisher "Stephen Fryatt"
+Set PrintPDF$Description "PostScript to PDF Conversion"
+
+Set PrintPDF$Dir <Obey$Dir>
+
+If "<Boot$OSVersion>" >= "500" Then IconSprites <PrintPDF$Dir>.5Sprites Else IconSprites <PrintPDF$Dir>.!Sprites
+
+RMEnsure SharedCLibrary 5.17 RMLoad System:Modules.CLib
+RMEnsure SharedCLibrary 5.34 Error PrintPDF requires version 5.34 or later of the Shared C Library.
+
+WimpSlot -min 128k -max 128k
+
+Run <PrintPDF$Dir>.!RunImage %*0

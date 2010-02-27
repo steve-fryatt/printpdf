@@ -1,0 +1,29 @@
+| Release PrintPDF
+| 8 Nov 2007
+
+Set Release$Dir <Obey$Dir>.Release
+
+| Update the application itself.
+
+IfThere <Release$Dir>.!PrintPDF Then Wipe <Release$Dir>.!PrintPDF ~CFRV
+
+Copy <Release$Dir>.^.!PrintPDF <Release$dir>.!PrintPDF ~CRV
+
+| Update the external ReadMe file.
+
+Remove <Release$Dir>.ReadMe
+
+TextMerge <Release$Dir>.ReadMe <Release$Dir>.!PrintPDF.Resources.UK.HelpText <Release$Dir>.^.Manual.Header 5
+
+| Update the Source folder.
+
+IfThere <Release$Dir>.Source Then Wipe <Release$Dir>.Source ~CFRV
+
+CDir <Release$Dir>.Source
+
+Copy <Release$Dir>.^.c <Release$Dir>.Source.c ~CRV
+Copy <Release$Dir>.^.h <Release$Dir>.Source.h ~CRV
+Copy <Release$Dir>.^.Manual <Release$Dir>.Source.Manual ~CRV
+Copy <Release$Dir>.^.Make <Release$Dir>.Source.Make ~CV
+
+Unset Release$Dir

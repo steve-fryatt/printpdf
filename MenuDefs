@@ -1,0 +1,30 @@
+/* Menus for PrintPDF
+ *
+ * (C) Stephen Fryatt, 2005
+ *
+ * Version 0.10
+ * 20-March-2005
+ */
+
+
+/* ==================================================================================================================
+ * Icon bar menu.
+ */
+
+menu (iconbar_menu, "PrintPDF")
+{
+  item ("Info")
+  {
+    d_box (ProgInfo);
+  }
+  item ("Help")
+  {
+    dotted;
+  }
+  item ("Queue...");
+  item ("Choices...")
+  {
+    dotted;
+  }
+  item ("Quit");
+}

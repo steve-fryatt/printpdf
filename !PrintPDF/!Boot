@@ -1,0 +1,16 @@
+| >!Boot
+|
+| Boot file for PrintPDF
+|
+| (c) Stephen Fryatt, 2005
+
+Set PrintPDF$Help <Obey$Dir>.!Help
+Set PrintPDF$Version "0.10"
+Set PrintPDF$Web "http://www.stevefryatt.org.uk/software/printpdf/"
+Set PrintPDF$Title "PrintPDF"
+Set PrintPDF$Publisher "Stephen Fryatt"
+Set PrintPDF$Description "PostScript to PDF Conversion"
+
+If "<PrintPDF$Dir>"="" Then Set PrintPDF$Dir <Obey$Dir>
+
+If "<Boot$OSVersion>" >= "500" Then IconSprites <PrintPDF$Dir>.5Sprites Else IconSprites <PrintPDF$Dir>.!Sprites

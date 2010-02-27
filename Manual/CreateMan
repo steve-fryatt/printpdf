@@ -1,0 +1,50 @@
+| Set the original source file for the manual.
+
+Set Create$Source ADFS::Iyonix.$.Public.Programming.PrintPDF.Manual.Source
+Set Create$Sprite ADFS::Iyonix.$.Public.Programming.PrintPDF.Manual.ManSprite
+
+| Set the destination for the text manual.
+
+Set Create$TX$Dest ADFS::Iyonix.$.Public.Programming.PrintPDF.!PrintPDF.Resources.UK.HelpText
+
+| Set the destination and intermediate files for the StrongHelp manual.
+
+Set Create$SH$Dest ADFS::Iyonix.$.Public.Programming.PrintPDF.!PrintPDF.Resources.UK.PrintPDF
+Set Create$SH$Inter ADFS::Iyonix.$.Public.Programming.PrintPDF.Manual.SHInter
+
+| Delete the text manual and recreate it.
+
+IfThere <Create$TX$Dest> Then Delete <Create$TX$Dest>
+Do "TextMan <Create$Source> <Create$TX$Dest>"
+
+| Delete the StrongHelp intermediate file and recreate it.
+
+IfThere <Create$SH$Inter> Then Wipe <Create$SH$Inter> ~CR
+CDir <Create$SH$Inter>
+Do "StrongMan <Create$Source> <Create$SH$Inter>"
+
+| Delete the real StrongHelp manual and recreate it.
+
+IfThere <Create$SH$Dest> Then Delete <Create$SH$Dest>
+StrongCreate <Create$SH$Dest>
+
+Repeat Copy <Create$SH$Inter> "<Create$SH$Dest>.* ~C" -verbose
+Repeat SetType <Create$SH$Dest> FFF -verbose
+
+Copy <Create$Sprite> <Create$SH$Dest>.Sprites ~C
+
+<StrongHelp$Dir>.Utilities.CleanCopy <Create$SH$Dest>
+
+| Delete the intermediate files.
+
+IfThere <Create$SH$Inter> Then Wipe <Create$SH$Inter> ~CR
+
+| Tidy up and end.
+
+UnSet Create$Source
+Unset Create$Sprite
+
+UnSet Create$SH$Dest
+UnSet Create$SH$Inter
+
+UnSet Create$TX$Dest
