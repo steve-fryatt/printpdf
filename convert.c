@@ -689,6 +689,14 @@ int launch_ps2pdf (char *file_out)
 
       list = list->next;
     }
+
+    if (osfile_read_stamped_no_path (read_config_str ("PDFMarkFile"), NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
+    {
+      /* If there is a PDFMark file, pass that in too. */
+
+      fprintf (param_file, " %s", read_config_str ("PDFMarkFile"));
+    }
+
     fclose (param_file);
 
     /* Write all the taskwindow command line details to the command string. */

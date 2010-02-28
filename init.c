@@ -102,6 +102,7 @@ int initialise (void)
 
   init_config_str ("FileQueue", "<Wimp$ScrapDir>.PrintPDF");
   init_config_str ("ParamFile", "Pipe:$.PrintPDF");
+  init_config_str ("PDFMarkFile", "Pipe:$.PrintPDFMark");
   init_config_str ("FileName", msgs_lookup ("FileName", filename, sizeof (filename)));
   init_config_int ("PollDelay", 500);
   init_config_int ("PopUpTime", 200);
