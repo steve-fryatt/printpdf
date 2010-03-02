@@ -100,7 +100,15 @@ void shade_pdfmark_dialogue (void)
 
 void fill_pdfmark_field (wimp_w window, wimp_i icon, pdfmark_params *params)
 {
-  msgs_lookup ("Custom", indirected_icon_text (window, icon), 20);
+  if (pdfmark_data_available(params))
+  {
+    /* Here we would look for Info and/or Bookmarks and use Info, BMark or InfoBM accordingly. */
+    msgs_lookup ("Info", indirected_icon_text (window, icon), 20);
+  }
+  else
+  {
+    msgs_lookup ("None", indirected_icon_text (window, icon), 20);
+  }
 
   wimp_set_icon_state (window, icon, 0, 0);
 }
@@ -111,7 +119,7 @@ void write_pdfmark_file (char *filename, pdfmark_params *params)
 {
   FILE *pdfmark_file;
 
-  if (*(params->title) != '\0' || *(params->author) != '\0' || *(params->subject) != '\0' || *(params->keywords))
+  if (pdfmark_data_available(params))
   {
     pdfmark_file = fopen (filename, "w");
     if (pdfmark_file != NULL)
@@ -145,4 +153,11 @@ void write_pdfmark_file (char *filename, pdfmark_params *params)
       fclose (pdfmark_file);
     }
   }
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+int pdfmark_data_available (pdfmark_params *params)
+{
+  return (*(params->title) != '\0' || *(params->author) != '\0' || *(params->subject) != '\0' || *(params->keywords));
 }

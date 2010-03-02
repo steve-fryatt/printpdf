@@ -1,5 +1,5 @@
 # Messages for PrintPDF
-# (c) Stephen Fryatt, 2007
+# (c) Stephen Fryatt, 2007-2010
 #
 # UK Version
 
@@ -19,6 +19,11 @@ FileName:PDFFile/pdf
 Encrypt0:Unprotected
 Encrypt1:Encrypted
 Custom:Custom
+
+None:None
+Info:Information
+BMark:Bookmarks
+InfoBM:Info & BMarks
 
 DepthOff:Off
 
@@ -61,6 +66,8 @@ Help.SavePDF.Optimize:\Toptimization that will be used for the PDF file.
 Help.SavePDF.SetOptimize:\Schange the optimization that will be used for the PDF file.
 Help.SavePDF.Encrypt:\Tencryption and protection that will be used for the PDF file.
 Help.SavePDF.SetEncrypt:\Schange the encryption and protection options that will be used for the PDF file.
+Help.SavePDF.Info:\Tinformation (title, author, etc) and bookmarks that will be used for the PDF file.
+Help.SavePDF.SetInfo:\Schange the information and bookmarks associated with the PDF file.
 Help.SavePDF.Preprocess:\Stoggle whether the data for the PDF file will pre-processed by GhostScript before the conversion.
 
 Help.Queue/Help.QueuePane:\TPDF print queue, containing print jobs which have yet to be converted into PDFs.
@@ -130,6 +137,14 @@ Help.Security3.Mods:This determines whether the document can be modified by thir
 Help.Security3.Assembly:This determines whether the document can be assembled (rotate, insert and delete pages, or create bookarks and thumbnails).
 Help.Security?.Set:\Sstore the changes and close the window.
 Help.Security?.Cancel:\Sclose the window and discard any changes.
+
+Help.PDFMark:\Tdocument info \w.
+Help.PDFMark.Title:\Ttitle of the PDF document.
+Help.PDFMark.Author:\Tname of the author of the PDF document.
+Help.PDFMark.Subject:\Tsubject of the PDF document.
+Help.PDFMark.Keys:\Tis a list of keywords that apply to the PDF document.
+Help.PDFMark.Set:\Sstore the changes and close the window.
+Help.PDFMark.Cancel:\Sclose the window and discard any changes.
 
 Help.Choices:\Tchoices \w.
 Help.Choices.Apply:\Sapply the current settings (\a will leave the \w open).

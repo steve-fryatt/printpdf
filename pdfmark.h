@@ -52,4 +52,6 @@ void process_pdfmark_dialogue (pdfmark_params *params);
 void shade_pdfmark_dialogue (void);
 void fill_pdfmark_field (wimp_w window, wimp_i icon, pdfmark_params *params);
 void write_pdfmark_file (char *filename, pdfmark_params *params);
+int pdfmark_data_available (pdfmark_params *params);
+
 #endif
