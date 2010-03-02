@@ -16,6 +16,9 @@
 #define OPTIMIZATION_SAVE 1
 #define OPTIMIZATION_CHOICE 2
 
+#define PDFMARK_SAVE 1
+#define PDFMARK_CHOICE 2
+
 #define DRAG_SAVE  1
 #define DRAG_QUEUE 2
 

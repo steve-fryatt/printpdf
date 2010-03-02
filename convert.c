@@ -42,6 +42,7 @@
 #include "encrypt.h"
 #include "main.h"
 #include "optimize.h"
+#include "pdfmark.h"
 #include "pmenu.h"
 #include "popup.h"
 #include "version.h"
@@ -67,6 +68,7 @@ static int             dragging_start_line;
 static encrypt_params  encryption;
 static optimize_params optimization;
 static version_params  version;
+static pdfmark_params  pdfmark;
 
 /* ==================================================================================================================
  * Initialisation
@@ -111,6 +113,7 @@ void initialise_conversion (void)
   initialise_encryption_settings (&encryption);
   initialise_optimization_settings (&optimization);
   initialise_version_settings (&version);
+  initialise_pdfmark_settings (&pdfmark);
 }
 
 /* ==================================================================================================================
@@ -362,11 +365,13 @@ void open_conversion_dialogue (void)
     initialise_encryption_settings (&encryption);
     initialise_optimization_settings (&optimization);
     initialise_version_settings (&version);
+    initialise_pdfmark_settings (&pdfmark);
   }
 
   fill_version_field (windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
   fill_optimization_field (windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
   fill_encryption_field (windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
+  fill_pdfmark_field (windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
 
   wimp_get_pointer_info (&pointer);
 
@@ -666,6 +671,10 @@ int launch_ps2pdf (char *file_out)
   param_file = fopen (read_config_str("ParamFile"), "w");
   if (param_file != NULL)
   {
+    /* Generate a PDFMark file if necessary. */
+
+    write_pdfmark_file (read_config_str ("PDFMarkFile"), &pdfmark);
+
     /* Write all the conversion options and filename details to the gs parameters file. */
 
     build_version_params (version_buf, &version);
@@ -797,6 +806,24 @@ void process_convert_optimize_menu (wimp_selection *selection)
 /* ==================================================================================================================
  * Handle Encryption and Optimization dialogues.
  */
+
+void open_convert_pdfmark_dialogue (wimp_pointer *pointer)
+{
+  open_pdfmark_dialogue (&pdfmark, pointer);
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+void process_convert_pdfmark_dialogue (void)
+{
+  extern global_windows windows;
+
+  process_pdfmark_dialogue (&pdfmark);
+
+  fill_pdfmark_field (windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 void open_convert_encrypt_dialogue (wimp_pointer *pointer)
 {

@@ -23,6 +23,7 @@ typedef struct
   wimp_w      security2;
   wimp_w      security3;
   wimp_w      optimization;
+  wimp_w      pdfmark;
   wimp_w      queue;
   wimp_w      queue_pane;
   wimp_w      choices;

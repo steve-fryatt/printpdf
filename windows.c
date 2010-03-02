@@ -139,6 +139,23 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
     wimp_msgtrans_fatal_report ("BadTemplate");
   }
 
+  /* PDFMark Window.
+   *
+   * Created now.
+   */
+
+  window_def = load_window_template ("PDFMark");
+  if (window_def != NULL)
+  {
+    windows.pdfmark = wimp_create_window (window_def);
+    add_ihelp_window (windows.pdfmark, "PDFMark", NULL);
+    free (window_def);
+  }
+  else
+  {
+    wimp_msgtrans_fatal_report ("BadTemplate");
+  }
+
   /* Queue Window.
    *
    * Created now.

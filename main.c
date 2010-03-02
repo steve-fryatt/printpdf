@@ -41,6 +41,7 @@
 #include "ihelp.h"
 #include "menus.h"
 #include "optimize.h"
+#include "pdfmark.h"
 #include "pmenu.h"
 #include "popup.h"
 #include "taskman.h"
@@ -54,6 +55,7 @@
 int                        global_drag_type;
 int                        global_encryption_dialogue_location;
 int                        global_optimization_dialogue_location;
+int                        global_pdfmark_dialogue_location;
 
 /* Cross file global variables */
 
@@ -253,6 +255,11 @@ void mouse_click_handler (wimp_pointer *pointer)
         global_encryption_dialogue_location = ENCRYPTION_SAVE;
         open_convert_encrypt_dialogue (pointer);
         break;
+
+      case SAVE_PDF_ICON_PDFMARK_MENU:
+        global_pdfmark_dialogue_location = PDFMARK_SAVE;
+        open_convert_pdfmark_dialogue (pointer);
+        break;
     }
   }
 
@@ -275,6 +282,31 @@ void mouse_click_handler (wimp_pointer *pointer)
 
           case ENCRYPTION_CHOICE:
             process_choices_encrypt_dialogue ();
+            break;
+        }
+        break;
+    }
+  }
+
+  /* The PDFMark Windows. */
+
+  else if (pointer->w == windows.pdfmark)
+  {
+    switch ((int) pointer->i)
+    {
+      case PDFMARK_ICON_CANCEL:
+        wimp_create_menu ((wimp_menu *) -1, 0, 0);
+        break;
+
+      case PDFMARK_ICON_OK:
+        switch (global_pdfmark_dialogue_location)
+        {
+          case PDFMARK_SAVE:
+            process_convert_pdfmark_dialogue ();
+            break;
+
+          case PDFMARK_CHOICE:
+            /* process_choices_pdfmark_dialogue ();*/
             break;
         }
         break;
@@ -524,6 +556,35 @@ void key_press_handler (wimp_key *key)
 
       case wimp_KEY_ESCAPE:
         cancel_conversion ();
+        break;
+
+      default:
+        wimp_process_key (key->c);
+        break;
+    }
+  }
+
+  /* The PDFMark Window. */
+
+  else if (key->w == windows.pdfmark)
+  {
+    switch (key->c)
+    {
+      case wimp_KEY_RETURN:
+        switch (global_pdfmark_dialogue_location)
+        {
+          case PDFMARK_SAVE:
+            process_convert_pdfmark_dialogue ();
+            break;
+
+          case PDFMARK_CHOICE:
+            /*process_choices_pdfmark_dialogue ();*/
+            break;
+        }
+        break;
+
+      case wimp_KEY_ESCAPE:
+        wimp_create_menu ((wimp_menu *) -1, 0, 0);
         break;
 
       default:

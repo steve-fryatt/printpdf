@@ -38,6 +38,8 @@
 #define SAVE_PDF_ICON_ENCRYPT_MENU  11
 #define SAVE_PDF_ICON_ENCRYPT_FIELD 12
 #define SAVE_PDF_ICON_QUEUE         14
+#define SAVE_PDF_ICON_PDFMARK_MENU  15
+#define SAVE_PDF_ICON_PDFMARK_FIELD 16
 
 /* Defer queue window icons. */
 
@@ -123,6 +125,8 @@ void process_convert_optimize_menu (wimp_selection *selection);
 
 /* Handle the encryption and optimization windows. */
 
+void open_convert_pdfmark_dialogue (wimp_pointer *pointer);
+void process_convert_pdfmark_dialogue (void);
 void open_convert_encrypt_dialogue (wimp_pointer *pointer);
 void process_convert_encrypt_dialogue (void);
 void process_convert_optimize_dialogue (void);

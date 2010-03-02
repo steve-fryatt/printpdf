@@ -142,6 +142,11 @@ int initialise (void)
   init_config_opt ("AllowAnnotation", TRUE);
   init_config_opt ("AllowModifications", TRUE);
   init_config_opt ("AllowAssembly", TRUE);
+  init_config_str ("PDFMarkTitle", "");
+  init_config_str ("PDFMarkAuthor", "");
+  init_config_str ("PDFMarkSubject", "");
+  init_config_str ("PDFMarkKeywords", "");
+  init_config_str ("PDFMarkUserFile", "");
   init_config_opt ("PreProcess", FALSE);
   init_config_opt ("ResetParams", FALSE);
   init_config_opt ("IconBarIcon", TRUE);
