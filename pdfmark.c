@@ -218,7 +218,11 @@ char *convert_to_pdf_doc_encoding(char* out, char *in, int len)
   {
     c = latin1_to_pdfdocencoding[(*ci++) % 256];
 
-    if (c >= 32 && c < 127)
+    /* 'Standard' characters in range 32 to 126 go through as a single byte;
+     * anything else is escaped in octal.
+     */
+
+    if (c >= 32 && c < 127 && c != '(' && c != ')')
     {
       *co++ = c;
     }
