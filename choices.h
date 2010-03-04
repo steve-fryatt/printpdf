@@ -16,6 +16,8 @@
 #define CHOICE_ICON_VERSION_MENU 9
 #define CHOICE_ICON_OPTIMIZE 11
 #define CHOICE_ICON_OPTIMIZE_MENU 12
+#define CHOICE_ICON_INFO 24
+#define CHOICE_ICON_INFO_MENU 25
 #define CHOICE_ICON_ENCRYPT 14
 #define CHOICE_ICON_ENCRYPT_MENU 15
 #define CHOICE_ICON_PREPROCESS 16
@@ -43,6 +45,8 @@ void process_choices_optimize_menu (wimp_selection *selection);
 
 void open_choices_encrypt_dialogue (wimp_pointer *pointer);
 void process_choices_encrypt_dialogue (void);
+void open_choices_pdfmark_dialogue (wimp_pointer *pointer);
+void process_choices_pdfmark_dialogue (void);
 void process_choices_optimize_dialogue (void);
 
 #endif

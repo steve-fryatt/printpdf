@@ -106,7 +106,6 @@ void open_pdfmark_dialogue (pdfmark_params *params, wimp_pointer *pointer)
   strcpy (indirected_icon_text (windows.pdfmark, PDFMARK_ICON_AUTHOR), params->author);
   strcpy (indirected_icon_text (windows.pdfmark, PDFMARK_ICON_SUBJECT), params->subject);
   strcpy (indirected_icon_text (windows.pdfmark, PDFMARK_ICON_KEYWORDS), params->keywords);
-  strcpy (indirected_icon_text (windows.pdfmark, PDFMARK_ICON_USERFILE), params->userfile);
 
   shade_pdfmark_dialogue ();
 
@@ -123,8 +122,6 @@ void process_pdfmark_dialogue (pdfmark_params *params)
   strncpy(params->author, indirected_icon_text (windows.pdfmark, PDFMARK_ICON_AUTHOR), MAX_INFO_FIELD);
   strncpy(params->subject, indirected_icon_text (windows.pdfmark, PDFMARK_ICON_SUBJECT), MAX_INFO_FIELD);
   strncpy(params->keywords, indirected_icon_text (windows.pdfmark, PDFMARK_ICON_KEYWORDS), MAX_INFO_FIELD);
-
-  strncpy(params->userfile, indirected_icon_text (windows.pdfmark, PDFMARK_ICON_USERFILE), MAX_PDFMARK_FILENAME);
 
   wimp_create_menu ((wimp_menu *) -1, 0, 0);
 }

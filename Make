@@ -26,7 +26,7 @@ OBJS = o.choices o.convert o.dataxfer o.encrypt o.ihelp o.init o.main o.menus o.
 # each time the makefile is run.  This is to ensure that the info window date constant is
 # updated correctly.
 
-o.choices: h.choices c.choices h.encrypt h.optimize h.pmenu h.version h.windows
+o.choices: h.choices c.choices h.encrypt h.optimize h.pdfmark h.pmenu h.version h.windows
 	$(CC) $(CCFlags) $(Include) -o o.choices -c c.choices
 
 o.convert: h.convert c.convert h.encrypt h.main h.optimize h.pdfmark h.pmenu h.popup h.version h.windows

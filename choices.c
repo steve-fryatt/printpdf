@@ -29,6 +29,7 @@
 
 #include "encrypt.h"
 #include "optimize.h"
+#include "pdfmark.h"
 #include "pmenu.h"
 #include "version.h"
 #include "windows.h"
@@ -40,6 +41,7 @@
 static encrypt_params  encryption;
 static optimize_params optimization;
 static version_params  version;
+static pdfmark_params  pdfmark;
 
 /* ==================================================================================================================
  * Open and close the window
@@ -82,6 +84,7 @@ void set_choices_window (void)
   initialise_encryption_settings (&encryption);
   initialise_optimization_settings (&optimization);
   initialise_version_settings (&version);
+  initialise_pdfmark_settings (&pdfmark);
 
   set_icon_selected (windows.choices, CHOICE_ICON_RESETEVERY, read_config_opt ("ResetParams"));
   set_icon_selected (windows.choices, CHOICE_ICON_IBAR, read_config_opt ("IconBarIcon"));
@@ -93,6 +96,7 @@ void set_choices_window (void)
   fill_version_field (windows.choices, CHOICE_ICON_VERSION, &version);
   fill_optimization_field (windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
   fill_encryption_field (windows.choices, CHOICE_ICON_ENCRYPT, &encryption);
+  fill_pdfmark_field (windows.choices, CHOICE_ICON_INFO, &pdfmark);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -129,6 +133,11 @@ void read_choices_window (void)
   set_config_opt ("AllowAnnotation", encryption.allow_annotation);
   set_config_opt ("AllowModifications", encryption.allow_modifications);
   set_config_opt ("AllowAssembly", encryption.allow_assembly);
+
+  set_config_str ("PDFMarkTitle", pdfmark.title);
+  set_config_str ("PDFMarkAuthor", pdfmark.author);
+  set_config_str ("PDFMarkSubject", pdfmark.subject);
+  set_config_str ("PDFMarkKeywords", pdfmark.keywords);
 
   set_config_int ("Optimization", optimization.standard_preset);
 
@@ -264,6 +273,24 @@ void process_choices_encrypt_dialogue (void)
   process_encrypt_dialogue (&encryption);
 
   fill_encryption_field (windows.choices, CHOICE_ICON_ENCRYPT, &encryption);
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+void open_choices_pdfmark_dialogue (wimp_pointer *pointer)
+{
+  open_pdfmark_dialogue (&pdfmark, pointer);
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+void process_choices_pdfmark_dialogue (void)
+{
+  extern global_windows windows;
+
+  process_pdfmark_dialogue (&pdfmark);
+
+  fill_pdfmark_field (windows.choices, CHOICE_ICON_INFO, &pdfmark);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

@@ -306,7 +306,7 @@ void mouse_click_handler (wimp_pointer *pointer)
             break;
 
           case PDFMARK_CHOICE:
-            /* process_choices_pdfmark_dialogue ();*/
+            process_choices_pdfmark_dialogue ();
             break;
         }
         break;
@@ -521,6 +521,11 @@ void mouse_click_handler (wimp_pointer *pointer)
         global_encryption_dialogue_location = ENCRYPTION_CHOICE;
         open_choices_encrypt_dialogue (pointer);
         break;
+
+      case CHOICE_ICON_INFO_MENU:
+        global_pdfmark_dialogue_location = PDFMARK_CHOICE;
+        open_choices_pdfmark_dialogue (pointer);
+        break;
     }
   }
 
@@ -578,7 +583,7 @@ void key_press_handler (wimp_key *key)
             break;
 
           case PDFMARK_CHOICE:
-            /*process_choices_pdfmark_dialogue ();*/
+            process_choices_pdfmark_dialogue ();
             break;
         }
         break;

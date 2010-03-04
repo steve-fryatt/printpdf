@@ -6,7 +6,7 @@
 # General application details
 
 TaskName:PrintPDF
-Version:0.62 (%0)
+Version:0.70 (%0)
 
 ChildTaskName:PrintPDF Child
 
@@ -66,6 +66,7 @@ Help.SavePDF.Optimize:\Toptimization that will be used for the PDF file.
 Help.SavePDF.SetOptimize:\Schange the optimization that will be used for the PDF file.
 Help.SavePDF.Encrypt:\Tencryption and protection that will be used for the PDF file.
 Help.SavePDF.SetEncrypt:\Schange the encryption and protection options that will be used for the PDF file.
+Help.SavePDF.PDFMark:\Tthe name of a PDFMark file to be used to add more features to the conversion.|MEnter a full pathname, or drop a suitable file here.
 Help.SavePDF.Info:\Tinformation (title, author, etc) and bookmarks that will be used for the PDF file.
 Help.SavePDF.SetInfo:\Schange the information and bookmarks associated with the PDF file.
 Help.SavePDF.Preprocess:\Stoggle whether the data for the PDF file will pre-processed by GhostScript before the conversion.
@@ -156,6 +157,8 @@ Help.Choices.Optimize:\Toptimization that will be used for PDF files.
 Help.Choices.SetOptimize:\Schange the optimization that will be used for PDF files.
 Help.Choices.Encrypt:\Tencryption and protection that will be used for PDF files.
 Help.Choices.SetEncrypt:\Schange the encryption and protection options that will be used for PDF files.
+Help.Choices.Info:\Tinformation (title, author, etc) and bookmarks that will be used for PDF files.
+Help.Choices.SetInfo:\Schange the information and bookmarks that will be associated with PDF files.
 Help.Choices.DefFile:\Tdefault filename offered when saving a new PDF.
 Help.Choices.Preprocess:\Stoggle whether data for PDF files will pre-processed by GhostScript before conversion.
 Help.Choices.ResetEvery:\Sdetermine whether options in the Save PDF dialogue are reset each time or remembered between conversions in the same session.
