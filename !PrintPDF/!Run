@@ -1,4 +1,4 @@
-| >!Run	
+| >!Run
 |
 | Run file for PrintPDF
 |
@@ -18,6 +18,6 @@ If "<Boot$OSVersion>" >= "500" Then IconSprites <PrintPDF$Dir>.5Sprites Else Ico
 RMEnsure SharedCLibrary 5.17 RMLoad System:Modules.CLib
 RMEnsure SharedCLibrary 5.34 Error PrintPDF requires version 5.34 or later of the Shared C Library.
 
-WimpSlot -min 128k -max 128k
+WimpSlot -min 256k -max 256k
 
 Run <PrintPDF$Dir>.!RunImage %*0

@@ -33,8 +33,6 @@ typedef struct pdfmark_params
   char author[MAX_INFO_FIELD];
   char subject[MAX_INFO_FIELD];
   char keywords[MAX_INFO_FIELD];
-
-  char userfile[MAX_PDFMARK_FILENAME];
 }
 pdfmark_params;
 

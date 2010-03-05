@@ -108,6 +108,7 @@ void initialise_conversion (void)
   /* Initialise the options. */
 
   strcpy (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), read_config_str ("FileName"));
+  strcpy (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE), read_config_str ("PDFMarkUserFile"));
   set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, read_config_opt ("PreProcess"));
 
   initialise_encryption_settings (&encryption);
@@ -361,6 +362,7 @@ void open_conversion_dialogue (void)
   if (read_config_opt ("ResetParams"))
   {
     strcpy (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), read_config_str ("FileName"));
+    strcpy (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE), read_config_str ("PDFMarkUserFile"));
     set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, read_config_opt ("PreProcess"));
     initialise_encryption_settings (&encryption);
     initialise_optimization_settings (&optimization);
@@ -390,7 +392,6 @@ void conversion_dialogue_end (char *output_file)
 
   extern global_windows windows;
 
-
   /* Sort out the filenames. */
 
   terminate_ctrl_str (output_file);
@@ -401,6 +402,7 @@ void conversion_dialogue_end (char *output_file)
   /* Read and store the options from the window. */
 
   params.preprocess_in_ps2ps = read_icon_selected (windows.save_pdf, SAVE_PDF_ICON_PREPROCESS);
+  ctrl_strcpy (params.pdfmark_userfile, indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE));
 
   /* Launch the conversion process. */
 
@@ -441,7 +443,7 @@ void conversion_dialogue_queue (void)
     {
       list->object_type = HELD_IN_QUEUE;
 
-      strncpy (list->display_name, leafname, MAX_DISPLAY_NAME);
+      strcpy (list->display_name, leafname);
       (list->display_name)[MAX_DISPLAY_NAME-1] = '\0';
 
       list->include = TRUE;
@@ -469,20 +471,34 @@ void handle_save_icon_drop (wimp_full_message_data_xfer *dataload)
   extern global_windows windows;
 
 
-  if (dataload != NULL && dataload->w == windows.save_pdf && dataload->i == SAVE_PDF_ICON_NAME)
+  if (dataload != NULL && dataload->w == windows.save_pdf)
   {
-    strncpy (path, dataload->file_name, 256);
-
-    extension = find_extension (path);
-    leaf = lose_extension (path);
-    find_pathname (path);
-
-    if (strcmp_no_case (extension, "pdf") != 0)
+    switch (dataload->i)
     {
-      sprintf (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), "%s.%s/pdf", path, leaf);
+    case SAVE_PDF_ICON_NAME:
+      strcpy (path, dataload->file_name);
 
-      replace_caret_in_window (dataload->w);
-      wimp_set_icon_state (dataload->w, dataload->i, 0, 0);
+      extension = find_extension (path);
+      leaf = lose_extension (path);
+      find_pathname (path);
+
+      if (strcmp_no_case (extension, "pdf") != 0)
+      {
+        snprintf (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), 256, "%s.%s/pdf", path, leaf);
+
+        replace_caret_in_window (dataload->w);
+        wimp_set_icon_state (dataload->w, dataload->i, 0, 0);
+      }
+      break;
+
+    case SAVE_PDF_ICON_USERFILE:
+      if (dataload->file_type == 0xfff)
+      {
+        strcpy (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE), dataload->file_name);
+        replace_caret_in_window (dataload->w);
+        wimp_set_icon_state (dataload->w, dataload->i, 0, 0);
+      }
+      break;
     }
   }
 }
@@ -501,6 +517,7 @@ int conversion_progress (conversion_params *params)
 {
   static int             conversion_state = CONVERSION_STOPPED;
   static char            output_file[MAX_FILENAME];
+  static char            pdfmark_file[MAX_FILENAME];
   static int             preprocess_in_ps2ps;
 
   char                   intermediate_file[MAX_FILENAME], *intermediate_leaf="inter";
@@ -513,6 +530,7 @@ int conversion_progress (conversion_params *params)
   if (conversion_state == CONVERSION_STOPPED && params != NULL)
   {
     strcpy (output_file, params->output_filename);
+    strcpy (pdfmark_file, params->pdfmark_userfile);
 
     preprocess_in_ps2ps = params->preprocess_in_ps2ps;
 
@@ -535,7 +553,7 @@ int conversion_progress (conversion_params *params)
         }
         else
         {
-          conversion_state = (launch_ps2pdf (output_file)) ? CONVERSION_STOPPED : CONVERSION_PS2PDF;
+          conversion_state = (launch_ps2pdf (output_file, pdfmark_file)) ? CONVERSION_STOPPED : CONVERSION_PS2PDF;
         }
       }
       else
@@ -574,7 +592,7 @@ int conversion_progress (conversion_params *params)
           *end = new;
         }
 
-        conversion_state = (launch_ps2pdf (output_file)) ? CONVERSION_STOPPED : CONVERSION_PS2PDF;
+        conversion_state = (launch_ps2pdf (output_file, pdfmark_file)) ? CONVERSION_STOPPED : CONVERSION_PS2PDF;
       }
       else
       {
@@ -658,7 +676,7 @@ int launch_ps2ps (char *file_out)
  * in PipeFS and pass this in to gs as a parameters file using the @ parameter.
  */
 
-int launch_ps2pdf (char *file_out)
+int launch_ps2pdf (char *file_out, char *pdfmark_file)
 {
   char        command[1024], taskname[32], encrypt_buf[1024], optimize_buf[1024], version_buf[1024];
   queued_file *list;
@@ -704,6 +722,14 @@ int launch_ps2pdf (char *file_out)
       /* If there is a PDFMark file, pass that in too. */
 
       fprintf (param_file, " %s", read_config_str ("PDFMarkFile"));
+    }
+
+    if (*pdfmark_file != '\0' &&
+            osfile_read_stamped_no_path (pdfmark_file, NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
+   {
+      /* If there is a PDFMark User File, pass that in too. */
+
+      fprintf (param_file, " %s", pdfmark_file);
     }
 
     fclose (param_file);

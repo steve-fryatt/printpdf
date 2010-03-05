@@ -74,3 +74,8 @@
 0.61
 ----
 * Intermediate ps2ps file correctly saved into Scrap, not CSD.
+
+0.70
+----
+* Support for PDFMark DOCINFO fields added (Title, Author, Subject, Keywords).
+* Additional PDFMark file can be supplied for a conversion.

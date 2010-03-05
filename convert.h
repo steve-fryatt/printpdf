@@ -26,20 +26,21 @@
 
 /* Save PDF Window icons. */
 
-#define SAVE_PDF_ICON_OK            0
-#define SAVE_PDF_ICON_CANCEL        1
-#define SAVE_PDF_ICON_NAME          2
-#define SAVE_PDF_ICON_FILE          3
-#define SAVE_PDF_ICON_VERSION_MENU  4
-#define SAVE_PDF_ICON_VERSION_FIELD 5
-#define SAVE_PDF_ICON_OPT_MENU      7
-#define SAVE_PDF_ICON_OPT_FIELD     8
-#define SAVE_PDF_ICON_PREPROCESS    10
-#define SAVE_PDF_ICON_ENCRYPT_MENU  11
-#define SAVE_PDF_ICON_ENCRYPT_FIELD 12
-#define SAVE_PDF_ICON_QUEUE         14
-#define SAVE_PDF_ICON_PDFMARK_MENU  15
-#define SAVE_PDF_ICON_PDFMARK_FIELD 16
+#define SAVE_PDF_ICON_OK             0
+#define SAVE_PDF_ICON_CANCEL         1
+#define SAVE_PDF_ICON_NAME           2
+#define SAVE_PDF_ICON_FILE           3
+#define SAVE_PDF_ICON_VERSION_MENU   4
+#define SAVE_PDF_ICON_VERSION_FIELD  5
+#define SAVE_PDF_ICON_OPT_MENU       7
+#define SAVE_PDF_ICON_OPT_FIELD      8
+#define SAVE_PDF_ICON_PREPROCESS     10
+#define SAVE_PDF_ICON_ENCRYPT_MENU   11
+#define SAVE_PDF_ICON_ENCRYPT_FIELD  12
+#define SAVE_PDF_ICON_QUEUE          14
+#define SAVE_PDF_ICON_PDFMARK_MENU   15
+#define SAVE_PDF_ICON_PDFMARK_FIELD  16
+#define SAVE_PDF_ICON_USERFILE       18
 
 /* Defer queue window icons. */
 
@@ -78,6 +79,7 @@ typedef struct conversion_params
 {
   char  input_filename[MAX_FILENAME];
   char  output_filename[MAX_FILENAME];
+  char  pdfmark_userfile[MAX_FILENAME];
 
   int   preprocess_in_ps2ps;
 }
@@ -112,7 +114,7 @@ void handle_save_icon_drop (wimp_full_message_data_xfer *dataload);
 
 int conversion_progress (conversion_params *params);
 int launch_ps2ps (char *file_out);
-int launch_ps2pdf (char *file_out);
+int launch_ps2pdf (char *file_out, char *pdfmark_file);
 void check_for_conversion_end (wimp_t task_handle);
 void cancel_conversion (void);
 

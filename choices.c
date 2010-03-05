@@ -204,7 +204,7 @@ void handle_choices_icon_drop (wimp_full_message_data_xfer *datasave)
 
   if (datasave != NULL && datasave->w == windows.choices && datasave->i == CHOICE_ICON_DEFFILE)
   {
-    strncpy (path, datasave->file_name, 256);
+    strcpy (path, datasave->file_name);
 
     extension = find_extension (path);
     leaf = lose_extension (path);

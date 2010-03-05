@@ -85,13 +85,10 @@ char *convert_to_pdf_doc_encoding(char* out, char *in, int len);
 
 void initialise_pdfmark_settings (pdfmark_params *params)
 {
-  strncpy(params->title, read_config_str("PDFMarkTitle"), MAX_INFO_FIELD);
-  strncpy(params->author, read_config_str("PDFMarkAuthor"), MAX_INFO_FIELD);
-  strncpy(params->subject, read_config_str("PDFMarkSubject"), MAX_INFO_FIELD);
-  strncpy(params->keywords, read_config_str("PDFMarkKeyWords"), MAX_INFO_FIELD);
-
-  strncpy(params->userfile, read_config_str("PDFMarkUserFile"), MAX_PDFMARK_FILENAME);
-
+  strcpy(params->title, read_config_str("PDFMarkTitle"));
+  strcpy(params->author, read_config_str("PDFMarkAuthor"));
+  strcpy(params->subject, read_config_str("PDFMarkSubject"));
+  strcpy(params->keywords, read_config_str("PDFMarkKeyWords"));
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -118,10 +115,10 @@ void process_pdfmark_dialogue (pdfmark_params *params)
 {
   extern global_windows windows;
 
-  strncpy(params->title, indirected_icon_text (windows.pdfmark, PDFMARK_ICON_TITLE), MAX_INFO_FIELD);
-  strncpy(params->author, indirected_icon_text (windows.pdfmark, PDFMARK_ICON_AUTHOR), MAX_INFO_FIELD);
-  strncpy(params->subject, indirected_icon_text (windows.pdfmark, PDFMARK_ICON_SUBJECT), MAX_INFO_FIELD);
-  strncpy(params->keywords, indirected_icon_text (windows.pdfmark, PDFMARK_ICON_KEYWORDS), MAX_INFO_FIELD);
+  strcpy(params->title, indirected_icon_text (windows.pdfmark, PDFMARK_ICON_TITLE));
+  strcpy(params->author, indirected_icon_text (windows.pdfmark, PDFMARK_ICON_AUTHOR));
+  strcpy(params->subject, indirected_icon_text (windows.pdfmark, PDFMARK_ICON_SUBJECT));
+  strcpy(params->keywords, indirected_icon_text (windows.pdfmark, PDFMARK_ICON_KEYWORDS));
 
   wimp_create_menu ((wimp_menu *) -1, 0, 0);
 }
