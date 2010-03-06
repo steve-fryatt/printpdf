@@ -1,16 +1,18 @@
 | Set the original source file for the manual.
 
-Set Create$Source ADFS::Iyonix.$.Public.Programming.PrintPDF.Manual.Source
-Set Create$Sprite ADFS::Iyonix.$.Public.Programming.PrintPDF.Manual.ManSprite
+Set Create$Dir <Obey$Dir>
+
+Set Create$Source <Create$Dir>.Source
+Set Create$Sprite <Create$dir>.ManSprite
 
 | Set the destination for the text manual.
 
-Set Create$TX$Dest ADFS::Iyonix.$.Public.Programming.PrintPDF.!PrintPDF.Resources.UK.HelpText
+Set Create$TX$Dest <Create$Dir>.^.!PrintPDF.Resources.UK.HelpText
 
 | Set the destination and intermediate files for the StrongHelp manual.
 
-Set Create$SH$Dest ADFS::Iyonix.$.Public.Programming.PrintPDF.!PrintPDF.Resources.UK.PrintPDF
-Set Create$SH$Inter ADFS::Iyonix.$.Public.Programming.PrintPDF.Manual.SHInter
+Set Create$SH$Dest <Create$Dir>.^.!PrintPDF.Resources.UK.PrintPDF
+Set Create$SH$Inter <Create$Dir>.SHInter
 
 | Delete the text manual and recreate it.
 
@@ -48,3 +50,5 @@ UnSet Create$SH$Dest
 UnSet Create$SH$Inter
 
 UnSet Create$TX$Dest
+
+UnSet Create$Dir
