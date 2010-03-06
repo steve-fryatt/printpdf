@@ -12,6 +12,7 @@
 
 /* OSLib header files */
 
+#include "oslib/osbyte.h"
 #include "oslib/wimp.h"
 
 /* SF-Lib header files. */
@@ -203,14 +204,23 @@ int pdfmark_data_available (pdfmark_params *params)
 
 char *convert_to_pdf_doc_encoding(char* out, char *in, int len)
 {
+  int  alphabet;
   char c, *ci, *co;
+
+  alphabet = osbyte1(osbyte_ALPHABET_NUMBER, 127, 0);
 
   ci = in;
   co = out;
 
   while ((*ci != '\0') && ((co - out) < len))
   {
-    c = latin1_to_pdfdocencoding[(*ci++) % 256];
+    switch (alphabet)
+    {
+    case 101: /* Latin 1, or catch-all defualt. */
+    default:
+      c = latin1_to_pdfdocencoding[(*ci++) % 256];
+      break;
+    }
 
     /* 'Standard' characters in range 32 to 126 go through as a single byte;
      * anything else is escaped in octal.
