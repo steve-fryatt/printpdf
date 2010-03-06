@@ -113,13 +113,24 @@ Installing PrintPDF
   PostScript file in the PrintPDF queue allows the PDF creation process to be
   simplified.
 
-  There are two alternative ways to set things up.  The first is to use the
-  standard PoScript2 driver; while this works fine, it means that the icon
-  used to indicate the "PDF printer" is fairly nondescript.  The alternative
-  uses a slightly modified version of the driver (supplied in the Printers of
-  the PrintPDF archive), which allows a different icon to be displayed.
+  There are several alternative ways to set things up, and two or more can be
+  used in parallel (allowing, for example, PS2 and PS3 icons so that PDF
+  output can be generated via whichever is currently selected):
 
-  To set up by either method, first, load PrintPDF so that its icon is on the
+  * Use the standard PoScript2 driver; while this works fine, it means that
+    the icon used to indicate the "PDF printer" is fairly nondescript.  This
+    uses PostScript2 to send data to the printer
+
+  * Use a slightly modified version of the driver (supplied in the Printers
+    folder of the PrintPDF archive), which allows a different icon to be
+    displayed but is otherwise identical.
+
+  * Use the PDF3 driver supplied in the PrintDefs.PrintPDF folder of the PS3
+    Driver download from Martin Wuerthner and John Tytgat (this is commercial
+    software - see http://www.mw-software.com/software/ps3/ps3.html).  This
+    allows PrintPDF to send PostScript3 data to GhostScript.
+
+  To set up by either method, first load PrintPDF so that its icon is on the
   iconbar.  If it has been configured to run without an icon, see the Setting
   Choices section for details on how to change this.
 
@@ -301,6 +312,14 @@ Using PrintPDF
 
   * 'Prepress' does not downsample images.  Pages are not rotated.
 
+  The 'Information' field allows the PDF document information to be set up:
+  document title, subject, author and content keywords.  When the field shows
+  'None' then the default values set by the printing system will be used.
+  Clicking on the pop-up menu to the right of the field gives access to these
+  entries, allowing them to be changed.  Most PDF readers show the document
+  title in the titlebar of the display window, while the other fields appear
+  with the document properties or document information.
+
   The 'Encryption' field allows access to the document encryption, password
   protection and access limitation features, if GhostScript 8.5 or better is
   being used.  When the field shows 'Unprotected', no encryption is applied;
@@ -327,6 +346,12 @@ Using PrintPDF
   before the PDF generation is started.  While this adds time to the
   conversion, it can allow some files to work which would otherwise fail to
   convert.
+
+  At the bottom of the dialogue is field to supply a 'PDFMark file' for the
+  conversion: enter a filename into the field, or drag a suitable text file
+  in from the filer.  This is a special file used by GhostScript to control
+  different aspects of the conversion: at present it is intended for advanced
+  users, and its operation is beyond the scope of this manual.
 
 
   Changing printer options
@@ -620,6 +645,18 @@ Version History
   Update to sixth beta release.
 
   * Intermediate "*ps2ps" files correctly saved into queue (broken in 0.60).
+
+
+  0.70 (6 March 2010)
+  -------------------
+
+  Seventh beta release.
+
+  * Support for document information fields (title, author, subject,
+    keywords) via the PDFMark interface.
+  * Additional PDFMark file can be supplied to GhostScript for each
+    conversion.
+  * Manual updated to reflect PostScript3 driver setup details.
 
 
 
