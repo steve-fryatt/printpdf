@@ -3,7 +3,7 @@
 Set Create$Dir <Obey$Dir>
 
 Set Create$Source <Create$Dir>.Source
-Set Create$Sprite <Create$dir>.ManSprite
+Set Create$Sprite <Create$Dir>.ManSprite
 
 | Set the destination for the text manual.
 
