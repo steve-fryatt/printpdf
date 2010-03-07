@@ -38,11 +38,12 @@
 
 #include "init.h"
 
-#include "menus.h"
-#include "windows.h"
+#include "bookmark.h"
 #include "convert.h"
+#include "menus.h"
 #include "pmenu.h"
 #include "taskman.h"
+#include "windows.h"
 
 /* ================================================================================================================== */
 
@@ -178,6 +179,7 @@ int initialise (void)
   /* Initialise the postscript file queue and save box. */
 
   initialise_conversion ();
+  initialise_bookmarks();
 
   hourglass_off ();
 

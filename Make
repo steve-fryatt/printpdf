@@ -14,8 +14,8 @@ Links = -lOSLib:o.OsLib32 -lOSLibSupport:o.OsLibSupport -lSFLib:o.SFLib -lC:o.fl
 
 # Final target
 
-OBJS = o.choices o.convert o.dataxfer o.encrypt o.ihelp o.init o.main o.menus o.optimize o.pdfmark \
-       o.pmenu o.popup o.taskman o.version o.windows
+OBJS = o.bookmark o.choices o.convert o.dataxfer o.encrypt o.ihelp o.init o.main o.menus \
+       o.optimize o.pdfmark o.pmenu o.popup o.taskman o.version o.windows
 
 !PrintPDF/!RunImage: $(OBJS)
 	$(CC) $(CCFlags) $(Include) $(Links) -o !PrintPDF/!RunImage $(OBJS)
@@ -25,6 +25,9 @@ OBJS = o.choices o.convert o.dataxfer o.encrypt o.ihelp o.init o.main o.menus o.
 # NB: windows.o is recompiled if compiledate.h changes, which means that it will be re-compiled
 # each time the makefile is run.  This is to ensure that the info window date constant is
 # updated correctly.
+
+o.bookmark: h.bookmark c.bookmark h.menus h.pmenu h.windows
+	$(CC) $(CCFlags) $(Include) -o o.bookmark -c c.bookmark
 
 o.choices: h.choices c.choices h.encrypt h.optimize h.pdfmark h.pmenu h.version h.windows
 	$(CC) $(CCFlags) $(Include) -o o.choices -c c.choices
@@ -41,11 +44,11 @@ o.encrypt: h.encrypt c.encrypt h.pmenu h.windows
 o.ihelp: h.ihelp c.ihelp h.menus
 	$(CC) $(CCFlags) $(Include) -o o.ihelp -c c.ihelp
 
-o.init: h.init c.init h.menus h.windows h.convert h.pmenu h.taskman
+o.init: h.init c.init h.bookmark h.convert h.menus h.pmenu h.taskman h.windows
 	$(CC) $(CCFlags) $(Include) -o o.init -c c.init
 
-o.main: h.main c.main h.choices h.convert h.dataxfer h.encrypt h.ihelp h.init h.menus h.optimize \
-        h.pdfmark h.pmenu h.popup h.taskman h.version h.windows
+o.main: h.main c.main h.bookmark h.choices h.convert h.dataxfer h.encrypt h.ihelp h.init \
+        h.menus h.optimize h.pdfmark h.pmenu h.popup h.taskman h.version h.windows
 	$(CC) $(CCFlags) $(Include) -o o.main -c c.main
 
 o.menus: h.menus c.menus h.choices h.windows h.convert h.pmenu

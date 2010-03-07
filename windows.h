@@ -30,6 +30,8 @@ typedef struct
   wimp_w      popup;
 
   wimp_window *queue_pane_def;
+  wimp_window *bookmark_window_def;
+  wimp_window *bookmark_pane_def;
 }
 global_windows;
 

@@ -4,4 +4,4 @@
  * Auto-generated at compilation time by CompileDate.
  */
 
-#define INFO_BOX_DATE "6 Mar 2010"
+#define INFO_BOX_DATE "7 Mar 2010"

@@ -226,6 +226,37 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
     wimp_msgtrans_fatal_report ("BadTemplate");
   }
 
+  /* Bookmark Window.
+   *
+   * Definition Saved for later.
+   */
+
+  window_def = load_window_template ("BMark");
+  if (window_def != NULL)
+  {
+    window_def->icon_count = 0;
+    windows.bookmark_window_def = window_def;
+  }
+  else
+  {
+    wimp_msgtrans_fatal_report ("BadTemplate");
+  }
+
+  /* Bookmark Pane.
+   *
+   * Definition Saved for later.
+   */
+
+  window_def = load_window_template ("BMarkPane");
+  if (window_def != NULL)
+  {
+    windows.bookmark_pane_def = window_def;
+  }
+  else
+  {
+    wimp_msgtrans_fatal_report ("BadTemplate");
+  }
+
   wimp_close_template ();
 }
 

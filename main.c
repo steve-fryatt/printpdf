@@ -33,6 +33,7 @@
 
 #include "main.h"
 
+#include "bookmark.h"
 #include "choices.h"
 #include "convert.h"
 #include "dataxfer.h"
@@ -74,15 +75,16 @@ int main (int argc, char *argv[])
   extern wimp_t task_handle;
 
 
-  initialise ();
+  initialise();
 
-  parse_command_line (argc, argv);
+  parse_command_line(argc, argv);
 
-  poll_loop ();
+  poll_loop();
 
-  msgs_close_file ();
+  terminate_bookmarks();
+  msgs_close_file();
   wimp_close_down (task_handle);
-  remove_all_remaining_conversions ();
+  remove_all_remaining_conversions();
 
   return (0);
 }
@@ -121,7 +123,10 @@ int poll_loop (void)
         break;
 
       case wimp_CLOSE_WINDOW_REQUEST:
-        wimp_close_window (blk.close.w);
+        if (!close_bookmark_window(blk.close.w))
+        {
+          wimp_close_window (blk.close.w);
+        }
        break;
 
       case wimp_MOUSE_CLICK:
@@ -179,7 +184,7 @@ void mouse_click_handler (wimp_pointer *pointer)
     switch ((int) pointer->buttons)
     {
       case wimp_CLICK_SELECT:
-        /*traverse_queue ();*/
+        create_new_bookmark_window(pointer);
         break;
 
       case wimp_CLICK_MENU:
