@@ -115,7 +115,10 @@ int poll_loop (void)
         break;
 
       case wimp_REDRAW_WINDOW_REQUEST:
-        redraw_queue_pane (&(blk.redraw));
+        if (!redraw_bookmark_window(&blk.redraw));
+        {
+          redraw_queue_pane (&(blk.redraw));
+        }
         break;
 
       case wimp_OPEN_WINDOW_REQUEST:

@@ -12,6 +12,7 @@
 
 /* OSLib header files */
 
+#include "oslib/os.h"
 #include "oslib/osbyte.h"
 #include "oslib/wimp.h"
 
@@ -45,6 +46,7 @@
 void delete_bookmark_block(bookmark_block *bookmark);
 bookmark_block *find_bookmark_window(wimp_w window);
 bookmark_block *find_bookmark_toolbar(wimp_w window);
+void bookmark_window_redraw_loop(bookmark_block *bm, wimp_draw *redraw);
 
 /* ==================================================================================================================
  * Global variables.
@@ -98,7 +100,8 @@ void create_new_bookmark_window(wimp_pointer *pointer)
 
   if (new != NULL)
   {
-    place_window_as_toolbar(windows.bookmark_window_def, windows.bookmark_pane_def, 80);
+    place_window_as_toolbar(windows.bookmark_window_def, windows.bookmark_pane_def, BOOKMARK_TOOLBAR_HEIGHT
+                                                                                     - BOOKMARK_TOOLBAR_OFFSET);
     new->window = wimp_create_window(windows.bookmark_window_def);
     new->toolbar = wimp_create_window(windows.bookmark_pane_def);
 
@@ -110,7 +113,7 @@ void create_new_bookmark_window(wimp_pointer *pointer)
     /* Open the window and toolbar. */
 
     open_window(new->window);
-    open_window_nested_as_toolbar(new->toolbar, new->window, 80);
+    open_window_nested_as_toolbar(new->toolbar, new->window, BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
   }
 }
 
@@ -152,6 +155,67 @@ int close_bookmark_window(wimp_w window)
   else
   {
     return 0;
+  }
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+int redraw_bookmark_window(wimp_draw *redraw)
+{
+  bookmark_block *bm;
+
+  bm = find_bookmark_window(redraw->w);
+
+  if (bm != NULL)
+  {
+    bookmark_window_redraw_loop(bm, redraw);
+
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+void bookmark_window_redraw_loop(bookmark_block *bm, wimp_draw *redraw)
+{
+  int     ox, oy, top, bottom, y;
+  osbool  more;
+
+  extern global_windows windows;
+
+  more = wimp_redraw_window(redraw);
+
+  ox = redraw->box.x0 - redraw->xscroll;
+  oy = redraw->box.y1 - redraw->yscroll;
+
+  while (more)
+  {
+    top = (oy - redraw->clip.y1 - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
+    if (top < 0)
+      top = 0;
+
+    bottom = ((BOOKMARK_LINE_HEIGHT * 1.5) + oy - redraw->clip.y0 - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
+
+    for (y = top; y <= bottom; y++)
+    {
+      windows.bookmark_window_def->icons[0].extent.y0 = (-y * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET
+                                                            - BOOKMARK_TOOLBAR_HEIGHT);
+      windows.bookmark_window_def->icons[0].extent.y1 = (-y * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET
+                                                            - BOOKMARK_TOOLBAR_HEIGHT + BOOKMARK_ICON_HEIGHT);
+      windows.bookmark_window_def->icons[1].extent.y0 = (-y * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET
+                                                            - BOOKMARK_TOOLBAR_HEIGHT);
+      windows.bookmark_window_def->icons[1].extent.y1 = (-y * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET
+                                                            - BOOKMARK_TOOLBAR_HEIGHT + BOOKMARK_ICON_HEIGHT);
+
+      wimp_plot_icon(&(windows.bookmark_window_def->icons[0]));
+      wimp_plot_icon(&(windows.bookmark_window_def->icons[1]));
+    }
+
+    more = wimp_get_rectangle(redraw);
   }
 }
 
@@ -200,3 +264,13 @@ void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params)
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
+
+
+/* ==================================================================================================================
+ * Bookmark File Handling
+ */
+
+void load_bookmark_file (bookmark_block *mb, char *filename)
+{
+
+}
