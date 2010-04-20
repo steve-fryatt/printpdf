@@ -9,6 +9,7 @@ Set Release$Dir <Obey$Dir>.^.Release
 IfThere <Release$Dir>.!PrintPDF Then Wipe <Release$Dir>.!PrintPDF ~CFRV
 
 Copy <Release$Source$Dir>.!PrintPDF <Release$Dir>.!PrintPDF ~CRV
+WipeSVN <Release$Dir>.!PrintPDF
 
 | Update the external ReadMe file.
 
