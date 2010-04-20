@@ -232,7 +232,7 @@ char *convert_to_pdf_doc_encoding(char* out, char *in, int len)
     }
     else
     {
-      co += snprintf(co, ( - (co - out + 1)), "\\%3o", (unsigned int) c);
+      co += snprintf(co, ( - (co - out + 1)), "\\%03o", (unsigned int) c);
     }
   }
 

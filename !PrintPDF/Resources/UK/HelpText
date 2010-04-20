@@ -1,7 +1,7 @@
 =============================================================================
-PrintPDF - Easy PDF creation with GhostScript                    Version 0.70
+PrintPDF - Easy PDF creation with GhostScript                    Version 0.71
 
-(c) Stephen Fryatt, 2005                                         6 March 2010
+(c) Stephen Fryatt, 2005                                        20 April 2010
 =============================================================================
 
 
@@ -657,6 +657,14 @@ Version History
   * Additional PDFMark file can be supplied to GhostScript for each
     conversion.
   * Manual updated to reflect PostScript3 driver setup details.
+
+
+  0.71 (20 April 2010)
+  --------------------
+
+  Update to seventh beta release.
+
+  * Fix escaping of ( and ) PDFDocEncoding strings.
 
 
 
