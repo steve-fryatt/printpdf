@@ -8,7 +8,8 @@
 .PHONY: all clean documentation release
 
 
-# The archive to assemble the release files in.
+# The archive to assemble the release files in.  If $(RELEASE) is set, then the file can be given
+# a standard version number suffix.
 
 ZIPFILE := printpdf$(RELEASE).zip
 
