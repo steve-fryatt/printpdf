@@ -18,19 +18,22 @@ CP := cp
 
 ZIP := /home/steve/GCCSDK/env/bin/zip
 
-SFBIN := /home/steve/GCCSDK/sfbin/
+SFBIN := /home/steve/GCCSDK/sfbin
 
-TEXTMAN := $(SFBIN)textman
-STRONGMAN := $(SFBIN)strongman
-HTMLMAN := $(SFBIN)htmlman
-DDFMAN := $(SFBIN)ddfman
-BINDHELP := $(SFBIN)bindhelp
+TEXTMAN := $(SFBIN)/textman
+STRONGMAN := $(SFBIN)/strongman
+HTMLMAN := $(SFBIN)/htmlman
+DDFMAN := $(SFBIN)/ddfman
+BINDHELP := $(SFBIN)/bindhelp
+TEXTMERGE := $(SFBIN)/textmerge
+MENUGEN := $(SFBIN)/menugen
 
 # Build Flags
 
 CCFLAGS := -mlibscl -mhard-float -static -mthrowback -Wall -O2 -D'BUILD_DATE="$(BUILD_DATE)"' -fno-strict-aliasing -mpoke-function-name
 ZIPFLAGS := -r -, -9 -j
 BINDHELPFLAGS := -f -r -v
+MENUGENFLAGS :=
 
 # Includes and libraries.
 
@@ -40,6 +43,7 @@ LINKS := -L$(GCCSDK_LIBS)/OSLib-Hard/ -lOSLib32 -L$(GCCSDK_INSTALL_ENV)/lib -L$(
 # Set up the various build directories.
 
 SRCDIR := src
+MENUDIR := menus
 MANUAL := manual
 OBJDIR := obj
 OUTDIR := build
@@ -49,6 +53,7 @@ OUTDIR := build
 APP := !PrintPDF
 UKRES := Resources/UK
 RUNIMAGE := !RunImage,ffa
+MENUS := Menus,ffd
 TEXTHELP := HelpText,fff
 SHHELP := PrintPDF,3d6
 README := ReadMe,fff
@@ -58,13 +63,14 @@ README := ReadMe,fff
 MANSRC := Source
 MANSPR := ManSprite
 READMEHDR := Header
+MENUSRC := menudef
 
 OBJS := bookmark.o choices.o convert.o dataxfer.o encrypt.o ihelp.o init.o main.o menus.o \
         optimize.o pdfmark.o pmenu.o popup.o taskman.o version.o windows.o
 
 # Start to define the targets.
 
-all: $(OUTDIR)/$(APP)/$(RUNIMAGE)
+all: documentation $(OUTDIR)/$(APP)/$(RUNIMAGE) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
 
 # Build the complete !RunImage from the object files.
 
@@ -81,9 +87,14 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) -c $(CCFLAGS) $(INCLUDES) $< -o $@
 	@$(CC) -MM $(CCFLAGS) $(INCLUDES) $< > $(@:.o=.d)
 	@mv -f $(@:.o=.d) $(@:.o=.d).tmp
-	@sed -e 's|.*:|$*.0:|' < $(@:.o=.d).tmp > $*.d
+	@sed -e 's|.*:|$*.0:|' < $(@:.o=.d).tmp > $(@:.o=.d)
 	@sed -e 's/.*://' -e 's/\\$$//' < $(@:.o=.d).tmp | fmt -1 | sed -e 's/^ *//' -e 's/$$/:/' >> $(@:.o=.d)
 	@rm -f $(@:.o=.d).tmp
+
+# Build the menus file.
+
+$(OUTDIR)/$(APP)/$(UKRES)/$(MENUS): $(MENUDIR)/$(MENUSRC)
+	$(MENUGEN) $(MENUDIR)/$(MENUSRC) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS) $(MENUGENFLAGS)
 
 # Build the documentation
 
@@ -98,11 +109,15 @@ $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP): $(MANUAL)/$(MANSRC) $(MANUAL)/$(MANSPR)
 	$(BINDHELP) SHTemp $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP) $(BINDHELPFLAGS)
 	$(RM) SHTemp
 
-$(OUTDIR)/$(README):$(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP)
-	$(CP) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(README)
+$(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR)
+	$(TEXTMERGE) $(OUTDIR)/$(README) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR) 5
 
 # Clean targets
 
 clean:
 	$(RM) $(OBJDIR)/*
+	$(RM) $(OUTDIR)/$(APP)/!RunImage,ffa
+	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP)
+	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP)
+	$(RM) $(OUTDIR)/$(README)
 
