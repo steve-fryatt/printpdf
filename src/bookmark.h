@@ -10,9 +10,6 @@
  * Static constants
  */
 
-/* Optimization Window icons. */
-
-
 #define MAX_BOOKMARK_LEN 64  /* The real maximum is 256, but Adobe recommend 32 max for practicality. */
 #define BOOKMARK_TOOLBAR_HEIGHT 82
 #define BOOKMARK_LINE_HEIGHT 60
@@ -24,45 +21,37 @@
  * Data structures
  */
 
-typedef struct bookmark_node
-{
-  char                 title[MAX_BOOKMARK_LEN];
-  int                  destination;
+typedef struct bookmark_node {
+	char			title[MAX_BOOKMARK_LEN];
+	int			destination;
 
-  int                  expanded;
+	int			expanded;
 
-  struct bookmark_node *sub;
-  struct bookmark_node *next;
-}
-bookmark_node;
+	struct bookmark_node	*sub;
+	struct bookmark_node	*next;
+} bookmark_node;
 
-typedef struct bookmark_redraw
-{
-  bookmark_node         *node;
-  int                   indent;
-  int                   selected;
-}
-bookmark_redraw;
+typedef struct bookmark_redraw {
+	bookmark_node		*node;
+	int			indent;
+	int			selected;
+} bookmark_redraw;
 
-typedef struct bookmark_block
-{
-  wimp_w                window;
-  wimp_w                toolbar;
+typedef struct bookmark_block {
+	wimp_w			window;
+	wimp_w			toolbar;
 
-  bookmark_redraw       *redraw;
-  int                   lines;
+	bookmark_redraw		*redraw;
+	int			lines;
 
-  bookmark_node         *root;
+	bookmark_node		*root;
 
-  struct bookmark_block *next;
-}
-bookmark_block;
+	struct bookmark_block	*next;
+} bookmark_block;
 
-typedef struct bookmark_params
-{
-  bookmark_block *bookmarks;
-}
-bookmark_params;
+typedef struct bookmark_params {
+	bookmark_block		*bookmarks;
+} bookmark_params;
 
 /* ==================================================================================================================
  * Function prototypes.
@@ -70,7 +59,7 @@ bookmark_params;
 
 /* Handle the PDFMark window and menu. */
 
-void initialise_bookmarks (void);
+void initialise_bookmarks(void);
 void terminate_bookmarks(void);
 
 void create_new_bookmark_window(wimp_pointer *pointer);
