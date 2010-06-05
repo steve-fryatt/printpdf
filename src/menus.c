@@ -38,15 +38,21 @@
  * Static global variables
  */
 
-global_menus  menus;
-wimp_w        popup_window;
-wimp_i        popup_icon;
+global_menus		menus;
+wimp_w			popup_window;
+wimp_i			popup_icon;
 
 /* ==================================================================================================================
  * General
  */
 
-void load_menu_definitions (char *menu_file)
+/**
+ * Load the menu definitions and link in dialogue boxes.
+ *
+ * Param  *menu_file		Pointer to the filename of the Menus file.
+ */
+
+void load_menu_definitions(char *menu_file)
 {
 	wimp_menu		*menu_list[20];
 	menu_template		menu_defs;
@@ -64,23 +70,26 @@ void load_menu_definitions (char *menu_file)
 
 /* ================================================================================================================== */
 
-char *get_current_menu_name (char *buffer)
+/**
+ * Return a pointer to the name of the current menu.
+ *
+ * Param  *buffer		Pointer to a buffer to hold the menu name.
+ * Return			Pointer to the returned name.
+ */
+
+char *get_current_menu_name(char *buffer)
 {
-  extern global_menus menus;
+	extern			global_menus menus;
 
+	*buffer = '\0';
 
-  *buffer = '\0';
+	if (menus.menu_up == menus.icon_bar) {
+		strcpy (buffer, "IconBarMenu");
+	} else if (menus.menu_up == menus.params) {
+		strcpy (buffer, "ParamsMenu");
+	}
 
-  if (menus.menu_up == menus.icon_bar)
-  {
-    strcpy (buffer, "IconBarMenu");
-  }
-  else if (menus.menu_up == menus.params)
-  {
-    strcpy (buffer, "ParamsMenu");
-  }
-
-  return (buffer);
+	return (buffer);
 }
 
 /* ==================================================================================================================
