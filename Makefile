@@ -137,7 +137,7 @@ $(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR
 
 # Build the release Zip file.
 
-release: all
+release: clean all
 	$(RM) $(ZIPFILE)
 	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../$(ZIPFILE) $(APP))
 	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../$(ZIPFILE) $(README))
