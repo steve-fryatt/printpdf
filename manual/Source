@@ -456,7 +456,7 @@ Seventh beta release.
 Update to seventh beta release.
 
 <list>
-<li>Fix escaping of ( and ) PDFDocEncoding strings.
+<li>Fix escaping of ( and ) in PDFDocEncoding strings.
 </list>
 
 
