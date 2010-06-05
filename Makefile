@@ -5,7 +5,7 @@
 # This file really needs to be run by GNUMake.
 # It is intended for cross-compilation under the GCCSDK.
 
-.PHONY: all clean documentation release
+.PHONY: all clean application documentation release
 
 
 # The archive to assemble the release files in.  If $(RELEASE) is set, then the file can be given
@@ -88,7 +88,12 @@ OBJS := bookmark.o choices.o convert.o dataxfer.o encrypt.o ihelp.o init.o main.
 
 # Build everything, but don't package it for release.
 
-all: documentation $(OUTDIR)/$(APP)/$(RUNIMAGE) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
+all: application documentation
+
+
+# Build the application and its supporting binary files.
+
+application: $(OUTDIR)/$(APP)/$(RUNIMAGE) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
 
 
 # Build the complete !RunImage from the object files.
