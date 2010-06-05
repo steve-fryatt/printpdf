@@ -41,7 +41,7 @@ MENUGEN := $(SFBIN)/menugen
 # Build Flags
 
 CCFLAGS := -mlibscl -mhard-float -static -mthrowback -Wall -O2 -D'BUILD_DATE="$(BUILD_DATE)"' -fno-strict-aliasing -mpoke-function-name
-ZIPFLAGS := -r -, -9 -j
+ZIPFLAGS := -x "*/.svn/*" -r -, -9
 BINDHELPFLAGS := -f -r -v
 MENUGENFLAGS :=
 
@@ -138,10 +138,10 @@ $(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR
 
 release: all
 	$(RM) $(ZIPFILE)
-	$(ZIP) $(ZIPFLAGS) $(ZIPFILE) $(OUTDIR)/$(APP)
-	$(ZIP) $(ZIPFLAGS) $(ZIPFILE) $(OUTDIR)/$(README)
-	$(ZIP) $(ZIPFLAGS) $(ZIPFILE) $(OUTDIR)/$(LICENSE)
-	$(ZIP) $(ZIPFLAGS) $(ZIPFILE) $(OUTDIR)/$(PRINTERS)
+	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../$(ZIPFILE) $(APP))
+	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../$(ZIPFILE) $(README))
+	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../$(ZIPFILE) $(LICENSE))
+	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../$(ZIPFILE) $(PRINTERS))
 
 
 # Clean targets
