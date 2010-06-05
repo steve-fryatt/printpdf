@@ -44,7 +44,7 @@ MENUGEN := $(SFBIN)/menugen
 CCFLAGS := -mlibscl -mhard-float -static -mthrowback -Wall -O2 -D'BUILD_DATE="$(BUILD_DATE)"' -fno-strict-aliasing -mpoke-function-name
 ZIPFLAGS := -x "*/.svn/*" -r -, -9
 BINDHELPFLAGS := -f -r -v
-MENUGENFLAGS :=
+MENUGENFLAGS := -d
 
 
 # Includes and libraries.
@@ -152,5 +152,6 @@ clean:
 	$(RM) $(OUTDIR)/$(APP)/$(RUNIMAGE)
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP)
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP)
+	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
 	$(RM) $(OUTDIR)/$(README)
 
