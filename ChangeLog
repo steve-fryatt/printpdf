@@ -79,3 +79,8 @@
 ----
 * Support for PDFMark DOCINFO fields added (Title, Author, Subject, Keywords).
 * Additional PDFMark file can be supplied for a conversion.
+
+0.71
+----
+* Correct escaping of PDFDoc encoding.
+
