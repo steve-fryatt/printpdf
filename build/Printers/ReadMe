@@ -1,0 +1,5 @@
+"PDF300" and "PDF600" are two alternative printer definition for !Printers, based on the PoScript2 definition, which allows the use of a custom PDF Printer sprite with !Printers on the iconbar.  The two files operate at 300dpi and 600dpi respectively.
+
+The Sprites directory contains suitable sprites use on RISC OS 3 and RISC OS 4 machines; RISC OS 5 already has such sprites included in the ROM.  The RISC OS 3 sprites were originally supplied with Taborca (and will already be present on a machine with this installed); the RISC OS 4 sprites were designed by Richard Hallas.
+
+See the main documentation for more details of installation.
