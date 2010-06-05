@@ -48,16 +48,18 @@ wimp_i        popup_icon;
 
 void load_menu_definitions (char *menu_file)
 {
-  wimp_w    window_list[20];
-  wimp_menu *menu_list[20];
+	wimp_menu		*menu_list[20];
+	menu_template		menu_defs;
 
-  extern global_windows windows;
+	extern global_windows windows;
 
-  window_list[0] = windows.prog_info;
+	menu_defs = load_menus (menu_file, NULL, menu_list);
 
-  load_menus (menu_file, window_list, menu_list);
+	if (menu_defs != NULL) {
+		load_menus_dbox(menu_defs, "ProgInfo", windows.prog_info);
 
-  menus.icon_bar = menu_list[0];
+		menus.icon_bar = menu_list[0];
+	}
 }
 
 /* ================================================================================================================== */
