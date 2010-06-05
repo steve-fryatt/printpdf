@@ -26,7 +26,6 @@
 #include "windows.h"
 
 #include "ihelp.h"
-#include "compiledate.h"
 #include "convert.h"
 
 /* ==================================================================================================================
@@ -63,7 +62,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
     add_ihelp_window (windows.prog_info, "ProgInfo", NULL);
     msgs_param_lookup ("Version",
                        window_def->icons[6].data.indirected_text.text, window_def->icons[6].data.indirected_text.size,
-                       INFO_BOX_DATE, NULL, NULL, NULL);
+                       BUILD_DATE, NULL, NULL, NULL);
     free (window_def);
   }
   else
