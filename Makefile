@@ -66,7 +66,7 @@ OUTDIR := build
 
 APP := !PrintPDF
 UKRES := Resources/UK
-RUNIMAGE := !RunImage,ffa
+RUNIMAGE := !RunImage,ff8
 MENUS := Menus,ffd
 TEXTHELP := HelpText,fff
 SHHELP := PrintPDF,3d6
@@ -95,7 +95,7 @@ all: documentation $(OUTDIR)/$(APP)/$(RUNIMAGE) $(OUTDIR)/$(APP)/$(UKRES)/$(MENU
 
 OBJS := $(addprefix $(OBJDIR)/, $(OBJS))
 
-$(OUTDIR)/$(APP)/!RunImage,ffa: $(OBJS)
+$(OUTDIR)/$(APP)/$(RUNIMAGE): $(OBJS)
 	$(CC) $(CCFLAGS) $(LINKS) -o $(OUTDIR)/$(APP)/$(RUNIMAGE) $(OBJS)
 
 
@@ -149,7 +149,7 @@ release: all
 
 clean:
 	$(RM) $(OBJDIR)/*
-	$(RM) $(OUTDIR)/$(APP)/!RunImage,ffa
+	$(RM) $(OUTDIR)/$(APP)/$(RUNIMAGE)
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP)
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP)
 	$(RM) $(OUTDIR)/$(README)
