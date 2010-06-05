@@ -183,6 +183,10 @@ int initialise (void)
 
   hourglass_off ();
 
+  /* /TODO -- This is for debug use only */
+
+  load_bookmark_file("EmuFS::RODevel.$.PrintPDF.trunk.BookMarks");
+
   return (0);
 }
 

@@ -126,7 +126,7 @@ int poll_loop (void)
         break;
 
       case wimp_CLOSE_WINDOW_REQUEST:
-        if (!close_bookmark_window(blk.close.w))
+        if (close_bookmark_window(blk.close.w))
         {
           wimp_close_window (blk.close.w);
         }

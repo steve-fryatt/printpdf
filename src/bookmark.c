@@ -12,6 +12,7 @@
 
 /* OSLib header files */
 
+#include "oslib/hourglass.h"
 #include "oslib/os.h"
 #include "oslib/osbyte.h"
 #include "oslib/wimp.h"
@@ -43,10 +44,14 @@
  * Function prototypes.
  */
 
-void delete_bookmark_block(bookmark_block *bookmark);
-bookmark_block *find_bookmark_window(wimp_w window);
-bookmark_block *find_bookmark_toolbar(wimp_w window);
-void bookmark_window_redraw_loop(bookmark_block *bm, wimp_draw *redraw);
+void		open_bookmark_window(bookmark_block *bm);
+bookmark_block	*create_bookmark_block(void);
+void		delete_bookmark_block(bookmark_block *bookmark);
+bookmark_block	*find_bookmark_window(wimp_w window);
+bookmark_block	*find_bookmark_toolbar(wimp_w window);
+void		bookmark_window_redraw_loop(bookmark_block *bm,
+				wimp_draw *redraw);
+void		rebuild_bookmark_data(bookmark_block *bm);
 
 /* ==================================================================================================================
  * Global variables.
@@ -68,60 +73,55 @@ void initialise_bookmarks(void)
 
 void terminate_bookmarks(void)
 {
-	bookmark_block		*bm, *next_bm;
-
 	/* Work through the bookmarks list, deleting everything. */
 
-	bm = bookmarks_list;
-
-	while (bm != NULL) {
-		wimp_delete_window(bm->window);
-		wimp_delete_window(bm->toolbar);
-
-		next_bm = bm->next;
-		free(bm);
-		bm = next_bm;
-	}
-
-	bookmarks_list = NULL;
+	while (bookmarks_list != NULL)
+		delete_bookmark_block(bookmarks_list);
 }
 
 /* ==================================================================================================================
  * Window and Editing Support
  */
 
-void create_new_bookmark_window(wimp_pointer *pointer)
+
+
+/**
+ * Create a new bookmark block and initialise it with some standard
+ * values.
+ *
+ * Return:		Pointer to block; or NULL if failed.
+ */
+
+bookmark_block *create_bookmark_block(void)
 {
 	bookmark_block		*new;
-	extern global_windows	windows;
 
 	new = (bookmark_block *) malloc(sizeof(bookmark_block));
 
 	if (new != NULL) {
-		place_window_as_toolbar(windows.bookmark_window_def,
-				windows.bookmark_pane_def,
-				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
-		new->window = wimp_create_window(windows.bookmark_window_def);
-		new->toolbar = wimp_create_window(windows.bookmark_pane_def);
-
-		/* Link in to chain. */
+		new->window = NULL;
+		new->toolbar = NULL;
+		new->redraw = NULL;
+		new->root = NULL;
+		new->lines = 0;
 
 		new->next = bookmarks_list;
 		bookmarks_list = new;
-
-		/* Open the window and toolbar. */
-
-		open_window(new->window);
-		open_window_nested_as_toolbar(new->toolbar, new->window,
-				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
 	}
+
+	return new;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+/**
+ * Delete a bookmark block and its associated data.
+ *
+ * Param:  *bookmark		The block to delete.
+ */
 
 void delete_bookmark_block(bookmark_block *bookmark)
 {
 	bookmark_block		**bm, *f;
+	bookmark_node		*n, *nf;
 
 	bm = &bookmarks_list;
 
@@ -131,11 +131,69 @@ void delete_bookmark_block(bookmark_block *bookmark)
 	if (*bm != NULL) {
 		f = *bm;
 		*bm = (*bm)->next;
+
+		n = f->root;
+		while (n != NULL) {
+			nf = n;
+			n = n->next;
+			free(nf);
+		}
+
+		if (f->redraw != NULL)
+			free(f->redraw);
+
 		free(f);
 	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+/**
+ * Given a pointer click, create a new bookmark window.
+ *
+ * Param:  *pointer		The details of the mouse click.
+ */
+
+void create_new_bookmark_window(wimp_pointer *pointer)
+{
+	bookmark_block		*new;
+
+	new = create_bookmark_block();
+
+	if (new != NULL)
+		open_bookmark_window(new);
+}
+
+/**
+ * Create and open a window for a bookmark block.
+ *
+ * Param: *bm		The block to open the window for.
+ */
+
+void open_bookmark_window(bookmark_block *bm)
+{
+	extern global_windows	windows;
+
+	if (bm != NULL && bm->window == NULL && bm->toolbar == NULL) {
+		place_window_as_toolbar(windows.bookmark_window_def,
+				windows.bookmark_pane_def,
+				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
+		bm->window = wimp_create_window(windows.bookmark_window_def);
+		bm->toolbar = wimp_create_window(windows.bookmark_pane_def);
+
+		/* Open the window and toolbar. */
+
+		open_window(bm->window);
+		open_window_nested_as_toolbar(bm->toolbar, bm->window,
+				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
+	}
+}
+
+/**
+ * Close the given bookmark window and delete all of the associated data.
+ *
+ * Param:  window		The window handle of the window to be closed.
+ * Return:			0 if the close was successful; 1 if the window
+ *				handle wasn't recognised.
+ */
 
 int close_bookmark_window(wimp_w window)
 {
@@ -148,9 +206,9 @@ int close_bookmark_window(wimp_w window)
 		wimp_delete_window(bm->toolbar);
 		delete_bookmark_block(bm);
 
-		return 1;
-	} else {
 		return 0;
+	} else {
+		return 1;
 	}
 }
 
@@ -265,11 +323,141 @@ void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params)
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 
-/* ==================================================================================================================
- * Bookmark File Handling
+/**
+ * Load a bookmark file into memory, storing the data it contains in a new
+ * bookmark_block structure.
+ *
+ * Param:  *filename		The file to load.
  */
 
-void load_bookmark_file(bookmark_block *mb, char *filename)
+void load_bookmark_file(char *filename)
 {
+	FILE			*in;
+	bookmark_block		*block;
+	bookmark_node		*current, *new;
+	int			result, bookmarks = 0;
+	char			section[BOOKMARK_FILE_LINE_LEN], token[BOOKMARK_FILE_LINE_LEN], value[BOOKMARK_FILE_LINE_LEN];
+
+
+	block = create_bookmark_block();
+
+	if (block == NULL) {
+		// \TODO -- Add an error report here.
+		return;
+	}
+
+	in = fopen(filename, "r");
+
+	if (in == NULL) {
+		// \TODO -- Add an error report here.
+		delete_bookmark_block(block);
+		return;
+	}
+
+	hourglass_on();
+
+	/* Read the nodes into a linear linked list, ignoring for the time
+	 * being any levels.
+	 */
+
+	current = NULL;
+
+	while ((result = read_config_token_pair (in, token, value, section)) != sf_READ_CONFIG_EOF) {
+		if (result == sf_READ_CONFIG_NEW_SECTION)
+			bookmarks = (strcmp_no_case(section, "Bookmarks") == 0);
+
+		if (bookmarks) {
+			if (strcmp_no_case(token, "@") == 0) {
+				new = (bookmark_node *) malloc(sizeof(bookmark_node));
+
+				if (new != NULL) {
+					strncpy(new->title, value, MAX_BOOKMARK_LEN);
+					new->title[MAX_BOOKMARK_LEN - 1] = '\0';
+
+					new->destination = 0;
+					new->expanded = 0;
+					new->level = 0;
+					new->count = 0;
+
+					new->next = NULL;
+
+					if (current == NULL)
+						block->root = new;
+					else
+						current->next = new;
+
+					current = new;
+				}
+
+			} else if (strcmp_no_case(token, "Page") == 0) {
+				if (current != NULL)
+					current->destination = atoi(value);
+			} else if (strcmp_no_case(token, "Level") == 0) {
+				if (current != NULL)
+					current->level = atoi(value);
+			}
+		}
+	}
+
+	hourglass_off();
+
+	current = block->root;
+
+	while (current != NULL) {
+		debug_printf("Node: '%s'", current->title);
+		debug_printf("  For page %d, at level %d", current->destination, current->level);
+
+		current = current->next;
+	}
+
+	fclose (in);
+
+	rebuild_bookmark_data(block);
+	open_bookmark_window(block);
+}
+
+/**
+ * Recalculate the details of a bookmark block.
+ *
+ * Param: *bm		Pointer to the block to recalculate.
+ */
+
+void rebuild_bookmark_data(bookmark_block *bm)
+{
+	bookmark_node		*node;
+	int			count;
+
+	if (bm == NULL)
+		return;
+
+	/* Find the number of entries in the block list, and reallocate the
+	 * redraw array if it has changed.
+	 */
+
+	count = 0;
+	for (node = bm->root; node != NULL; node = node->next)
+		count++;
+
+	if (count != bm->lines) {
+		if (bm->redraw != NULL)
+			free(bm->redraw);
+
+		bm->redraw = (bookmark_redraw *) malloc(count * sizeof(bookmark_redraw));
+		bm->lines = count;
+	}
+
+	if (bm->redraw != NULL) {
+		count = 0;
+
+		for (node = bm->root; node != NULL; node = node->next) {
+			bm->redraw[count].node = node;
+			bm->redraw[count].selected = 0;
+
+			count++;
+		}
+	}
+
+	debug_printf("Found %d entries in file.", count);
 
 }
+

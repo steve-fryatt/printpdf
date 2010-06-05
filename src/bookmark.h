@@ -17,6 +17,8 @@
 #define BOOKMARK_LINE_OFFSET 4
 #define BOOKMARK_TOOLBAR_OFFSET 2
 
+#define BOOKMARK_FILE_LINE_LEN 1024
+
 /* ==================================================================================================================
  * Data structures
  */
@@ -24,16 +26,16 @@
 typedef struct bookmark_node {
 	char			title[MAX_BOOKMARK_LEN];
 	int			destination;
+	int			level;
+	int			count;
 
 	int			expanded;
 
-	struct bookmark_node	*sub;
 	struct bookmark_node	*next;
 } bookmark_node;
 
 typedef struct bookmark_redraw {
 	bookmark_node		*node;
-	int			indent;
 	int			selected;
 } bookmark_redraw;
 
@@ -68,5 +70,7 @@ int redraw_bookmark_window(wimp_draw *redraw);
 
 void initialise_bookmark_settings (bookmark_params *params);
 void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params);
+
+void load_bookmark_file(char *filename);
 
 #endif
