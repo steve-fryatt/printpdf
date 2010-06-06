@@ -53,17 +53,18 @@
 
 /* Declare the global variables that are used. */
 
-int                        global_drag_type;
-int                        global_encryption_dialogue_location;
-int                        global_optimization_dialogue_location;
-int                        global_pdfmark_dialogue_location;
+int			global_drag_type;
+int			global_encryption_dialogue_location;
+int			global_optimization_dialogue_location;
+int			global_pdfmark_dialogue_location;
+int			global_bookmark_dialogue_location;
 
 /* Cross file global variables */
 
-wimp_t                     task_handle;
-int                        quit_flag = FALSE;
+wimp_t			task_handle;
+int			quit_flag = FALSE;
 
-osspriteop_area            *wimp_sprites;
+osspriteop_area		*wimp_sprites;
 
 /* ==================================================================================================================
  * Main function
@@ -267,6 +268,11 @@ void mouse_click_handler (wimp_pointer *pointer)
       case SAVE_PDF_ICON_PDFMARK_MENU:
         global_pdfmark_dialogue_location = PDFMARK_SAVE;
         open_convert_pdfmark_dialogue (pointer);
+        break;
+
+      case SAVE_PDF_ICON_BOOKMARK_MENU:
+        global_bookmark_dialogue_location = BOOKMARK_SAVE;
+        open_convert_bookmark_menu(pointer, windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD);
         break;
     }
   }

@@ -33,6 +33,12 @@
  * Global variables.
  */
 
+
+/* Function Prototypes. */
+
+int version_menu_tick (version_params *params);
+
+
 /* ==================================================================================================================
  *
  */

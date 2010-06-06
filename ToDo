@@ -1,0 +1,6 @@
+PrintPDF -- ToDo List
+---------------------
+
+* There is no mechanism for telling the convert module that a bookmark block
+  gone.  As such, either bookmark must validate the parameter block every time
+  it is read, or some feedback mechanism must be provided!

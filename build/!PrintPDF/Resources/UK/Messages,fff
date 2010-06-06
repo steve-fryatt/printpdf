@@ -22,10 +22,6 @@ Custom:Custom
 
 None:None
 Info:Information
-BMark:Bookmarks
-InfoBM:Info & BMarks
-
-# BMark and InfoBM can be removed if we do our own thing with the Bookmarks.
 
 DepthOff:Off
 

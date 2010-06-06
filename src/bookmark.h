@@ -12,6 +12,7 @@
 
 #define MAX_BOOKMARK_LEN 64  /* The real maximum is 256, but Adobe recommend 32 max for practicality. */
 #define MAX_BOOKMARK_BLOCK_NAME 64
+#define MAX_BOOKMARK_FIELD_LEN 20
 #define BOOKMARK_TOOLBAR_HEIGHT 82
 #define BOOKMARK_LINE_HEIGHT 60
 #define BOOKMARK_ICON_HEIGHT 52
@@ -73,6 +74,9 @@ int close_bookmark_window(wimp_w window);
 int redraw_bookmark_window(wimp_draw *redraw);
 
 void initialise_bookmark_settings(bookmark_params *params);
+void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon);
+void process_bookmark_menu(bookmark_params *params, wimp_selection *selection);
+
 void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params);
 int bookmark_data_available(bookmark_params *params);
 void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params);

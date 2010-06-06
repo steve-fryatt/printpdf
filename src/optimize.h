@@ -119,7 +119,6 @@ optimize_params;
 void initialise_optimization_settings (optimize_params *params);
 void open_optimize_menu (optimize_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon, int ident);
 void process_optimize_menu (optimize_params *params, wimp_selection *selection);
-int optimize_menu_tick (optimize_params *params);
 void open_optimize_dialogue (optimize_params *params, wimp_pointer *pointer);
 void process_optimize_dialogue (optimize_params *params);
 void shade_optimize_dialogue (void);

@@ -41,6 +41,8 @@
 #define SAVE_PDF_ICON_PDFMARK_MENU   15
 #define SAVE_PDF_ICON_PDFMARK_FIELD  16
 #define SAVE_PDF_ICON_USERFILE       18
+#define SAVE_PDF_ICON_BOOKMARK_MENU  20
+#define SAVE_PDF_ICON_BOOKMARK_FIELD 21
 
 /* Defer queue window icons. */
 
@@ -124,6 +126,8 @@ void open_convert_version_menu (wimp_pointer *pointer, wimp_w window, wimp_i ico
 void process_convert_version_menu (wimp_selection *selection);
 void open_convert_optimize_menu (wimp_pointer *pointer, wimp_w window, wimp_i icon);
 void process_convert_optimize_menu (wimp_selection *selection);
+void open_convert_bookmark_menu(wimp_pointer *pointer, wimp_w window, wimp_i icon);
+void process_convert_bookmark_menu(wimp_selection *selection);
 
 /* Handle the encryption and optimization windows. */
 

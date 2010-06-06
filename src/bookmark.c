@@ -51,6 +51,7 @@ void		delete_bookmark_block(bookmark_block *bookmark);
 bookmark_block	*find_bookmark_window(wimp_w window);
 bookmark_block	*find_bookmark_toolbar(wimp_w window);
 bookmark_block	*find_bookmark_name(char *name);
+bookmark_block	*find_bookmark_block(bookmark_block *block);
 void		bookmark_window_redraw_loop(bookmark_block *bm,
 				wimp_draw *redraw);
 void		rebuild_bookmark_data(bookmark_block *bm);
@@ -327,7 +328,13 @@ void bookmark_window_redraw_loop(bookmark_block *bm, wimp_draw *redraw)
 	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+
+/**
+ * Find a bookmark block by its window handle.
+ *
+ * Param:  window		The handle of the window.
+ * Return: 			The block address, or NULL if it wasn't found.
+ */
 
 bookmark_block *find_bookmark_window(wimp_w window)
 {
@@ -336,10 +343,16 @@ bookmark_block *find_bookmark_window(wimp_w window)
 	while ((bm != NULL) && bm->window != window)
 		bm = bm->next;
 
-	return (bm);
+	return bm;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+
+/**
+ * Find a bookmark block by its toolbar handle.
+ *
+ * Param:  window		The handle of the toolbar.
+ * Return: 			The block address, or NULL if it wasn't found.
+ */
 
 bookmark_block *find_bookmark_toolbar(wimp_w window)
 {
@@ -348,10 +361,16 @@ bookmark_block *find_bookmark_toolbar(wimp_w window)
 	while ((bm != NULL) && bm->toolbar != window)
 		bm = bm->next;
 
-	return (bm);
+	return bm;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+
+/**
+ * Find a bookmark block by its name (matched case-insensitively).
+ *
+ * Param:  *name		The block name to find.
+ * Return: 			The block address, or NULL if it wasn't found.
+ */
 
 bookmark_block *find_bookmark_name(char *name)
 {
@@ -360,7 +379,26 @@ bookmark_block *find_bookmark_name(char *name)
 	while ((bm != NULL) && strcmp_no_case(bm->name, name) != 0)
 		bm = bm->next;
 
-	return (bm);
+	return bm;
+}
+
+
+/**
+ * Find a bookmark block by block address.  This is used for validating that
+ * an address supplied from outside the module really is a valid block.
+ *
+ * Param:  *block		The block to validate.
+ * Return: 			The block address, or NULL if it failed.
+ */
+
+bookmark_block *find_bookmark_block(bookmark_block *block)
+{
+	bookmark_block		*bm = bookmarks_list;
+
+	while ((bm != NULL) && bm != block)
+		bm = bm->next;
+
+	return bm;
 }
 
 /* ==================================================================================================================
@@ -380,9 +418,42 @@ void initialise_bookmark_settings(bookmark_params *params)
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
+void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon)
+{
+//  if (build_param_menu ("VersionMenu", ident, version_menu_tick (params)) != NULL)
+//  {
+//    open_param_menu (pointer, window, icon);
+//  }
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+void process_bookmark_menu(bookmark_params *params, wimp_selection *selection)
+{
+//  params->standard_version = selection->items[0];
+
+//  build_param_menu ("VersionMenu", param_menu_ident (), version_menu_tick (params));
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+int bookmark_menu_tick(bookmark_params *params)
+{
+  return (0);
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
 void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params)
 {
-	msgs_lookup ("Info", indirected_icon_text (window, icon), 20);
+	if (params == NULL || params->bookmarks == NULL) {
+		msgs_lookup ("None", indirected_icon_text (window, icon), MAX_BOOKMARK_FIELD_LEN);
+	} else {
+		strncpy(indirected_icon_text (window, icon), params->bookmarks->name, MAX_BOOKMARK_FIELD_LEN);
+		if (strlen(params->bookmarks->name) >= MAX_BOOKMARK_FIELD_LEN)
+			strcpy(indirected_icon_text (window, icon) + MAX_BOOKMARK_FIELD_LEN - 4, "...");
+	}
+
 	wimp_set_icon_state (window, icon, 0, 0);
 }
 
@@ -521,6 +592,7 @@ void load_bookmark_file(char *filename)
 	rebuild_bookmark_data(block);
 	open_bookmark_window(block);
 }
+
 
 /**
  * Recalculate the details of a bookmark block.

@@ -349,37 +349,41 @@ void start_held_conversion (void)
  * Handling Save PDF dialogue
  */
 
-/* Open the Save PDF dialogue on screen, at the pointer. */
+/**
+ * Open the Save PDF dialogue on screen, at the pointer.
+ */
 
-void open_conversion_dialogue (void)
+void open_conversion_dialogue(void)
 {
-  wimp_pointer pointer;
+	wimp_pointer		pointer;
 
-  extern global_windows windows;
+	extern global_windows	windows;
 
-  /* Set up and open the conversion window. */
+	/* Set up and open the conversion window. */
 
-  if (read_config_opt ("ResetParams"))
-  {
-    strcpy (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), read_config_str ("FileName"));
-    strcpy (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE), read_config_str ("PDFMarkUserFile"));
-    set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, read_config_opt ("PreProcess"));
-    initialise_encryption_settings (&encryption);
-    initialise_optimization_settings (&optimization);
-    initialise_version_settings (&version);
-    initialise_pdfmark_settings (&pdfmark);
-  }
+	if (read_config_opt ("ResetParams")) {
+		strcpy(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), read_config_str ("FileName"));
+		strcpy(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE), read_config_str ("PDFMarkUserFile"));
+		set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, read_config_opt ("PreProcess"));
+		initialise_encryption_settings(&encryption);
+		initialise_optimization_settings(&optimization);
+		initialise_version_settings(&version);
+		initialise_pdfmark_settings(&pdfmark);
+		initialise_bookmark_settings(&bookmark);
+	}
 
-  fill_version_field (windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
-  fill_optimization_field (windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
-  fill_encryption_field (windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
-  fill_pdfmark_field (windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
+	fill_version_field(windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
+	fill_optimization_field(windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
+	fill_encryption_field(windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
+	fill_pdfmark_field(windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
+	fill_bookmark_field(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
 
-  wimp_get_pointer_info (&pointer);
+	wimp_get_pointer_info(&pointer);
 
-  open_window_centred_at_pointer (windows.save_pdf, &pointer);
-  put_caret_at_end (windows.save_pdf, SAVE_PDF_ICON_NAME);
+	open_window_centred_at_pointer(windows.save_pdf, &pointer);
+	put_caret_at_end(windows.save_pdf, SAVE_PDF_ICON_NAME);
 }
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /* Handle the closure of the file save dialogue following a successful data xfer protocol or similar.
@@ -838,6 +842,27 @@ void process_convert_optimize_menu (wimp_selection *selection)
   process_optimize_menu (&optimization, selection);
 
   fill_optimization_field (windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
+}
+
+/**
+ * Open the bookmark pop-up menu in the save window.
+ */
+
+void open_convert_bookmark_menu(wimp_pointer *pointer, wimp_w window, wimp_i icon)
+{
+	open_bookmark_menu(&bookmark, pointer, window, icon);
+}
+
+/**
+ * Process menu selections from the bookmark pop-up in the save window.
+ */
+
+void process_convert_bookmark_menu(wimp_selection *selection)
+{
+	extern global_windows	windows;
+
+	process_bookmark_menu(&bookmark, selection);
+	fill_bookmark_field(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
 }
 
 /* ==================================================================================================================

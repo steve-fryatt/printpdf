@@ -19,6 +19,9 @@
 #define PDFMARK_SAVE 1
 #define PDFMARK_CHOICE 2
 
+#define BOOKMARK_SAVE 1
+#define BOOKMARK_CHOICE 2
+
 #define DRAG_SAVE  1
 #define DRAG_QUEUE 2
 

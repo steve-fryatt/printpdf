@@ -39,6 +39,10 @@ static int downsample_mono_depth;
 static int downsample_grey_depth;
 static int downsample_colour_depth;
 
+/* Function Prototypes. */
+
+int optimize_menu_tick (optimize_params *params);
+
 /* ==================================================================================================================
  *
  */

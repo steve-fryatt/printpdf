@@ -29,7 +29,6 @@ version_params;
 void initialise_version_settings (version_params *params);
 void open_version_menu (version_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon, int ident);
 void process_version_menu (version_params *params, wimp_selection *selection);
-int version_menu_tick (version_params *params);
 void fill_version_field (wimp_w window, wimp_i icon, version_params *params);
 void build_version_params (char *buffer, version_params *params);
 
