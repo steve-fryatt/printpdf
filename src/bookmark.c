@@ -32,6 +32,7 @@
 #include "bookmark.h"
 
 #include "menus.h"
+#include "pdfmark.h"
 #include "pmenu.h"
 #include "windows.h"
 
@@ -366,8 +367,15 @@ bookmark_block *find_bookmark_name(char *name)
  * Bookmark Settings Support
  */
 
+/**
+ * Initialise a bookmarks settings block with default parameters.
+ *
+ * Param:  *params		The parameter block to initialise.
+ */
+
 void initialise_bookmark_settings(bookmark_params *params)
 {
+	params->bookmarks = NULL;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -378,7 +386,44 @@ void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params)
 	wimp_set_icon_state (window, icon, 0, 0);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+
+/**
+ * Indicate if the supplied bookmark parameters have data available for a
+ * conversion.
+ *
+ * Param:  *params		The parameter block to check.
+ * Return:			1 if data is available; else 0.
+ */
+
+int bookmark_data_available(bookmark_params *params)
+{
+	return (params != NULL && params->bookmarks != NULL);
+}
+
+
+/**
+ * Output PDFMark data related to the associated bookmarks parameters file.
+ *
+ * Param:  *pdfmark_file	The file to write to.
+ * Param:  *params		The parameter block to use.
+ */
+
+void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params)
+{
+	bookmark_node		*node;
+	char			buffer[MAX_BOOKMARK_LEN * 4];
+
+	if (pdfmark_file != NULL && bookmark_data_available(params))
+		for (node = params->bookmarks->root; node != NULL; node = node->next) {
+			fprintf(pdfmark_file, "[");
+
+			if (node->count > 0)
+				fprintf(pdfmark_file, " /Count %d", (node->expanded) ? node->count : -node->count);
+
+			fprintf(pdfmark_file, " /Page %d /Title (%s) /OUT pdfmark\n", node->destination,
+					convert_to_pdf_doc_encoding(buffer, node->title, MAX_BOOKMARK_LEN * 4));
+		}
+}
 
 
 /**

@@ -39,6 +39,7 @@
 
 #include "convert.h"
 
+#include "bookmark.h"
 #include "encrypt.h"
 #include "main.h"
 #include "optimize.h"
@@ -52,69 +53,68 @@
  * Global variables.
  */
 
-static queued_file     *queue = NULL;
-static int             conversion_in_progress = FALSE;
-static int             files_pending_attention = TRUE;
-static wimp_t          conversion_task = 0;
+static queued_file	*queue = NULL;
+static int		conversion_in_progress = FALSE;
+static int		files_pending_attention = TRUE;
+static wimp_t		conversion_task = 0;
 
-static queued_file     **queue_redraw_list = NULL;
-static int             queue_redraw_lines = 0;
+static queued_file	**queue_redraw_list = NULL;
+static int		queue_redraw_lines = 0;
 
-static int             dragging_sprite;
-static int             dragging_start_line;
+static int		dragging_sprite;
+static int		dragging_start_line;
 
 /* Conversion parameters. */
 
-static encrypt_params  encryption;
-static optimize_params optimization;
-static version_params  version;
-static pdfmark_params  pdfmark;
+static encrypt_params	encryption;
+static optimize_params	optimization;
+static version_params	version;
+static pdfmark_params	pdfmark;
+static bookmark_params	bookmark;
 
 /* ==================================================================================================================
  * Initialisation
  */
 
-/* Test for the presence of the queue directory, and create it if it is not already there.
+/**
+ * Test for the presence of the queue directory, and create it if it is not already there.
  *
  * At present, this assumes that it will be just the leaf directory missing; true assuming an address in the Scrap
  * folder.
  *
- * Also set up the conversion parameters for the first time.
+ * Also set up the conversion parameters for the first time, for each of the modules.
  */
 
-void initialise_conversion (void)
+void initialise_conversion(void)
 {
-  char                   *queue_dir;
-  fileswitch_object_type type;
+	char			*queue_dir;
+	fileswitch_object_type	type;
 
-  extern global_windows windows;
+	extern global_windows	windows;
 
 
-  /* Set up the queue directory */
+	/* Set up the queue directory */
 
-  queue_dir = read_config_str("FileQueue");
+	queue_dir = read_config_str("FileQueue");
 
-  xosfile_read_no_path (queue_dir, &type, NULL, NULL, NULL, NULL);
+	xosfile_read_no_path(queue_dir, &type, NULL, NULL, NULL, NULL);
 
-  if (type == fileswitch_NOT_FOUND)
-  {
-    osfile_create_dir (queue_dir, 0);
-  }
-  else if (type != fileswitch_IS_DIR)
-  {
-    wimp_msgtrans_error_report ("NoQueueDir");
-  }
+	if (type == fileswitch_NOT_FOUND)
+		osfile_create_dir(queue_dir, 0);
+	else if (type != fileswitch_IS_DIR)
+		wimp_msgtrans_error_report("NoQueueDir");
 
-  /* Initialise the options. */
+	/* Initialise the options. */
 
-  strcpy (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), read_config_str ("FileName"));
-  strcpy (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE), read_config_str ("PDFMarkUserFile"));
-  set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, read_config_opt ("PreProcess"));
+	strcpy (indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_NAME), read_config_str("FileName"));
+	strcpy (indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_USERFILE), read_config_str("PDFMarkUserFile"));
+	set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, read_config_opt("PreProcess"));
 
-  initialise_encryption_settings (&encryption);
-  initialise_optimization_settings (&optimization);
-  initialise_version_settings (&version);
-  initialise_pdfmark_settings (&pdfmark);
+	initialise_encryption_settings(&encryption);
+	initialise_optimization_settings(&optimization);
+	initialise_version_settings(&version);
+	initialise_pdfmark_settings(&pdfmark);
+	initialise_bookmark_settings(&bookmark);
 }
 
 /* ==================================================================================================================
@@ -212,7 +212,7 @@ int queue_ps_file (char *filename)
     *list = new;
 
     sprintf (queued_filename, "%s.%s", read_config_str("FileQueue"), new->filename);
-    error = xosfscontrol_copy (filename, queued_filename, osfscontrol_COPY_FORCE, NULL, NULL, NULL, NULL, NULL);
+    error = xosfscontrol_copy (filename, queued_filename, osfscontrol_COPY_FORCE, 0, 0, 0, 0, NULL);
 
     if (error != NULL)
     {
@@ -691,13 +691,14 @@ int launch_ps2pdf (char *file_out, char *user_pdfmark_file)
   {
     /* Generate a PDFMark file if necessary. */
 
-    if (pdfmark_data_available(&pdfmark))
+    if (pdfmark_data_available(&pdfmark) || bookmark_data_available(&bookmark))
     {
       pdfmark_file = fopen (read_config_str ("PDFMarkFile"), "w");
 
       if (pdfmark_file != NULL)
       {
         write_pdfmark_docinfo_file(pdfmark_file, &pdfmark);
+        write_pdfmark_out_file(pdfmark_file, &bookmark);
 
         fclose(pdfmark_file);
       }
