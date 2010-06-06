@@ -27,6 +27,10 @@ InfoBM:Info & BMarks
 
 DepthOff:Off
 
+# Bookmarks system
+
+UntBM:Bookmarks %0
+
 # Messages and errors
 
 DragSave:To save, enter a full pathname or drag the file to a directory viewer.

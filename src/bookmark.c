@@ -49,6 +49,7 @@ bookmark_block	*create_bookmark_block(void);
 void		delete_bookmark_block(bookmark_block *bookmark);
 bookmark_block	*find_bookmark_window(wimp_w window);
 bookmark_block	*find_bookmark_toolbar(wimp_w window);
+bookmark_block	*find_bookmark_name(char *name);
 void		bookmark_window_redraw_loop(bookmark_block *bm,
 				wimp_draw *redraw);
 void		rebuild_bookmark_data(bookmark_block *bm);
@@ -60,6 +61,7 @@ void		rebuild_bookmark_data(bookmark_block *bm);
 /* Pointer to bookmark window data list. */
 
 bookmark_block *bookmarks_list = NULL;
+int		untitled_number = 1;
 
 /* ==================================================================================================================
  * General System Initialisation
@@ -95,10 +97,17 @@ void terminate_bookmarks(void)
 bookmark_block *create_bookmark_block(void)
 {
 	bookmark_block		*new;
+	char			name[MAX_BOOKMARK_BLOCK_NAME], number[10];
 
 	new = (bookmark_block *) malloc(sizeof(bookmark_block));
 
 	if (new != NULL) {
+		do {
+			snprintf(number, 10, "%d", untitled_number++);
+			msgs_param_lookup("UntBM", name, MAX_BOOKMARK_BLOCK_NAME,
+					number, NULL, NULL, NULL);
+		} while (find_bookmark_name(name) != NULL);
+		strncpy(new->name, name, MAX_BOOKMARK_BLOCK_NAME);
 		new->window = NULL;
 		new->toolbar = NULL;
 		new->redraw = NULL;
@@ -175,6 +184,9 @@ void open_bookmark_window(bookmark_block *bm)
 	extern global_windows	windows;
 
 	if (bm != NULL && bm->window == NULL && bm->toolbar == NULL) {
+		windows.bookmark_window_def->title_data.indirected_text.text = bm->name;
+		windows.bookmark_window_def->title_data.indirected_text.size = MAX_BOOKMARK_BLOCK_NAME;
+
 		place_window_as_toolbar(windows.bookmark_window_def,
 				windows.bookmark_pane_def,
 				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
@@ -333,6 +345,18 @@ bookmark_block *find_bookmark_toolbar(wimp_w window)
 	bookmark_block		*bm = bookmarks_list;
 
 	while ((bm != NULL) && bm->toolbar != window)
+		bm = bm->next;
+
+	return (bm);
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+bookmark_block *find_bookmark_name(char *name)
+{
+	bookmark_block		*bm = bookmarks_list;
+
+	while ((bm != NULL) && strcmp_no_case(bm->name, name) != 0)
 		bm = bm->next;
 
 	return (bm);
