@@ -664,7 +664,7 @@ Version History
 
   Update to seventh beta release.
 
-  * Fix escaping of ( and ) PDFDocEncoding strings.
+  * Fix escaping of ( and ) in PDFDocEncoding strings.
 
 
 

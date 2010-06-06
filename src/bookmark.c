@@ -104,6 +104,7 @@ bookmark_block *create_bookmark_block(void)
 		new->redraw = NULL;
 		new->root = NULL;
 		new->lines = 0;
+		new->nodes = 0;
 
 		new->next = bookmarks_list;
 		bookmarks_list = new;
@@ -159,6 +160,7 @@ void create_new_bookmark_window(wimp_pointer *pointer)
 	new = create_bookmark_block();
 
 	if (new != NULL)
+		rebuild_bookmark_data(new);
 		open_bookmark_window(new);
 }
 
@@ -235,14 +237,20 @@ void bookmark_window_redraw_loop(bookmark_block *bm, wimp_draw *redraw)
 {
 	int			ox, oy, top, bottom, y;
 	osbool			more;
+	bookmark_node		*node;
+	wimp_icon		*icon;
+	char			buf[64];
 
 	extern global_windows	windows;
+	extern osspriteop_area	*wimp_sprites;
 
 
 	more = wimp_redraw_window(redraw);
 
 	ox = redraw->box.x0 - redraw->xscroll;
 	oy = redraw->box.y1 - redraw->yscroll;
+
+	icon = windows.bookmark_window_def->icons;
 
 	while (more) {
 		top = (oy - redraw->clip.y1 - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
@@ -251,29 +259,55 @@ void bookmark_window_redraw_loop(bookmark_block *bm, wimp_draw *redraw)
 
 		bottom = ((BOOKMARK_LINE_HEIGHT * 1.5) + oy - redraw->clip.y0
 				- BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
+		if (bottom > bm->lines)
+			bottom = bm->lines;
 
-		for (y = top; y <= bottom; y++) {
-			windows.bookmark_window_def->icons[0].extent.y0 =
-					(-y * BOOKMARK_LINE_HEIGHT
+		for (y = top; y < bottom; y++) {
+			node = bm->redraw[y].node;
+
+			icon[0].extent.x0 = node->level * BOOKMARK_LINE_HEIGHT;
+
+			icon[0].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
 					+ BOOKMARK_LINE_OFFSET
 					- BOOKMARK_TOOLBAR_HEIGHT);
-			windows.bookmark_window_def->icons[0].extent.y1 =
-					(-y * BOOKMARK_LINE_HEIGHT
+			icon[0].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
 					+ BOOKMARK_LINE_OFFSET
 					- BOOKMARK_TOOLBAR_HEIGHT
 					+ BOOKMARK_ICON_HEIGHT);
-			windows.bookmark_window_def->icons[1].extent.y0 =
-					(-y * BOOKMARK_LINE_HEIGHT
+			icon[1].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
 					+ BOOKMARK_LINE_OFFSET
 					- BOOKMARK_TOOLBAR_HEIGHT);
-			windows.bookmark_window_def->icons[1].extent.y1 =
-					(-y * BOOKMARK_LINE_HEIGHT
+			icon[1].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+					+ BOOKMARK_LINE_OFFSET
+					- BOOKMARK_TOOLBAR_HEIGHT
+					+ BOOKMARK_ICON_HEIGHT);
+			icon[2].extent.x0 = (node->level - 1) * BOOKMARK_LINE_HEIGHT;
+			icon[2].extent.x1 = icon[2].extent.x0 + BOOKMARK_ICON_HEIGHT;
+			icon[2].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+					+ BOOKMARK_LINE_OFFSET
+					- BOOKMARK_TOOLBAR_HEIGHT);
+			icon[2].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
 					+ BOOKMARK_LINE_OFFSET
 					- BOOKMARK_TOOLBAR_HEIGHT
 					+ BOOKMARK_ICON_HEIGHT);
 
-			wimp_plot_icon(&(windows.bookmark_window_def->icons[0]));
-			wimp_plot_icon(&(windows.bookmark_window_def->icons[1]));
+			sprintf(buf, "Line %d", y);
+
+			icon[0].data.indirected_text.text = node->title;
+			icon[1].data.indirected_text.text = buf;
+			icon[2].data.indirected_sprite.id = (osspriteop_id) ((node->expanded) ? "nodee" : "nodec");
+			icon[2].data.indirected_sprite.area = wimp_sprites;
+			icon[2].data.indirected_sprite.size = 6;
+
+			wimp_plot_icon(&(icon[0]));
+			wimp_plot_icon(&(icon[1]));
+
+			/* Plot the expansion arrow for node heads, which show up
+			 * as entries whose count is non-zero.
+			 */
+
+			if (node->count > 0)
+				wimp_plot_icon(&(icon[2]));
 		}
 
 		more = wimp_get_rectangle(redraw);
@@ -375,7 +409,7 @@ void load_bookmark_file(char *filename)
 					new->title[MAX_BOOKMARK_LEN - 1] = '\0';
 
 					new->destination = 0;
-					new->expanded = 0;
+					new->expanded = 1;
 					new->level = 0;
 					new->count = 0;
 
@@ -395,6 +429,9 @@ void load_bookmark_file(char *filename)
 			} else if (strcmp_no_case(token, "Level") == 0) {
 				if (current != NULL)
 					current->level = atoi(value);
+			} else if (strcmp_no_case(token, "Expanded") == 0) {
+				if (current != NULL)
+					current->expanded = read_opt_string(value);
 			}
 		}
 	}
@@ -424,8 +461,8 @@ void load_bookmark_file(char *filename)
 
 void rebuild_bookmark_data(bookmark_block *bm)
 {
-	bookmark_node		*node;
-	int			count;
+	bookmark_node		*node, *n;
+	int			count, i;
 
 	if (bm == NULL)
 		return;
@@ -438,12 +475,23 @@ void rebuild_bookmark_data(bookmark_block *bm)
 	for (node = bm->root; node != NULL; node = node->next)
 		count++;
 
-	if (count != bm->lines) {
+	if (count != bm->nodes) {
 		if (bm->redraw != NULL)
 			free(bm->redraw);
 
 		bm->redraw = (bookmark_redraw *) malloc(count * sizeof(bookmark_redraw));
-		bm->lines = count;
+		bm->nodes = count;
+	}
+
+	/* Scan through the list, building up the tree blocks. */
+
+	for (node = bm->root; node != NULL; node = node->next) {
+		count = 0;
+
+		for (n = node->next; (n != NULL) && (n->level > node->level); n = n->next)
+			count++;
+
+		node->count = count;
 	}
 
 	if (bm->redraw != NULL) {
@@ -453,11 +501,19 @@ void rebuild_bookmark_data(bookmark_block *bm)
 			bm->redraw[count].node = node;
 			bm->redraw[count].selected = 0;
 
+			/* Skip past any contracted lines. */
+
+			if (!node->expanded)
+				for (i = node->count; node != NULL && i > 0; node = node->next)
+					i--;
+
 			count++;
 		}
+
+		bm->lines = count;
 	}
 
-	debug_printf("Found %d entries in file.", count);
+	debug_printf("Found %d entries in file; %d lines in window.", bm->nodes, bm->lines);
 
 }
 
