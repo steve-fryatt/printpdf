@@ -10,6 +10,8 @@
  * Static constants
  */
 
+
+#define PRINTPDF_FILE_TYPE 0x0df
 #define PDF_FILE_TYPE 0xadf
 #define PS_FILE_TYPE 0xff5
 
@@ -35,5 +37,7 @@ int immediate_window_save (void);
 
 void message_data_save_reply (wimp_message *message);
 void message_data_load_reply (wimp_message *message);
+
+int start_data_open_load(wimp_message *message);
 
 #endif

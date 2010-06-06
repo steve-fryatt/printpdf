@@ -15,6 +15,20 @@ Set PrintPDF$Dir <Obey$Dir>
 
 If "<Boot$OSVersion>" >= "500" Then IconSprites <PrintPDF$Dir>.5Sprites Else IconSprites <PrintPDF$Dir>.!Sprites
 
+| Set the filetype information.
+
+Set File$Type_0DF PrintPDF
+
+| Claim PrintPDF files.
+
+Set Alias$@RunType_0DF Run <PrintPDF$Dir>.!Run -file %%*0
+
+| Ensure the Nested Wimp is installed.
+
+RMEnsure WindowManager 3.98 Error PrintPDF requires the Nested Window Manager.
+
+| Ensure a suitable version of the SCL is available.
+
 RMEnsure SharedCLibrary 5.17 RMLoad System:Modules.CLib
 RMEnsure SharedCLibrary 5.34 Error PrintPDF requires version 5.34 or later of the Shared C Library.
 

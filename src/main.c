@@ -762,6 +762,10 @@ void user_message_handler (wimp_message *message)
       message_data_load_reply (message);
       break;
 
+    case message_DATA_OPEN:
+      start_data_open_load(message);
+      break;
+
     case message_HELP_REQUEST:
       send_reply_help_request (message);
       break;

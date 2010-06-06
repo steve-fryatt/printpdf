@@ -32,6 +32,7 @@
 
 #include "dataxfer.h"
 
+#include "bookmark.h"
 #include "choices.h"
 #include "convert.h"
 #include "main.h"
@@ -225,7 +226,7 @@ void message_data_load_reply (wimp_message *message)
   extern global_windows windows;
 
 
-  if (dataload->w == wimp_ICON_BAR && dataload->file_type == 0xff5)
+  if (dataload->w == wimp_ICON_BAR && dataload->file_type == PS_FILE_TYPE)
   {
     /* Only queue the file if it isn't going to be queued in due course anyway.  This covers ourselves if this
      * message is part of a full data transfer exchange starting with an application trying to save to the iconbar.
@@ -257,4 +258,35 @@ void message_data_load_reply (wimp_message *message)
   {
     handle_save_icon_drop (dataload);
   }
+}
+
+/**
+ * Handle the receipt of a Message_DataLoad.
+ *
+ * Param:  *message		The associated Wimp message block.
+ * Return:			1 if the message failed to handle; else 0.
+ */
+
+int start_data_open_load(wimp_message *message)
+{
+	wimp_full_message_data_xfer	*xfer = (wimp_full_message_data_xfer *) message;
+	os_error			*error;
+
+
+	switch (xfer->file_type) {
+	case PRINTPDF_FILE_TYPE:
+		xfer->your_ref = xfer->my_ref;
+		xfer->action = message_DATA_LOAD_ACK;
+
+		error = xwimp_send_message(wimp_USER_MESSAGE, (wimp_message *) xfer, xfer->sender);
+		if (error != NULL) {
+			wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
+			return 1;
+		}
+
+		load_bookmark_file(xfer->file_name);
+		break;
+	}
+
+	return 0;
 }

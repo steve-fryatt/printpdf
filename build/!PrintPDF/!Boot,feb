@@ -13,4 +13,14 @@ Set PrintPDF$Description "PostScript to PDF Conversion"
 
 If "<PrintPDF$Dir>"="" Then Set PrintPDF$Dir <Obey$Dir>
 
+| Set the filetype information.
+
+Set File$Type_0DF PrintPDF
+
+| Claim PrintPDF files if these have not been claimed already.
+
+If "<Alias$@RunType_0DF>" = "" Then Set Alias$@RunType_ODF Run <PrintPDF$Dir>.!Run -file %%*0
+
+| Set the application sprites.
+
 If "<Boot$OSVersion>" >= "500" Then IconSprites <PrintPDF$Dir>.5Sprites Else IconSprites <PrintPDF$Dir>.!Sprites

@@ -56,7 +56,7 @@ int initialise (void)
   extern int                        quit_flag;
   extern osspriteop_area            *wimp_sprites;
 
-  wimp_MESSAGE_LIST(11)             message_list;
+  wimp_MESSAGE_LIST(12)             message_list;
   wimp_version_no                   wimp_version;
 
 
@@ -81,12 +81,13 @@ int initialise (void)
   message_list.messages[2]=message_DATA_SAVE;
   message_list.messages[3]=message_DATA_SAVE_ACK;
   message_list.messages[4]=message_DATA_LOAD;
-  message_list.messages[5]=message_MENU_WARNING;
-  message_list.messages[6]=message_MENUS_DELETED;
-  message_list.messages[7]=message_HELP_REQUEST;
-  message_list.messages[8]=message_TASK_INITIALISE;
-  message_list.messages[9]=message_TASK_CLOSE_DOWN;
-  message_list.messages[10]=message_QUIT;
+  message_list.messages[5]=message_DATA_OPEN;
+  message_list.messages[6]=message_MENU_WARNING;
+  message_list.messages[7]=message_MENUS_DELETED;
+  message_list.messages[8]=message_HELP_REQUEST;
+  message_list.messages[9]=message_TASK_INITIALISE;
+  message_list.messages[0]=message_TASK_CLOSE_DOWN;
+  message_list.messages[11]=message_QUIT;
   msgs_lookup ("TaskName", task_name, sizeof (task_name));
   task_handle = wimp_initialise (wimp_VERSION_RO3, task_name, (wimp_message_list *) &message_list, &wimp_version);
 
@@ -183,10 +184,6 @@ int initialise (void)
 
   hourglass_off ();
 
-  /* /TODO -- This is for debug use only */
-
-  load_bookmark_file("EmuFS::RODevel.$.PrintPDF.trunk.BookMarks");
-
   return (0);
 }
 
@@ -204,7 +201,7 @@ void parse_command_line (int argc, char *argv[])
     {
       if (strcmp (argv[i], "-file") == 0 && i+1 < argc)
       {
-        /* */
+        load_bookmark_file(argv[i+1]);
       }
     }
   }

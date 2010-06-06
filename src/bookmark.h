@@ -74,7 +74,7 @@ int redraw_bookmark_window(wimp_draw *redraw);
 
 void initialise_bookmark_settings(bookmark_params *params);
 void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params);
-
+int bookmark_data_available(bookmark_params *params);
 void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params);
 
 void load_bookmark_file(char *filename);
