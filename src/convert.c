@@ -676,12 +676,12 @@ int launch_ps2ps (char *file_out)
  * in PipeFS and pass this in to gs as a parameters file using the @ parameter.
  */
 
-int launch_ps2pdf (char *file_out, char *pdfmark_file)
+int launch_ps2pdf (char *file_out, char *user_pdfmark_file)
 {
   char        command[1024], taskname[32], encrypt_buf[1024], optimize_buf[1024], version_buf[1024];
   queued_file *list;
 
-  FILE         *param_file;
+  FILE         *param_file, *pdfmark_file;
   os_error     *error = NULL;
 
   msgs_lookup ("ChildTaskName", taskname, sizeof (taskname));
@@ -691,7 +691,17 @@ int launch_ps2pdf (char *file_out, char *pdfmark_file)
   {
     /* Generate a PDFMark file if necessary. */
 
-    write_pdfmark_file (read_config_str ("PDFMarkFile"), &pdfmark);
+    if (pdfmark_data_available(&pdfmark))
+    {
+      pdfmark_file = fopen (read_config_str ("PDFMarkFile"), "w");
+
+      if (pdfmark_file != NULL)
+      {
+        write_pdfmark_docinfo_file(pdfmark_file, &pdfmark);
+
+        fclose(pdfmark_file);
+      }
+    }
 
     /* Write all the conversion options and filename details to the gs parameters file. */
 
@@ -724,12 +734,12 @@ int launch_ps2pdf (char *file_out, char *pdfmark_file)
       fprintf (param_file, " %s", read_config_str ("PDFMarkFile"));
     }
 
-    if (*pdfmark_file != '\0' &&
-            osfile_read_stamped_no_path (pdfmark_file, NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
+    if (*user_pdfmark_file != '\0' &&
+            osfile_read_stamped_no_path (user_pdfmark_file, NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
    {
       /* If there is a PDFMark User File, pass that in too. */
 
-      fprintf (param_file, " %s", pdfmark_file);
+      fprintf (param_file, " %s", user_pdfmark_file);
     }
 
     fclose (param_file);

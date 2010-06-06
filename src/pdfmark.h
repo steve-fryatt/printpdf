@@ -48,7 +48,8 @@ void open_pdfmark_dialogue (pdfmark_params *params, wimp_pointer *pointer);
 void process_pdfmark_dialogue (pdfmark_params *params);
 void shade_pdfmark_dialogue (void);
 void fill_pdfmark_field (wimp_w window, wimp_i icon, pdfmark_params *params);
-void write_pdfmark_file (char *filename, pdfmark_params *params);
+void write_pdfmark_docinfo_file (FILE *pdfmark_file, pdfmark_params *params);
 int pdfmark_data_available (pdfmark_params *params);
+char *convert_to_pdf_doc_encoding(char* out, char *in, int len);
 
 #endif

@@ -78,7 +78,6 @@ static char latin1_to_pdfdocencoding[] = {
  * Function prototypes.
  */
 
-char *convert_to_pdf_doc_encoding(char* out, char *in, int len);
 
 /* ==================================================================================================================
  *
@@ -152,44 +151,35 @@ void fill_pdfmark_field (wimp_w window, wimp_i icon, pdfmark_params *params)
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-void write_pdfmark_file (char *filename, pdfmark_params *params)
+void write_pdfmark_docinfo_file (FILE *pdfmark_file, pdfmark_params *params)
 {
   char buffer[MAX_INFO_FIELD * 4];
-  FILE *pdfmark_file;
 
-  if (pdfmark_data_available(params))
+  if (pdfmark_file != NULL && pdfmark_data_available(params))
   {
-    pdfmark_file = fopen (filename, "w");
-    if (pdfmark_file != NULL)
+    fprintf (pdfmark_file, "[");
+
+    if (*(params->title) != '\0')
     {
-      if (*(params->title) != '\0' || *(params->author) != '\0' || *(params->subject) != '\0' || *(params->keywords))
-      {
-        fprintf (pdfmark_file, "[");
-
-        if (*(params->title) != '\0')
-        {
-          fprintf (pdfmark_file, " /Title (%s)", convert_to_pdf_doc_encoding(buffer, params->title, MAX_INFO_FIELD * 4));
-        }
-
-        if (*(params->author) != '\0')
-        {
-          fprintf (pdfmark_file, " /Author (%s)", convert_to_pdf_doc_encoding(buffer, params->author, MAX_INFO_FIELD * 4));
-        }
-
-        if (*(params->subject) != '\0')
-        {
-          fprintf (pdfmark_file, " /Subject (%s)", convert_to_pdf_doc_encoding(buffer, params->subject, MAX_INFO_FIELD * 4));
-        }
-
-        if (*(params->keywords) != '\0')
-        {
-          fprintf (pdfmark_file, " /Keywords (%s)", convert_to_pdf_doc_encoding(buffer, params->keywords, MAX_INFO_FIELD * 4));
-        }
-
-        fprintf (pdfmark_file, " /DOCINFO pdfmark\n");
-      }
-      fclose (pdfmark_file);
+      fprintf (pdfmark_file, " /Title (%s)", convert_to_pdf_doc_encoding(buffer, params->title, MAX_INFO_FIELD * 4));
     }
+
+    if (*(params->author) != '\0')
+    {
+      fprintf (pdfmark_file, " /Author (%s)", convert_to_pdf_doc_encoding(buffer, params->author, MAX_INFO_FIELD * 4));
+    }
+
+    if (*(params->subject) != '\0')
+    {
+      fprintf (pdfmark_file, " /Subject (%s)", convert_to_pdf_doc_encoding(buffer, params->subject, MAX_INFO_FIELD * 4));
+    }
+
+    if (*(params->keywords) != '\0')
+    {
+      fprintf (pdfmark_file, " /Keywords (%s)", convert_to_pdf_doc_encoding(buffer, params->keywords, MAX_INFO_FIELD * 4));
+    }
+
+    fprintf (pdfmark_file, " /DOCINFO pdfmark\n");
   }
 }
 
