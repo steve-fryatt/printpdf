@@ -52,6 +52,7 @@ bookmark_block	*find_bookmark_window(wimp_w window);
 bookmark_block	*find_bookmark_toolbar(wimp_w window);
 bookmark_block	*find_bookmark_name(char *name);
 bookmark_block	*find_bookmark_block(bookmark_block *block);
+wimp_menu	*build_bookmark_menu(bookmark_params *params);
 void		bookmark_window_redraw_loop(bookmark_block *bm,
 				wimp_draw *redraw);
 void		rebuild_bookmark_data(bookmark_block *bm);
@@ -62,8 +63,13 @@ void		rebuild_bookmark_data(bookmark_block *bm);
 
 /* Pointer to bookmark window data list. */
 
-bookmark_block *bookmarks_list = NULL;
-int		untitled_number = 1;
+static bookmark_block *bookmarks_list = NULL;
+static int		untitled_number = 1;
+
+static wimp_menu	*bookmarks_menu = NULL;
+static bookmark_block	**bookmarks_menu_links = NULL;
+static int		bookmarks_menu_size = 0;
+
 
 /* ==================================================================================================================
  * General System Initialisation
@@ -416,33 +422,150 @@ void initialise_bookmark_settings(bookmark_params *params)
 	params->bookmarks = NULL;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+
+/**
+ * Create and open the bookmark list pop-up menu.
+ *
+ * Param:  *params		The associated bookmark parameters.
+ * Param:  *pointer		The pointer details of the click.
+ * Param:  window		The window in which the pop-up resides.
+ * Param:  icon			The icon to which the pop-up is attached.
+ */
 
 void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon)
 {
-//  if (build_param_menu ("VersionMenu", ident, version_menu_tick (params)) != NULL)
-//  {
-//    open_param_menu (pointer, window, icon);
-//  }
+	wimp_menu		*menu;
+
+	extern global_menus	menus;
+
+	menu = build_bookmark_menu(params);
+
+	if (menu != NULL)
+		menus.menu_up = create_popup_menu(menu, pointer);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+
+/**
+ * Handle selection events from the bookmarks pop-up menu.
+ *
+ * Param:  *params		The associated bookmarks parameters.
+ * Param:  *selection		The Wimp Menu selection block.
+ */
 
 void process_bookmark_menu(bookmark_params *params, wimp_selection *selection)
 {
-//  params->standard_version = selection->items[0];
+	if (selection->items[0] >= 0 && selection->items[0] < bookmarks_menu_size)
+		params->bookmarks = bookmarks_menu_links[selection->items[0]];
 
-//  build_param_menu ("VersionMenu", param_menu_ident (), version_menu_tick (params));
+	build_bookmark_menu(params);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int bookmark_menu_tick(bookmark_params *params)
+/**
+ * Build the bookmarks pop-up menu used for selecting a bookmark set to use, and
+ * register it with the global_menus structure.
+ *
+ * Param:  *params		Bookamrks param block to use to set ticks.
+ * Return:			The menu block, or NULL.
+ */
+
+wimp_menu *build_bookmark_menu(bookmark_params *params)
 {
-  return (0);
+	int			count, item, width;
+	bookmark_block		*bm;
+
+	extern global_menus	menus;
+
+
+	/* Count up the entries; we need a menu length one greater, to allow
+	 * for the 'None' entry.
+	 */
+
+	for (bm = bookmarks_list, count = 1; bm != NULL; bm = bm->next)
+		count++;
+
+	/* (Re-)Allocate memory for the menu and block links. */
+
+	if (count != bookmarks_menu_size) {
+		if (bookmarks_menu != NULL)
+			free(bookmarks_menu);
+		if (bookmarks_menu_links != NULL)
+			free(bookmarks_menu_links);
+
+		bookmarks_menu = (wimp_menu *) malloc(sizeof (wimp_menu_base) + sizeof (wimp_menu_entry) * count);
+		bookmarks_menu_links = (bookmark_block **) malloc(sizeof(bookmark_block) * count);
+		bookmarks_menu_size = count;
+
+		menus.bookmarks_list = bookmarks_menu;
+	}
+
+	/* If we got the memory, build the menu and links. */
+
+	if (bookmarks_menu != NULL && bookmarks_menu_links != NULL) {
+		msgs_lookup("BMListMenu", bookmarks_menu->title_data.text, 12);
+
+		item = 0;
+
+		bookmarks_menu->entries[item].menu_flags = (count > 1) ? wimp_MENU_SEPARATE : 0;
+		bookmarks_menu->entries[item].sub_menu = (wimp_menu *) -1;
+		bookmarks_menu->entries[item].icon_flags = wimp_ICON_TEXT | wimp_ICON_FILLED |
+				wimp_COLOUR_BLACK << wimp_ICON_FG_COLOUR_SHIFT |
+				wimp_COLOUR_WHITE << wimp_ICON_BG_COLOUR_SHIFT;
+		msgs_lookup("None", bookmarks_menu->entries[item].data.text, 12);
+		bookmarks_menu->entries[item].data.indirected_text.validation = NULL;
+		bookmarks_menu->entries[item].data.indirected_text.size = PARAM_MENU_LEN;
+
+		bookmarks_menu_links[item] = NULL;
+
+		if (params->bookmarks == NULL)
+			bookmarks_menu->entries[item].menu_flags |= wimp_MENU_TICKED;
+
+		width = strlen(bookmarks_menu->entries[item].data.text);
+
+		for (bm = bookmarks_list; bm != NULL; bm = bm->next) {
+			item++;
+
+			bookmarks_menu->entries[item].menu_flags = 0;
+			bookmarks_menu->entries[item].sub_menu = (wimp_menu *) -1;
+			bookmarks_menu->entries[item].icon_flags = wimp_ICON_TEXT | wimp_ICON_FILLED |
+					wimp_ICON_INDIRECTED | wimp_COLOUR_BLACK << wimp_ICON_FG_COLOUR_SHIFT |
+					wimp_COLOUR_WHITE << wimp_ICON_BG_COLOUR_SHIFT;
+			bookmarks_menu->entries[item].data.indirected_text.text = bm->name;
+			bookmarks_menu->entries[item].data.indirected_text.validation = NULL;
+			bookmarks_menu->entries[item].data.indirected_text.size = MAX_BOOKMARK_BLOCK_NAME;
+
+			bookmarks_menu_links[item] = bm;
+
+			if (params->bookmarks == bm)
+				bookmarks_menu->entries[item].menu_flags |= wimp_MENU_TICKED;
+
+			if (strlen(bm->name) > width)
+				width = strlen(bm->name);
+		}
+
+		bookmarks_menu->entries[item].menu_flags |= wimp_MENU_LAST;
+
+		bookmarks_menu->title_fg = wimp_COLOUR_BLACK;
+		bookmarks_menu->title_bg = wimp_COLOUR_LIGHT_GREY;
+		bookmarks_menu->work_fg = wimp_COLOUR_BLACK;
+		bookmarks_menu->work_bg = wimp_COLOUR_WHITE;
+
+		bookmarks_menu->width = (width + 1) * 16;
+		bookmarks_menu->height = 44;
+		bookmarks_menu->gap = 0;
+	}
+
+	return bookmarks_menu;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+
+/**
+ * Fill the Bookmark info field based on the supplied parameters.
+ *
+ * Param:  window		The window the field is in.
+ * Param:  icon			The icon for the field.
+ * Param:  *params		The parameters to use.
+ */
 
 void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params)
 {

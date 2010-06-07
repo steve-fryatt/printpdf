@@ -22,14 +22,14 @@
  * Type definitions
  */
 
-typedef struct
-{
-  wimp_menu   *menu_up;
+typedef struct {
+	wimp_menu	*menu_up;
 
-  wimp_menu   *icon_bar;
-  wimp_menu   *params;
-}
-global_menus;
+	wimp_menu	*icon_bar;
+	wimp_menu	*params;
+	wimp_menu	*bookmarks;
+	wimp_menu	*bookmarks_list;
+} global_menus;
 
 /* ------------------------------------------------------------------------------------------------------------------
  * Function prototypes.

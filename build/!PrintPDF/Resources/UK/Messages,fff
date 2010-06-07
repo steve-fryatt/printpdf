@@ -28,6 +28,7 @@ DepthOff:Off
 # Bookmarks system
 
 UntBM:Bookmarks %0
+BMListMenu:Bookmarks
 
 # Messages and errors
 

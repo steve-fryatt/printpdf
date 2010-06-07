@@ -705,33 +705,28 @@ void key_press_handler (wimp_key *key)
 
 void menu_selection_handler (wimp_selection *selection)
 {
-  wimp_pointer          pointer;
+	wimp_pointer		pointer;
 
-  extern global_menus   menus;
+	extern global_menus	menus;
 
 
-  /* Store the mouse status before decoding the menu. */
+	/* Store the mouse status before decoding the menu. */
 
-  wimp_get_pointer_info (&pointer);
+	wimp_get_pointer_info (&pointer);
 
-  /* Decode the icon-bar menu. */
+	/* Decode the icon-bar menu. */
 
-  if (menus.menu_up == menus.icon_bar)
-  {
-    decode_iconbar_menu (selection, &pointer);
-  }
+	if (menus.menu_up == menus.icon_bar)
+		decode_iconbar_menu (selection, &pointer);
+	else if (menus.menu_up == menus.params)
+		decode_param_menu (selection, &pointer);
+	else if (menus.menu_up == menus.bookmarks_list)
+		process_convert_bookmark_menu(selection);
 
-  else if (menus.menu_up == menus.params)
-  {
-    decode_param_menu (selection, &pointer);
-  }
+	/* If Adjust was used, reopen the menu. */
 
-  /* If Adjust was used, reopen the menu. */
-
-  if (pointer.buttons == wimp_CLICK_ADJUST)
-  {
-    wimp_create_menu (menus.menu_up, 0, 0);
-  }
+	if (pointer.buttons == wimp_CLICK_ADJUST)
+		wimp_create_menu (menus.menu_up, 0, 0);
 }
 
 /* ==================================================================================================================
