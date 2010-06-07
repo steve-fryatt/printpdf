@@ -701,15 +701,6 @@ void load_bookmark_file(char *filename)
 
 	hourglass_off();
 
-	current = block->root;
-
-	while (current != NULL) {
-		debug_printf("Node: '%s'", current->title);
-		debug_printf("  For page %d, at level %d", current->destination, current->level);
-
-		current = current->next;
-	}
-
 	fclose (in);
 
 	rebuild_bookmark_data(block);
@@ -776,8 +767,5 @@ void rebuild_bookmark_data(bookmark_block *bm)
 
 		bm->lines = count;
 	}
-
-	debug_printf("Found %d entries in file; %d lines in window.", bm->nodes, bm->lines);
-
 }
 
