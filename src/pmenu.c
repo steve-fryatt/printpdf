@@ -50,7 +50,7 @@ wimp_menu *build_param_menu (char *param_list, int ident, int current)
 
   if (param_menu == NULL)
   {
-    param_menu = (wimp_menu *) malloc (sizeof (wimp_menu) + sizeof (wimp_menu_entry) * PARAM_MENU_SIZE);
+    param_menu = (wimp_menu *) malloc (sizeof (wimp_menu_base) + sizeof (wimp_menu_entry) * PARAM_MENU_SIZE);
     menu_def = (char *) malloc (sizeof (char) * ((PARAM_MENU_LEN + 1) * PARAM_MENU_SIZE));
   }
 
@@ -66,7 +66,7 @@ wimp_menu *build_param_menu (char *param_list, int ident, int current)
   debug_printf ("Menu def: '%s'", menu_def);
   #endif
 
-  strcpy (menus.params->title_data.text, strtok (menu_def, ","));
+  strncpy (menus.params->title_data.text, strtok (menu_def, ","), 12);
 
   item = 0;
   width = 0;
