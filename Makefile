@@ -145,7 +145,7 @@ $(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR
 # Build the release Zip file.
 
 release: clean all
-	$(RM) $(ZIPFILE)
+	$(RM) ../$(ZIPFILE)
 	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(APP))
 	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(README))
 	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(LICENSE))
@@ -155,7 +155,7 @@ release: clean all
 # Build a backup Zip file
 
 backup:
-	$(RM) $(BUZIPFILE)
+	$(RM) ../$(BUZIPFILE)
 	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(SRCDIR)
 	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(MENUDIR)
 	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(MANUAL)
