@@ -189,27 +189,31 @@ int immediate_window_save (void)
 
 void message_data_save_reply (wimp_message *message)
 {
-  wimp_full_message_data_xfer  *datasave = (wimp_full_message_data_xfer *) message;
-  os_error                     *error;
+	wimp_full_message_data_xfer	*datasave = (wimp_full_message_data_xfer *) message;
+	os_error			*error;
 
 
-  if (datasave->w == wimp_ICON_BAR && datasave->file_type == 0xff5)
-  {
-    /* Reply to the message. */
+	if (datasave->w == wimp_ICON_BAR &&
+			(datasave->file_type == PS_FILE_TYPE || datasave->file_type == PRINTPDF_FILE_TYPE)) {
+		datasave->your_ref = datasave->my_ref;
+		datasave->action = message_DATA_SAVE_ACK;
 
-    datasave->your_ref = datasave->my_ref;
-    datasave->action = message_DATA_SAVE_ACK;
+		switch (datasave->file_type) {
+		case PS_FILE_TYPE:
+			sprintf(datasave->file_name, "%s.printout/ps", read_config_str("FileQueue"));
+			break;
 
-    sprintf (datasave->file_name, "%s.printout/ps", read_config_str("FileQueue"));
+		case PRINTPDF_FILE_TYPE:
+			strcpy(datasave->file_name, "<Wimp$Scrap>");
+			break;
+		}
 
-    datasave->size = WORDALIGN(45 + strlen(datasave->file_name));
+		datasave->size = WORDALIGN(45 + strlen(datasave->file_name));
 
-    error = xwimp_send_message (wimp_USER_MESSAGE, (wimp_message *) datasave, datasave->sender);
-    if (error != NULL)
-    {
-      wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
-    }
-  }
+		error = xwimp_send_message(wimp_USER_MESSAGE, (wimp_message *) datasave, datasave->sender);
+		if (error != NULL)
+			wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
+	}
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -217,51 +221,56 @@ void message_data_save_reply (wimp_message *message)
 /* Called if a file is dragged from the Filer to our iconbar icon.  Try and queue the file.
  */
 
+/**
+ * Handle the receipt of a Message_DataLoad, generally as a result of a file
+ * being dragged from the Filer to one of our windows or icons.
+ *
+ * Param:  *message		The associated Wimp message block.
+ */
+
 void message_data_load_reply (wimp_message *message)
 {
-  wimp_full_message_data_xfer *dataload = (wimp_full_message_data_xfer *) message;
-  os_error                    *error;
-  char                        queue_file[512];
+	wimp_full_message_data_xfer	*dataload = (wimp_full_message_data_xfer *) message;
+	os_error			*error;
+	char				queue_file[512];
 
-  extern global_windows windows;
+	extern global_windows		windows;
 
 
-  if (dataload->w == wimp_ICON_BAR && dataload->file_type == PS_FILE_TYPE)
-  {
-    /* Only queue the file if it isn't going to be queued in due course anyway.  This covers ourselves if this
-     * message is part of a full data transfer exchange starting with an application trying to save to the iconbar.
-     * In this case, message_data_save_reply () will have already given the queue head filename.
-     */
+	if (dataload->w == wimp_ICON_BAR &&
+			(dataload->file_type == PS_FILE_TYPE || dataload->file_type == PRINTPDF_FILE_TYPE)) {
+		switch (dataload->file_type) {
+		case PS_FILE_TYPE:
+			/* Before responding, test if the file being saved is the queue file.
+			 * If it isn't, queue it and respond accordingly.
+			 */
 
-    sprintf (queue_file, "%s.printout/ps", read_config_str("FileQueue"));
-    if (strcmp (queue_file, dataload->file_name) != 0)
-    {
-      queue_ps_file (dataload->file_name);
-    }
+			sprintf(queue_file, "%s.printout/ps", read_config_str("FileQueue"));
+			if (strcmp(queue_file, dataload->file_name) != 0)
+				queue_ps_file(dataload->file_name);
+			break;
+		case PRINTPDF_FILE_TYPE:
+			load_bookmark_file(dataload->file_name);
+			break;
+		}
 
-    /* Reply with a Message_DataLoadAck. */
+		/* Reply with a Message_DataLoadAck. */
 
-    dataload->your_ref = dataload->my_ref;
-    dataload->action = message_DATA_LOAD_ACK;
+		dataload->your_ref = dataload->my_ref;
+		dataload->action = message_DATA_LOAD_ACK;
 
-    error = xwimp_send_message (wimp_USER_MESSAGE, (wimp_message *) dataload, dataload->sender);
-    if (error != NULL)
-    {
-      wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
-    }
-  }
-  else if (dataload->w == windows.choices)
-  {
-    handle_choices_icon_drop (dataload);
-  }
-  else if (dataload->w == windows.save_pdf)
-  {
-    handle_save_icon_drop (dataload);
-  }
+		error = xwimp_send_message(wimp_USER_MESSAGE, (wimp_message *) dataload, dataload->sender);
+		if (error != NULL)
+			wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
+	} else if (dataload->w == windows.choices) {
+		handle_choices_icon_drop(dataload);
+	} else if (dataload->w == windows.save_pdf) {
+		handle_save_icon_drop(dataload);
+	}
 }
 
 /**
- * Handle the receipt of a Message_DataLoad.
+ * Handle the receipt of a Message_DataOpen.
  *
  * Param:  *message		The associated Wimp message block.
  * Return:			1 if the message failed to handle; else 0.
