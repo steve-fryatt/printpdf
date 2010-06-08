@@ -83,11 +83,14 @@ char *get_current_menu_name(char *buffer)
 
 	*buffer = '\0';
 
-	if (menus.menu_up == menus.icon_bar) {
-		strcpy (buffer, "IconBarMenu");
-	} else if (menus.menu_up == menus.params) {
-		strcpy (buffer, "ParamsMenu");
-	}
+	if (menus.menu_up == menus.icon_bar)
+		strcpy(buffer, "IconBarMenu");
+	else if (menus.menu_up == menus.params)
+		strcpy(buffer, "ParamsMenu");
+	else if (menus.menu_up == menus.bookmarks)
+		strcpy(buffer, "BookmarkMenu");
+	else if (menus.menu_up == menus.bookmarks_list)
+		strcpy(buffer, "BookmarksListMenu");
 
 	return (buffer);
 }

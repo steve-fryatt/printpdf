@@ -714,7 +714,7 @@ void menu_selection_handler (wimp_selection *selection)
 
 	wimp_get_pointer_info (&pointer);
 
-	/* Decode the icon-bar menu. */
+	/* Decode the individual menus. */
 
 	if (menus.menu_up == menus.icon_bar)
 		decode_iconbar_menu (selection, &pointer);
