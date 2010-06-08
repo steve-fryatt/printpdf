@@ -1,7 +1,7 @@
 =============================================================================
-PrintPDF - Easy PDF creation with GhostScript                    Version 0.71
+PrintPDF - Easy PDF creation with GhostScript                    Version 0.80
 
-(c) Stephen Fryatt, 2005                                        20 April 2010
+(c) Stephen Fryatt, 2005                                          8 June 2010
 =============================================================================
 
 
@@ -320,6 +320,14 @@ Using PrintPDF
   title in the titlebar of the display window, while the other fields appear
   with the document properties or document information.
 
+  The 'Bookmarks' field can be used to attach a bookmarks file to the
+  conversion: these can be used to identify chapter and section headings or
+  other key locations in a document and enable readers to navigate through it
+  easily.  The pop-up menu to the right allows a bookmarks file to be
+  selected from those currently open; when it shows 'None', no bookmarks will
+  be used.  Details of how to use the bookmarks editor to create or load sets
+  of bookmarks is given in the Bookmark Editor section.
+
   The 'Encryption' field allows access to the document encryption, password
   protection and access limitation features, if GhostScript 8.5 or better is
   being used.  When the field shows 'Unprotected', no encryption is applied;
@@ -379,6 +387,11 @@ Using PrintPDF
   It is also possible to convert PostScript files which already exist on
   disc, by dragging them to the PrintPDF icon on the iconbar.  They will be
   added to the queue of files for conversion, and processed in turn.
+
+
+
+Bookmark editor
+---------------
 
 
 
@@ -665,6 +678,14 @@ Version History
   Update to seventh beta release.
 
   * Fix escaping of ( and ) in PDFDocEncoding strings.
+
+
+  0.80 (8 June 2010)
+  ------------------
+
+  Eighth beta release.
+
+  * Add bookmarks editor.
 
 
 
