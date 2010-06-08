@@ -5,13 +5,14 @@
 # This file really needs to be run by GNUMake.
 # It is intended for cross-compilation under the GCCSDK.
 
-.PHONY: all clean application documentation release
+.PHONY: all clean application documentation release backup
 
 
 # The archive to assemble the release files in.  If $(RELEASE) is set, then the file can be given
 # a standard version number suffix.
 
 ZIPFILE := printpdf$(RELEASE).zip
+BUZIPFILE := printpdf$(shell date "+%Y%m%d").zip
 
 
 # The build date.
@@ -43,6 +44,7 @@ MENUGEN := $(SFBIN)/menugen
 
 CCFLAGS := -mlibscl -mhard-float -static -mthrowback -Wall -O2 -D'BUILD_DATE="$(BUILD_DATE)"' -fno-strict-aliasing -mpoke-function-name
 ZIPFLAGS := -x "*/.svn/*" -r -, -9
+BUZIPFLAGS := -x "*/.svn/*" -r -9
 BINDHELPFLAGS := -f -r -v
 MENUGENFLAGS := -d
 
@@ -144,10 +146,22 @@ $(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR
 
 release: clean all
 	$(RM) $(ZIPFILE)
-	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../$(ZIPFILE) $(APP))
-	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../$(ZIPFILE) $(README))
-	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../$(ZIPFILE) $(LICENSE))
-	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../$(ZIPFILE) $(PRINTERS))
+	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(APP))
+	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(README))
+	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(LICENSE))
+	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(PRINTERS))
+
+
+# Build a backup Zip file
+
+backup:
+
+	$(RM) $(BUZIPFILE)
+	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(SRCDIR)
+	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(MENUDIR)
+	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(MANUAL)
+	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(OBJDIR)
+	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(OUTDIR)
 
 
 # Clean targets
