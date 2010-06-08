@@ -146,21 +146,14 @@ $(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR
 
 release: clean all
 	$(RM) ../$(ZIPFILE)
-	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(APP))
-	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(README))
-	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(LICENSE))
-	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(PRINTERS))
+	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(APP) $(README) $(LICENSE) $(PRINTERS))
 
 
 # Build a backup Zip file
 
 backup:
 	$(RM) ../$(BUZIPFILE)
-	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(SRCDIR)
-	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(MENUDIR)
-	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(MANUAL)
-	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(OBJDIR)
-	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(OUTDIR)
+	$(ZIP) $(BUZIPFLAGS) ../$(BUZIPFILE) *
 
 
 # Clean targets
