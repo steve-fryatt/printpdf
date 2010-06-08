@@ -18,7 +18,7 @@ Version $$version$$ ($$date$$)†
 {f/:PrintPDF} is {f*:Freeware}: please read the <License>.
 
 #Indent 2
-#Table Columns 3
+#Table Columns 4
 è <Introduction>
 è <Installing PrintPDF=>Install>
 è <Using PrintPDF=>Use>
