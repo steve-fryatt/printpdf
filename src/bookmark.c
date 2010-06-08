@@ -438,6 +438,8 @@ void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w w
 
 	extern global_menus	menus;
 
+	params->bookmarks = find_bookmark_block(params->bookmarks);
+
 	menu = build_bookmark_menu(params);
 
 	if (menu != NULL)
@@ -454,6 +456,8 @@ void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w w
 
 void process_bookmark_menu(bookmark_params *params, wimp_selection *selection)
 {
+	params->bookmarks = find_bookmark_block(params->bookmarks);
+
 	if (selection->items[0] >= 0 && selection->items[0] < bookmarks_menu_size)
 		params->bookmarks = bookmarks_menu_links[selection->items[0]];
 
@@ -476,6 +480,8 @@ wimp_menu *build_bookmark_menu(bookmark_params *params)
 
 	extern global_menus	menus;
 
+
+	params->bookmarks = find_bookmark_block(params->bookmarks);
 
 	/* Count up the entries; we need a menu length one greater, to allow
 	 * for the 'None' entry.
@@ -569,6 +575,8 @@ wimp_menu *build_bookmark_menu(bookmark_params *params)
 
 void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params)
 {
+	params->bookmarks = find_bookmark_block(params->bookmarks);
+
 	if (params == NULL || params->bookmarks == NULL) {
 		msgs_lookup ("None", indirected_icon_text (window, icon), MAX_BOOKMARK_FIELD_LEN);
 	} else {
@@ -591,6 +599,8 @@ void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params)
 
 int bookmark_data_available(bookmark_params *params)
 {
+	params->bookmarks = find_bookmark_block(params->bookmarks);
+
 	return (params != NULL && params->bookmarks != NULL);
 }
 
@@ -606,6 +616,8 @@ void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params)
 {
 	bookmark_node		*node;
 	char			buffer[MAX_BOOKMARK_LEN * 4];
+
+	params->bookmarks = find_bookmark_block(params->bookmarks);
 
 	if (pdfmark_file != NULL && bookmark_data_available(params))
 		for (node = params->bookmarks->root; node != NULL; node = node->next) {
