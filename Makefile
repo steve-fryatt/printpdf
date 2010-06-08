@@ -155,7 +155,6 @@ release: clean all
 # Build a backup Zip file
 
 backup:
-
 	$(RM) $(BUZIPFILE)
 	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(SRCDIR)
 	$(ZIP) $(ZIPFLAGS) ../$(BUZIPFILE) $(MENUDIR)
