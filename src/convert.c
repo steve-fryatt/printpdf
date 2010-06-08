@@ -806,6 +806,18 @@ void cancel_conversion (void)
   remove_current_conversion ();
 }
 
+/**
+ * Called by modules to ask the converion system to re-validate its parameters.
+ */
+
+void convert_validate_params(void)
+{
+	extern global_windows	windows;
+
+	if (bookmark_validate_params(&bookmark))
+		fill_bookmark_field(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
+}
+
 /* ==================================================================================================================
  * Handle pop-up menus from the dialogue.
  */

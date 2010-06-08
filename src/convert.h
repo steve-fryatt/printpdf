@@ -120,6 +120,10 @@ int launch_ps2pdf (char *file_out, char *pdfmark_file);
 void check_for_conversion_end (wimp_t task_handle);
 void cancel_conversion (void);
 
+/* Handling parameters. */
+
+void convert_validate_params(void);
+
 /* Handling pop-up menus from the dialogue. */
 
 void open_convert_version_menu (wimp_pointer *pointer, wimp_w window, wimp_i icon);

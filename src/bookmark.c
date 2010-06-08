@@ -31,6 +31,7 @@
 
 #include "bookmark.h"
 
+#include "convert.h"
 #include "menus.h"
 #include "pdfmark.h"
 #include "pmenu.h"
@@ -161,6 +162,12 @@ void delete_bookmark_block(bookmark_block *bookmark)
 			free(f->redraw);
 
 		free(f);
+
+		/* In case the deleted block was the currently selected bookmark
+		 * in an active conversion...
+		 */
+
+		convert_validate_params();
 	}
 }
 
@@ -604,6 +611,25 @@ int bookmark_data_available(bookmark_params *params)
 	return (params != NULL && params->bookmarks != NULL);
 }
 
+/**
+ * Check the status of the supplied parameter block, and update it if anything
+ * is invalid.
+ *
+ * Param:  *params		The parameter block to check.
+ * Return:			1 if parameters were chnaged; else 0.
+ */
+
+int bookmark_validate_params(bookmark_params *params)
+{
+	if (params != NULL && params->bookmarks != NULL) {
+		params->bookmarks = find_bookmark_block(params->bookmarks);
+
+		if (params->bookmarks == NULL)
+			return 1;
+	}
+
+	return 0;
+}
 
 /**
  * Output PDFMark data related to the associated bookmarks parameters file.
