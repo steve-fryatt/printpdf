@@ -2,8 +2,7 @@
  *
  * (C) Stephen Fryatt, 2005
  *
- * Version 0.10
- * 20-March-2005
+ * For version 0.80
  */
 
 
@@ -11,20 +10,39 @@
  * Icon bar menu.
  */
 
-menu (iconbar_menu, "PrintPDF")
+menu(iconbar_menu, "PrintPDF")
 {
-  item ("Info")
-  {
-    d_box (ProgInfo);
-  }
-  item ("Help")
-  {
-    dotted;
-  }
-  item ("Queue...");
-  item ("Choices...")
-  {
-    dotted;
-  }
-  item ("Quit");
+	item("Info") {
+		d_box(ProgInfo);
+	}
+	item("Help") {
+		dotted;
+	}
+	item("Queue...");
+	item("Choices...") {
+		dotted;
+	}
+	item("Quit");
+}
+
+/**
+ * Bookmarks Window Menu.
+ */
+
+menu(bookmarks, "PrintPDF")
+{
+	item("File") {
+		submenu(bm_file);
+	}
+	item("Line");
+}
+
+/**
+ * Bookmarks Window -- File Submenu.
+ */
+
+menu(bm_file, "File")
+{
+	item("Info");
+	item("Save");
 }

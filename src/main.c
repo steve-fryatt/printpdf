@@ -552,6 +552,12 @@ void mouse_click_handler (wimp_pointer *pointer)
       close_popup ();
     }
   }
+
+  /* Pass the click on to the Bookmarks system. */
+
+  else {
+  	bookmark_click_handler(pointer);
+  }
 }
 
 /* ==================================================================================================================

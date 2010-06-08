@@ -341,6 +341,36 @@ void bookmark_window_redraw_loop(bookmark_block *bm, wimp_draw *redraw)
 	}
 }
 
+/**
+ * Handle clicks in the Bookmarks windows.
+ *
+ * Param:  *pointer		The Wimp mouse click event data.
+ * Return:			1 if the event was handled; else 0.
+ */
+
+int bookmark_click_handler(wimp_pointer *pointer)
+{
+	bookmark_block		*bm;
+
+	debug_printf("Bookmark click handler...");
+
+	if ((bm = find_bookmark_window(pointer->w)) != NULL) {
+		/* It's a bookmark window! */
+
+		debug_printf("A click in bookmark window %s", bm->name);
+
+		return 1;
+	} else if ((bm = find_bookmark_toolbar(pointer->w)) != NULL) {
+		/* It's a bookmark toolbar! */
+
+		debug_printf("A click in bookmark toolbar %s", bm->name);
+
+		return 1;
+	}
+
+	return 0;
+}
+
 
 /**
  * Find a bookmark block by its window handle.

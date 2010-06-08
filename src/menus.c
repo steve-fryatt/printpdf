@@ -65,6 +65,7 @@ void load_menu_definitions(char *menu_file)
 		load_menus_dbox(menu_defs, "ProgInfo", windows.prog_info);
 
 		menus.icon_bar = menu_list[0];
+		menus.bookmarks = menu_list[1];
 	}
 }
 

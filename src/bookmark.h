@@ -73,6 +73,8 @@ void create_new_bookmark_window(wimp_pointer *pointer);
 int close_bookmark_window(wimp_w window);
 int redraw_bookmark_window(wimp_draw *redraw);
 
+int bookmark_click_handler(wimp_pointer *pointer);
+
 void initialise_bookmark_settings(bookmark_params *params);
 void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon);
 void process_bookmark_menu(bookmark_params *params, wimp_selection *selection);
