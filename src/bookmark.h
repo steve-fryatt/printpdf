@@ -13,6 +13,8 @@
 #define MAX_BOOKMARK_LEN 64  /* The real maximum is 256, but Adobe recommend 32 max for practicality. */
 #define MAX_BOOKMARK_BLOCK_NAME 64
 #define MAX_BOOKMARK_FIELD_LEN 20
+#define MAX_BOOKMARK_FILENAME 256
+
 #define BOOKMARK_TOOLBAR_HEIGHT 82
 #define BOOKMARK_LINE_HEIGHT 60
 #define BOOKMARK_ICON_HEIGHT 52
@@ -43,6 +45,10 @@ typedef struct bookmark_redraw {
 
 typedef struct bookmark_block {
 	char			name[MAX_BOOKMARK_BLOCK_NAME];
+	char			filename[MAX_BOOKMARK_FILENAME];
+	char			window_title[MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10];
+
+	int			unsaved;
 
 	wimp_w			window;
 	wimp_w			toolbar;

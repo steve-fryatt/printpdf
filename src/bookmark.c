@@ -49,6 +49,8 @@
 void		open_bookmark_window(bookmark_block *bm);
 bookmark_block	*create_bookmark_block(void);
 void		delete_bookmark_block(bookmark_block *bookmark);
+void set_bookmark_unsaved_state(bookmark_block *bm, int unsaved);
+void update_bookmark_window_title(bookmark_block *bm);
 bookmark_block	*find_bookmark_window(wimp_w window);
 bookmark_block	*find_bookmark_toolbar(wimp_w window);
 bookmark_block	*find_bookmark_name(char *name);
@@ -117,6 +119,8 @@ bookmark_block *create_bookmark_block(void)
 					number, NULL, NULL, NULL);
 		} while (find_bookmark_name(name) != NULL);
 		strncpy(new->name, name, MAX_BOOKMARK_BLOCK_NAME);
+		strncpy(new->filename, "", MAX_BOOKMARK_FILENAME);
+		new->unsaved = 0;
 		new->window = NULL;
 		new->toolbar = NULL;
 		new->redraw = NULL;
@@ -199,8 +203,8 @@ void open_bookmark_window(bookmark_block *bm)
 	extern global_windows	windows;
 
 	if (bm != NULL && bm->window == NULL && bm->toolbar == NULL) {
-		windows.bookmark_window_def->title_data.indirected_text.text = bm->name;
-		windows.bookmark_window_def->title_data.indirected_text.size = MAX_BOOKMARK_BLOCK_NAME;
+		windows.bookmark_window_def->title_data.indirected_text.text = bm->window_title;
+		windows.bookmark_window_def->title_data.indirected_text.size = MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10;
 
 		place_window_as_toolbar(windows.bookmark_window_def,
 				windows.bookmark_pane_def,
@@ -369,6 +373,45 @@ int bookmark_click_handler(wimp_pointer *pointer)
 	}
 
 	return 0;
+}
+
+
+/**
+ * Set the 'unsaved' status of a bookmark window.
+ *
+ * Param:  *bm			The block to update.
+ * Param:  unsaved		The unsaved status (1 = unsaved; 0 = saved).
+ */
+
+void set_bookmark_unsaved_state(bookmark_block *bm, int unsaved)
+{
+	if (unsaved != bm->unsaved) {
+		bm->unsaved = unsaved;
+		update_bookmark_window_title(bm);
+	}
+}
+
+
+/**
+ * Set the title of the bookmark window.
+ *
+ * Param:  *bm			The block to set the window title for.
+ */
+
+void update_bookmark_window_title(bookmark_block *bm)
+{
+	char		*asterisk;
+
+	asterisk = (bm->unsaved) ? " *" : "";
+
+	if (strlen(bm->filename) > 0)
+		snprintf(bm->window_title, MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10,
+				"%s (%s)%s", bm->filename, bm->name, asterisk);
+	else
+		snprintf(bm->window_title, MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10,
+				"%s%s", bm->name, asterisk);
+
+	xwimp_force_redraw_title(bm->window);
 }
 
 
@@ -720,6 +763,9 @@ void load_bookmark_file(char *filename)
 	}
 
 	hourglass_on();
+
+	strncpy(block->filename, filename, MAX_BOOKMARK_FILENAME);
+	update_bookmark_window_title(block);
 
 	/* Read the nodes into a linear linked list, ignoring for the time
 	 * being any levels.

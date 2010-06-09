@@ -331,7 +331,7 @@ Using PrintPDF
   easily.  The pop-up menu to the right allows a bookmarks file to be
   selected from those currently open; when it shows 'None', no bookmarks will
   be used.  Details of how to use the bookmarks editor to create or load sets
-  of bookmarks is given in the Bookmark Editor section.
+  of bookmarks are given in the Bookmark Editor section.
 
   The 'Encryption' field allows access to the document encryption, password
   protection and access limitation features, if GhostScript 8.5 or better is
@@ -395,7 +395,7 @@ Using PrintPDF
 
 
 
-Bookmark editor
+Bookmark Editor
 ---------------
 
 
