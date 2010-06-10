@@ -11,7 +11,7 @@
  */
 
 
-#define PRINTPDF_FILE_TYPE 0x0df
+#define PRINTPDF_FILE_TYPE 0x1d8
 #define PDF_FILE_TYPE 0xadf
 #define PS_FILE_TYPE 0xff5
 

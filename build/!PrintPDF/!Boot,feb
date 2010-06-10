@@ -15,11 +15,11 @@ If "<PrintPDF$Dir>"="" Then Set PrintPDF$Dir <Obey$Dir>
 
 | Set the filetype information.
 
-Set File$Type_0DF PrintPDF
+Set File$Type_1D8 PrintPDF
 
 | Claim PrintPDF files if these have not been claimed already.
 
-If "<Alias$@RunType_0DF>" = "" Then Set Alias$@RunType_ODF Run <PrintPDF$Dir>.!Run -file %%*0
+If "<Alias$@RunType_1D8>" = "" Then Set Alias$@RunType_1D8 Run <PrintPDF$Dir>.!Run -file %%*0
 
 | Set the application sprites.
 
