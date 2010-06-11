@@ -26,6 +26,7 @@
 #include "sflib/string.h"
 #include "sflib/windows.h"
 #include "sflib/debug.h"
+#include "sflib/event.h"
 
 /* Application header files */
 
@@ -47,17 +48,17 @@
  */
 
 void		open_bookmark_window(bookmark_block *bm);
+void		close_bookmark_window(wimp_close *close);
+void		redraw_bookmark_window(wimp_draw *redraw);
 bookmark_block	*create_bookmark_block(void);
 void		delete_bookmark_block(bookmark_block *bookmark);
-void set_bookmark_unsaved_state(bookmark_block *bm, int unsaved);
-void update_bookmark_window_title(bookmark_block *bm);
+void		set_bookmark_unsaved_state(bookmark_block *bm, int unsaved);
+void		update_bookmark_window_title(bookmark_block *bm);
 bookmark_block	*find_bookmark_window(wimp_w window);
 bookmark_block	*find_bookmark_toolbar(wimp_w window);
 bookmark_block	*find_bookmark_name(char *name);
 bookmark_block	*find_bookmark_block(bookmark_block *block);
 wimp_menu	*build_bookmark_menu(bookmark_params *params);
-void		bookmark_window_redraw_loop(bookmark_block *bm,
-				wimp_draw *redraw);
 void		rebuild_bookmark_data(bookmark_block *bm);
 
 /* ==================================================================================================================
@@ -212,6 +213,12 @@ void open_bookmark_window(bookmark_block *bm)
 		bm->window = wimp_create_window(windows.bookmark_window_def);
 		bm->toolbar = wimp_create_window(windows.bookmark_pane_def);
 
+		/* Register the window's event handlers. */
+
+		event_add_window_close_event(bm->window, close_bookmark_window);
+		event_add_window_redraw_event(bm->window, redraw_bookmark_window);
+		event_add_window_user_data(bm->window, bm);
+
 		/* Open the window and toolbar. */
 
 		open_window(bm->window);
@@ -223,57 +230,42 @@ void open_bookmark_window(bookmark_block *bm)
 /**
  * Close the given bookmark window and delete all of the associated data.
  *
- * Param:  window		The window handle of the window to be closed.
- * Return:			0 if the close was successful; 1 if the window
- *				handle wasn't recognised.
+ * Param:  *close		The Wimp close data block.
  */
 
-int close_bookmark_window(wimp_w window)
+void close_bookmark_window(wimp_close *close)
 {
 	bookmark_block		*bm;
 
-	bm = find_bookmark_window(window);
+	bm = find_bookmark_window(close->w);
 
 	if (bm != NULL) {
 		wimp_delete_window(bm->window);
 		wimp_delete_window(bm->toolbar);
+		event_delete_window(bm->window);
 		delete_bookmark_block(bm);
-
-		return 0;
-	} else {
-		return 1;
 	}
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-int redraw_bookmark_window(wimp_draw *redraw)
-{
-	bookmark_block		*bm;
-
-	bm = find_bookmark_window(redraw->w);
-
-	if (bm != NULL) {
-		bookmark_window_redraw_loop(bm, redraw);
-
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void bookmark_window_redraw_loop(bookmark_block *bm, wimp_draw *redraw)
+void redraw_bookmark_window(wimp_draw *redraw)
 {
 	int			ox, oy, top, bottom, y;
 	osbool			more;
 	bookmark_node		*node;
 	wimp_icon		*icon;
 	char			buf[64];
+	bookmark_block		*bm;
 
 	extern global_windows	windows;
 	extern osspriteop_area	*wimp_sprites;
+
+
+	bm = (bookmark_block *) event_get_window_user_data(redraw->w);
+
+	if (bm == NULL)
+		return;
 
 
 	more = wimp_redraw_window(redraw);

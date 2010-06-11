@@ -76,8 +76,6 @@ void initialise_bookmarks(void);
 void terminate_bookmarks(void);
 
 void create_new_bookmark_window(wimp_pointer *pointer);
-int close_bookmark_window(wimp_w window);
-int redraw_bookmark_window(wimp_draw *redraw);
 
 int bookmark_click_handler(wimp_pointer *pointer);
 

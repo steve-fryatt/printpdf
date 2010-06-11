@@ -28,6 +28,7 @@
 #include "sflib/errors.h"
 #include "sflib/string.h"
 #include "sflib/colpick.h"
+#include "sflib/event.h"
 
 /* Application header files */
 
@@ -96,80 +97,79 @@ int main (int argc, char *argv[])
 
 int poll_loop (void)
 {
-  os_t              poll_time;
+	os_t			poll_time;
+	wimp_event_no		reason;
+	wimp_block		blk;
 
-  wimp_block        blk;
-  extern int        quit_flag;
+	extern int		quit_flag;
 
+	poll_time = os_read_monotonic_time();
 
-  poll_time = os_read_monotonic_time ();
+	while (!quit_flag) {
+		reason = wimp_poll_idle(0, &blk, poll_time, 0);
 
-  while (!quit_flag)
-  {
-    switch (wimp_poll_idle (0, &blk, poll_time, NULL))
-    {
-      case wimp_NULL_REASON_CODE:
-        test_and_close_popup (poll_time);
-        check_for_ps_file ();
-        check_for_pending_files ();
-        poll_time += read_config_int ("PollDelay");
-        break;
+		/* Events are passed to Event Lib first; only if this fails
+		 * to handle them do they get passed on to the internal
+		 * inline handlers shown here.
+		 */
 
-      case wimp_REDRAW_WINDOW_REQUEST:
-        if (!redraw_bookmark_window(&blk.redraw));
-        {
-          redraw_queue_pane (&(blk.redraw));
-        }
-        break;
+		if (event_process_event(reason, &blk, 0)) {
+			switch (reason) {
+			case wimp_NULL_REASON_CODE:
+				test_and_close_popup (poll_time);
+				check_for_ps_file ();
+				check_for_pending_files ();
+				poll_time += read_config_int ("PollDelay");
+				break;
 
-      case wimp_OPEN_WINDOW_REQUEST:
-        wimp_open_window (&(blk.open));
-        break;
+			case wimp_REDRAW_WINDOW_REQUEST:
+				redraw_queue_pane (&(blk.redraw));
 
-      case wimp_CLOSE_WINDOW_REQUEST:
-        if (close_bookmark_window(blk.close.w))
-        {
-          wimp_close_window (blk.close.w);
-        }
-       break;
+			case wimp_OPEN_WINDOW_REQUEST:
+				wimp_open_window (&(blk.open));
+				break;
 
-      case wimp_MOUSE_CLICK:
-        mouse_click_handler (&(blk.pointer));
-        break;
+			case wimp_CLOSE_WINDOW_REQUEST:
+				wimp_close_window (blk.close.w);
+				break;
 
-      case wimp_KEY_PRESSED:
-        key_press_handler (&(blk.key));
-        break;
+			case wimp_MOUSE_CLICK:
+				mouse_click_handler (&(blk.pointer));
+				break;
 
-      case wimp_MENU_SELECTION:
-        menu_selection_handler (&(blk.selection));
-        break;
+			case wimp_KEY_PRESSED:
+				key_press_handler (&(blk.key));
+				break;
 
-      case wimp_USER_DRAG_BOX:
-        switch (global_drag_type)
-        {
-          case DRAG_SAVE:
-            terminate_user_drag (&(blk.dragged));
-            break;
+			case wimp_MENU_SELECTION:
+				menu_selection_handler (&(blk.selection));
+				break;
 
-          case DRAG_QUEUE:
-            terminate_queue_entry_drag (&(blk.dragged));
-            break;
-        }
-        break;
+			case wimp_USER_DRAG_BOX:
+				switch (global_drag_type) {
+				case DRAG_SAVE:
+					terminate_user_drag (&(blk.dragged));
+					break;
 
-      case wimp_USER_MESSAGE:
-      case wimp_USER_MESSAGE_RECORDED:
-        user_message_handler (&(blk.message));
-        break;
+				case DRAG_QUEUE:
+					terminate_queue_entry_drag (&(blk.dragged));
+					break;
+				}
+				break;
 
-      case wimp_USER_MESSAGE_ACKNOWLEDGE:
-        bounced_message_handler (&(blk.message));
-        break;
-    }
-  }
+			case wimp_USER_MESSAGE:
+			case wimp_USER_MESSAGE_RECORDED:
+				user_message_handler (&(blk.message));
+				break;
 
-  return 0;
+			case wimp_USER_MESSAGE_ACKNOWLEDGE:
+				bounced_message_handler (&(blk.message));
+				break;
+			}
+		}
+	}
+
+	return 0;
 }
 
 /* ==================================================================================================================
