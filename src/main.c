@@ -225,7 +225,7 @@ void mouse_click_handler (wimp_pointer *pointer)
       case SAVE_PDF_ICON_FILE:
         if (pointer->buttons == wimp_DRAG_SELECT)
         {
-          start_save_window_drag ();
+          start_save_window_drag(DRAG_SAVE_PDF);
         }
         break;
 
@@ -551,12 +551,6 @@ void mouse_click_handler (wimp_pointer *pointer)
     {
       close_popup ();
     }
-  }
-
-  /* Pass the click on to the Bookmarks system. */
-
-  else {
-  	bookmark_click_handler(pointer);
   }
 }
 

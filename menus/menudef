@@ -44,5 +44,9 @@ menu(bookmarks, "PrintPDF")
 menu(bm_file, "File")
 {
 	item("Info");
-	item("Save");
+	item("Save") {
+		d_box(SaveAs) {
+			warning;
+		}
+	}
 }

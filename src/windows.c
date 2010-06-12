@@ -87,6 +87,23 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
     wimp_msgtrans_fatal_report ("BadTemplate");
   }
 
+  /* Save As Window.
+   *
+   * Created now.
+   */
+
+  window_def = load_window_template ("SaveAs");
+  if (window_def != NULL)
+  {
+    windows.save_as = wimp_create_window (window_def);
+    add_ihelp_window (windows.save_as, "SaveAs", NULL);
+    free (window_def);
+  }
+  else
+  {
+    wimp_msgtrans_fatal_report ("BadTemplate");
+  }
+
   /* Security 2 Window.
    *
    * Created now.

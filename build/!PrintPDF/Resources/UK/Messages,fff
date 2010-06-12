@@ -15,6 +15,7 @@ TaskSpr:!printpdf
 SupportURL:http://www.stevefryatt.org.uk/software/printpdf/
 
 FileName:PDFFile/pdf
+BMFileName:Bookmarks
 
 Encrypt0:Unprotected
 Encrypt1:Encrypted
@@ -35,6 +36,7 @@ BMListMenu:Bookmarks
 DragSave:To save, enter a full pathname or drag the file to a directory viewer.
 NoQueueDir:The queue directory is invalid.
 FOpenFailed:The PDF file could not be created: does it already exist?
+UnknownFileData:The file contained unregognised tokens: some data may have been discarded.
 
 # ps2pdf command-line option lists.
 

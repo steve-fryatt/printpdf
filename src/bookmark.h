@@ -23,6 +23,21 @@
 
 #define BOOKMARK_FILE_LINE_LEN 1024
 
+/* Bookmarks Window Menu Structure. */
+
+#define BOOKMARK_MENU_FILE 0
+
+#define BOOKMARK_MENU_FILE_INFO 0
+#define BOOKMARK_MENU_FILE_SAVE 1
+
+/* Save As Dialogue icons. */
+
+#define SAVEAS_ICON_OK     0
+#define SAVEAS_ICON_CANCEL 1
+#define SAVEAS_ICON_NAME   2
+#define SAVEAS_ICON_FILE   3
+
+
 /* ==================================================================================================================
  * Data structures
  */
@@ -77,8 +92,6 @@ void terminate_bookmarks(void);
 
 void create_new_bookmark_window(wimp_pointer *pointer);
 
-int bookmark_click_handler(wimp_pointer *pointer);
-
 void initialise_bookmark_settings(bookmark_params *params);
 void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon);
 void process_bookmark_menu(bookmark_params *params, wimp_selection *selection);
@@ -88,6 +101,8 @@ int bookmark_data_available(bookmark_params *params);
 int bookmark_validate_params(bookmark_params *params);
 void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params);
 
+int drag_end_save_saveas(char *filename);
+void save_bookmark_file(bookmark_block *bm, char *filename);
 void load_bookmark_file(char *filename);
 
 #endif

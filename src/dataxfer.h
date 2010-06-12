@@ -15,6 +15,9 @@
 #define PDF_FILE_TYPE 0xadf
 #define PS_FILE_TYPE 0xff5
 
+#define DRAG_SAVE_PDF    1
+#define DRAG_SAVE_SAVEAS 2
+
 /* ==================================================================================================================
  * Data structures
  */
@@ -25,9 +28,8 @@
 
 /* Save box drag handling */
 
-void start_save_window_drag (void);
+void start_save_window_drag(int type);
 void terminate_user_drag (wimp_dragged *drag);
-int drag_end_save (char *filename);
 
 /* Save Box direct save. */
 

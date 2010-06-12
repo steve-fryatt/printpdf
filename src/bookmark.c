@@ -7,6 +7,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 /* Acorn C header files */
 
@@ -15,6 +16,7 @@
 #include "oslib/hourglass.h"
 #include "oslib/os.h"
 #include "oslib/osbyte.h"
+#include "oslib/osfile.h"
 #include "oslib/wimp.h"
 
 /* SF-Lib header files. */
@@ -27,12 +29,14 @@
 #include "sflib/windows.h"
 #include "sflib/debug.h"
 #include "sflib/event.h"
+#include "sflib/errors.h"
 
 /* Application header files */
 
 #include "bookmark.h"
 
 #include "convert.h"
+#include "dataxfer.h"
 #include "menus.h"
 #include "pdfmark.h"
 #include "pmenu.h"
@@ -50,8 +54,18 @@
 void		open_bookmark_window(bookmark_block *bm);
 void		close_bookmark_window(wimp_close *close);
 void		redraw_bookmark_window(wimp_draw *redraw);
+
+void		bookmark_click_handler(wimp_pointer *pointer);
+
+void		bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu);
+void		bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+void		bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning *warning);
+
+void prepare_bookmark_save_window(bookmark_block *bm);
+
 bookmark_block	*create_bookmark_block(void);
 void		delete_bookmark_block(bookmark_block *bookmark);
+
 void		set_bookmark_unsaved_state(bookmark_block *bm, int unsaved);
 void		update_bookmark_window_title(bookmark_block *bm);
 bookmark_block	*find_bookmark_window(wimp_w window);
@@ -60,6 +74,10 @@ bookmark_block	*find_bookmark_name(char *name);
 bookmark_block	*find_bookmark_block(bookmark_block *block);
 wimp_menu	*build_bookmark_menu(bookmark_params *params);
 void		rebuild_bookmark_data(bookmark_block *bm);
+
+void bookmark_save_as_click(wimp_pointer *pointer);
+
+
 
 /* ==================================================================================================================
  * Global variables.
@@ -103,7 +121,7 @@ void terminate_bookmarks(void)
  * Create a new bookmark block and initialise it with some standard
  * values.
  *
- * Return:		Pointer to block; or NULL if failed.
+ * \return		Pointer to block; or NULL if failed.
  */
 
 bookmark_block *create_bookmark_block(void)
@@ -129,6 +147,8 @@ bookmark_block *create_bookmark_block(void)
 		new->lines = 0;
 		new->nodes = 0;
 
+		update_bookmark_window_title(new);
+
 		new->next = bookmarks_list;
 		bookmarks_list = new;
 	}
@@ -139,7 +159,7 @@ bookmark_block *create_bookmark_block(void)
 /**
  * Delete a bookmark block and its associated data.
  *
- * Param:  *bookmark		The block to delete.
+ * \param  *bookmark		The block to delete.
  */
 
 void delete_bookmark_block(bookmark_block *bookmark)
@@ -179,7 +199,7 @@ void delete_bookmark_block(bookmark_block *bookmark)
 /**
  * Given a pointer click, create a new bookmark window.
  *
- * Param:  *pointer		The details of the mouse click.
+ * \param  *pointer		The details of the mouse click.
  */
 
 void create_new_bookmark_window(wimp_pointer *pointer)
@@ -196,12 +216,13 @@ void create_new_bookmark_window(wimp_pointer *pointer)
 /**
  * Create and open a window for a bookmark block.
  *
- * Param: *bm		The block to open the window for.
+ * \param *bm		The block to open the window for.
  */
 
 void open_bookmark_window(bookmark_block *bm)
 {
 	extern global_windows	windows;
+	extern global_menus	menus;
 
 	if (bm != NULL && bm->window == NULL && bm->toolbar == NULL) {
 		windows.bookmark_window_def->title_data.indirected_text.text = bm->window_title;
@@ -217,7 +238,15 @@ void open_bookmark_window(bookmark_block *bm)
 
 		event_add_window_close_event(bm->window, close_bookmark_window);
 		event_add_window_redraw_event(bm->window, redraw_bookmark_window);
+		event_add_window_mouse_event(bm->window, bookmark_click_handler);
 		event_add_window_user_data(bm->window, bm);
+		event_add_window_menu(bm->window, menus.bookmarks,
+				bookmark_menu_prepare, bookmark_menu_selection,
+				NULL, bookmark_menu_warning);
+
+		event_add_window_menu(bm->toolbar, menus.bookmarks,
+				bookmark_menu_prepare, bookmark_menu_selection,
+				NULL, bookmark_menu_warning);
 
 		/* Open the window and toolbar. */
 
@@ -227,10 +256,11 @@ void open_bookmark_window(bookmark_block *bm)
 	}
 }
 
+
 /**
  * Close the given bookmark window and delete all of the associated data.
  *
- * Param:  *close		The Wimp close data block.
+ * \param  *close		The Wimp close data block.
  */
 
 void close_bookmark_window(wimp_close *close)
@@ -340,13 +370,17 @@ void redraw_bookmark_window(wimp_draw *redraw)
 /**
  * Handle clicks in the Bookmarks windows.
  *
- * Param:  *pointer		The Wimp mouse click event data.
- * Return:			1 if the event was handled; else 0.
+ * \param  *pointer		The Wimp mouse click event data.
  */
 
-int bookmark_click_handler(wimp_pointer *pointer)
+void bookmark_click_handler(wimp_pointer *pointer)
 {
 	bookmark_block		*bm;
+
+	bm = (bookmark_block *) event_get_window_user_data(pointer->w);
+
+	if (bm == NULL)
+		return;
 
 	debug_printf("Bookmark click handler...");
 
@@ -355,24 +389,95 @@ int bookmark_click_handler(wimp_pointer *pointer)
 
 		debug_printf("A click in bookmark window %s", bm->name);
 
-		return 1;
 	} else if ((bm = find_bookmark_toolbar(pointer->w)) != NULL) {
 		/* It's a bookmark toolbar! */
 
 		debug_printf("A click in bookmark toolbar %s", bm->name);
+	}
+}
 
-		return 1;
+
+/**
+ * Prepare the bookmark window menu for (re)-opening.
+ *
+ * \param  *pointer		Pointer to the Wimp Pointer event block.
+ * \param  *menu		Pointer to the menu being opened.
+ */
+
+void bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu)
+{
+//	debug_printf("Bookmark menu prepare");
+}
+
+
+/**
+ * Handle submenu warnings for the bookmark window menu.
+ *
+ * \param  w			The window to which the menu belongs.
+ * \param  *menu		Pointer to the menu itself.
+ * \param  *warning		Pointer to the Wimp menu warning block.
+ */
+
+void bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning *warning)
+{
+	bookmark_block		*bm;
+
+	bm = (bookmark_block *) event_get_window_user_data(w);
+	if (bm == NULL)
+		return;
+
+	switch (warning->selection.items[0]) {
+	case BOOKMARK_MENU_FILE:
+		switch (warning->selection.items[1]) {
+			case BOOKMARK_MENU_FILE_SAVE:
+				prepare_bookmark_save_window(bm);
+				break;
+		}
+		break;
 	}
 
-	return 0;
+	wimp_create_sub_menu(warning->sub_menu, warning->pos.x, warning->pos.y);
+}
+
+
+/**
+ * Handle selections from the bookmark window menu.
+ *
+ * \param  w			The window to which the menu belongs.
+ * \param  *menu		Pointer to the menu itself.
+ * \param  *selection		Pointer to the Wimp menu selction block.
+ */
+
+void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection)
+{
+//	debug_printf("Bookmark menu selection");
+}
+
+
+/**
+ */
+
+void prepare_bookmark_save_window(bookmark_block *bm)
+{
+	extern global_windows		windows;
+
+	if (strlen(bm->filename) > 0)
+		strncpy(indirected_icon_text(windows.save_as, SAVEAS_ICON_NAME),
+				bm->filename, MAX_BOOKMARK_FILENAME);
+	else
+		msgs_lookup("BMFileName", indirected_icon_text(windows.save_as,
+				SAVEAS_ICON_NAME), MAX_BOOKMARK_FILENAME);
+
+	event_add_window_user_data(windows.save_as, bm);
+	event_add_window_mouse_event(windows.save_as, bookmark_save_as_click);
 }
 
 
 /**
  * Set the 'unsaved' status of a bookmark window.
  *
- * Param:  *bm			The block to update.
- * Param:  unsaved		The unsaved status (1 = unsaved; 0 = saved).
+ * \param  *bm			The block to update.
+ * \param  unsaved		The unsaved status (1 = unsaved; 0 = saved).
  */
 
 void set_bookmark_unsaved_state(bookmark_block *bm, int unsaved)
@@ -387,7 +492,7 @@ void set_bookmark_unsaved_state(bookmark_block *bm, int unsaved)
 /**
  * Set the title of the bookmark window.
  *
- * Param:  *bm			The block to set the window title for.
+ * \param  *bm			The block to set the window title for.
  */
 
 void update_bookmark_window_title(bookmark_block *bm)
@@ -410,8 +515,8 @@ void update_bookmark_window_title(bookmark_block *bm)
 /**
  * Find a bookmark block by its window handle.
  *
- * Param:  window		The handle of the window.
- * Return: 			The block address, or NULL if it wasn't found.
+ * \param  window		The handle of the window.
+ * \return 			The block address, or NULL if it wasn't found.
  */
 
 bookmark_block *find_bookmark_window(wimp_w window)
@@ -428,8 +533,8 @@ bookmark_block *find_bookmark_window(wimp_w window)
 /**
  * Find a bookmark block by its toolbar handle.
  *
- * Param:  window		The handle of the toolbar.
- * Return: 			The block address, or NULL if it wasn't found.
+ * \param  window		The handle of the toolbar.
+ * \return 			The block address, or NULL if it wasn't found.
  */
 
 bookmark_block *find_bookmark_toolbar(wimp_w window)
@@ -446,8 +551,8 @@ bookmark_block *find_bookmark_toolbar(wimp_w window)
 /**
  * Find a bookmark block by its name (matched case-insensitively).
  *
- * Param:  *name		The block name to find.
- * Return: 			The block address, or NULL if it wasn't found.
+ * \param  *name		The block name to find.
+ * \return 			The block address, or NULL if it wasn't found.
  */
 
 bookmark_block *find_bookmark_name(char *name)
@@ -465,8 +570,8 @@ bookmark_block *find_bookmark_name(char *name)
  * Find a bookmark block by block address.  This is used for validating that
  * an address supplied from outside the module really is a valid block.
  *
- * Param:  *block		The block to validate.
- * Return: 			The block address, or NULL if it failed.
+ * \param  *block		The block to validate.
+ * \return 			The block address, or NULL if it failed.
  */
 
 bookmark_block *find_bookmark_block(bookmark_block *block)
@@ -486,7 +591,7 @@ bookmark_block *find_bookmark_block(bookmark_block *block)
 /**
  * Initialise a bookmarks settings block with default parameters.
  *
- * Param:  *params		The parameter block to initialise.
+ * \param  *params		The parameter block to initialise.
  */
 
 void initialise_bookmark_settings(bookmark_params *params)
@@ -498,10 +603,10 @@ void initialise_bookmark_settings(bookmark_params *params)
 /**
  * Create and open the bookmark list pop-up menu.
  *
- * Param:  *params		The associated bookmark parameters.
- * Param:  *pointer		The pointer details of the click.
- * Param:  window		The window in which the pop-up resides.
- * Param:  icon			The icon to which the pop-up is attached.
+ * \param  *params		The associated bookmark parameters.
+ * \param  *pointer		The pointer details of the click.
+ * \param  window		The window in which the pop-up resides.
+ * \param  icon			The icon to which the pop-up is attached.
  */
 
 void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon)
@@ -522,8 +627,8 @@ void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w w
 /**
  * Handle selection events from the bookmarks pop-up menu.
  *
- * Param:  *params		The associated bookmarks parameters.
- * Param:  *selection		The Wimp Menu selection block.
+ * \param  *params		The associated bookmarks parameters.
+ * \param  *selection		The Wimp Menu selection block.
  */
 
 void process_bookmark_menu(bookmark_params *params, wimp_selection *selection)
@@ -541,8 +646,8 @@ void process_bookmark_menu(bookmark_params *params, wimp_selection *selection)
  * Build the bookmarks pop-up menu used for selecting a bookmark set to use, and
  * register it with the global_menus structure.
  *
- * Param:  *params		Bookamrks param block to use to set ticks.
- * Return:			The menu block, or NULL.
+ * \param  *params		Bookamrks param block to use to set ticks.
+ * \return			The menu block, or NULL.
  */
 
 wimp_menu *build_bookmark_menu(bookmark_params *params)
@@ -640,9 +745,9 @@ wimp_menu *build_bookmark_menu(bookmark_params *params)
 /**
  * Fill the Bookmark info field based on the supplied parameters.
  *
- * Param:  window		The window the field is in.
- * Param:  icon			The icon for the field.
- * Param:  *params		The parameters to use.
+ * \param  window		The window the field is in.
+ * \param  icon			The icon for the field.
+ * \param  *params		The parameters to use.
  */
 
 void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params)
@@ -665,8 +770,8 @@ void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params)
  * Indicate if the supplied bookmark parameters have data available for a
  * conversion.
  *
- * Param:  *params		The parameter block to check.
- * Return:			1 if data is available; else 0.
+ * \param  *params		The parameter block to check.
+ * \return			1 if data is available; else 0.
  */
 
 int bookmark_data_available(bookmark_params *params)
@@ -680,8 +785,8 @@ int bookmark_data_available(bookmark_params *params)
  * Check the status of the supplied parameter block, and update it if anything
  * is invalid.
  *
- * Param:  *params		The parameter block to check.
- * Return:			1 if parameters were chnaged; else 0.
+ * \param  *params		The parameter block to check.
+ * \return			1 if parameters were chnaged; else 0.
  */
 
 int bookmark_validate_params(bookmark_params *params)
@@ -699,8 +804,8 @@ int bookmark_validate_params(bookmark_params *params)
 /**
  * Output PDFMark data related to the associated bookmarks parameters file.
  *
- * Param:  *pdfmark_file	The file to write to.
- * Param:  *params		The parameter block to use.
+ * \param  *pdfmark_file	The file to write to.
+ * \param  *params		The parameter block to use.
  */
 
 void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params)
@@ -724,10 +829,99 @@ void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params)
 
 
 /**
+ * Callback to handle clicks in the SaveAs window.
+ *
+ * \param  *pointer	The relevant Wimp pointer data block.
+ */
+
+void bookmark_save_as_click(wimp_pointer *pointer)
+{
+	switch ((int) pointer->i)
+	{
+	case SAVEAS_ICON_FILE:
+		if (pointer->buttons == wimp_DRAG_SELECT)
+			start_save_window_drag(DRAG_SAVE_SAVEAS);
+		break;
+	}
+}
+
+
+/**
+ * Callback to terminate a dragging filesave.
+ *
+ * \param  *filename	The filename to save under.
+ * \return		0 if the save completes OK; else non-0.
+ */
+
+int drag_end_save_saveas(char *filename)
+{
+	extern global_windows		windows;
+	bookmark_block			*bm;
+
+	bm = event_get_window_user_data(windows.save_as);
+
+	if (bm == NULL)
+		return 0;
+
+	save_bookmark_file(bm, filename);
+	wimp_close_window(windows.save_as);
+
+	return 0;
+}
+
+/**
+ * Save a bookmark file from memory to disc.
+ *
+ * \param  *bm		The bookmark block to save.
+ * \param  *filename	The filename to save to.
+ */
+
+void save_bookmark_file(bookmark_block *bm, char *filename)
+{
+	FILE			*out;
+	bookmark_node		*node;
+
+	if (bm == NULL)
+		return;
+
+	out = fopen(filename, "w");
+	if (out == NULL) {
+		// \TODO -- Add an error report here.
+		return;
+	}
+
+	/* Write the file header. */
+
+	fprintf(out, "# PrintPDF File\n# Written by PrintPDF\n\n");
+	fprintf(out, "Format: 1.00\n\n");
+
+	/* Write the bookmarks section. */
+
+	fprintf(out, "[Bookmarks]\n");
+
+	node = bm->root;
+
+	while (node != NULL) {
+		fprintf(out, "@: %s\n", node->title);
+		fprintf(out, "Page: %d\n", node->destination);
+		if (node->level > 1)
+			fprintf(out, "Level: %d\n", node->level);
+		if (!node->expanded)
+			fprintf(out, "Expanded: %s\n", return_opt_string(node->expanded));
+
+		node = node->next;
+	}
+
+	fclose(out);
+	osfile_set_type (filename, (bits) PRINTPDF_FILE_TYPE);
+}
+
+
+/**
  * Load a bookmark file into memory, storing the data it contains in a new
  * bookmark_block structure.
  *
- * Param:  *filename		The file to load.
+ * \param  *filename	The file to load.
  */
 
 void load_bookmark_file(char *filename)
@@ -735,7 +929,7 @@ void load_bookmark_file(char *filename)
 	FILE			*in;
 	bookmark_block		*block;
 	bookmark_node		*current, *new;
-	int			result, bookmarks = 0;
+	int			result, bookmarks = 0, unknown_data = 0;
 	char			section[BOOKMARK_FILE_LINE_LEN], token[BOOKMARK_FILE_LINE_LEN], value[BOOKMARK_FILE_LINE_LEN];
 
 
@@ -779,7 +973,7 @@ void load_bookmark_file(char *filename)
 
 					new->destination = 0;
 					new->expanded = 1;
-					new->level = 0;
+					new->level = 1;
 					new->count = 0;
 
 					new->next = NULL;
@@ -801,6 +995,8 @@ void load_bookmark_file(char *filename)
 			} else if (strcmp_no_case(token, "Expanded") == 0) {
 				if (current != NULL)
 					current->expanded = read_opt_string(value);
+			} else {
+				unknown_data = 1;
 			}
 		}
 	}
@@ -808,6 +1004,9 @@ void load_bookmark_file(char *filename)
 	hourglass_off();
 
 	fclose (in);
+
+	if (unknown_data)
+		wimp_msgtrans_info_report ("UnknownFileData");
 
 	rebuild_bookmark_data(block);
 	open_bookmark_window(block);
@@ -817,7 +1016,7 @@ void load_bookmark_file(char *filename)
 /**
  * Recalculate the details of a bookmark block.
  *
- * Param: *bm		Pointer to the block to recalculate.
+ * \param *bm		Pointer to the block to recalculate.
  */
 
 void rebuild_bookmark_data(bookmark_block *bm)

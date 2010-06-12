@@ -42,7 +42,24 @@
  * Global variables.
  */
 
-int dragging_sprite = 0;
+/**
+ * Boolean to indicate whether DragASprite is in use or not.
+ */
+
+static int	dragging_sprite = 0;
+
+/**
+ * The type of save drag: to differentiate Save PDF from Save As.
+ */
+
+static int	drag_type = 0;
+
+/**
+ * Function prototypes.
+ */
+
+int		drag_end_save_pdf(char *filename);
+
 
 /* ==================================================================================================================
  * Save box drag handling.
@@ -51,63 +68,74 @@ int dragging_sprite = 0;
 /* Start dragging the icon from the save dialogue.  Called in response to an attempt to drag the icon.
  */
 
-void start_save_window_drag (void)
+void start_save_window_drag(int type)
 {
-  wimp_window_state     window;
-  wimp_icon_state       icon;
-  wimp_drag             drag;
-  int                   ox, oy;
+	wimp_window_state	window;
+	wimp_icon_state		icon;
+	wimp_drag		drag;
+	int			ox, oy;
 
-  extern global_windows windows;
-  extern int            global_drag_type;
-
-
-  /* Get the basic information about the window and icon. */
-
-  window.w = windows.save_pdf;
-  wimp_get_window_state (&window);
-
-  ox = window.visible.x0 - window.xscroll;
-  oy = window.visible.y1 - window.yscroll;
-
-  icon.w = windows.save_pdf;
-  icon.i = SAVE_PDF_ICON_FILE;
-  wimp_get_icon_state (&icon);
+	extern global_windows	windows;
+	extern int		global_drag_type;
 
 
-  /* Set up the drag parameters. */
+	/* Get the basic information about the window and icon. */
 
-  drag.w = windows.save_pdf;
-  drag.type = wimp_DRAG_USER_FIXED;
+	switch (type) {
+	case DRAG_SAVE_PDF:
+		window.w = windows.save_pdf;
+		break;
+	case DRAG_SAVE_SAVEAS:
+		window.w = windows.save_as;
+		break;
+	}
+	wimp_get_window_state (&window);
 
-  drag.initial.x0 = ox + icon.icon.extent.x0;
-  drag.initial.y0 = oy + icon.icon.extent.y0;
-  drag.initial.x1 = ox + icon.icon.extent.x1;
-  drag.initial.y1 = oy + icon.icon.extent.y1;
+	ox = window.visible.x0 - window.xscroll;
+	oy = window.visible.y1 - window.yscroll;
 
-  drag.bbox.x0 = 0x80000000;
-  drag.bbox.y0 = 0x80000000;
-  drag.bbox.x1 = 0x7fffffff;
-  drag.bbox.y1 = 0x7fffffff;
+	icon.w = window.w;
+	switch (type) {
+	case DRAG_SAVE_PDF:
+		icon.i = SAVE_PDF_ICON_FILE;
+		break;
+	case DRAG_SAVE_SAVEAS:
+		icon.i = SAVEAS_ICON_FILE;
+		break;
+	}
+	wimp_get_icon_state (&icon);
 
 
-  /* Read CMOS RAM to see if solid drags are required. */
+	/* Set up the drag parameters. */
 
-  dragging_sprite = ((osbyte2 (osbyte_READ_CMOS, osbyte_CONFIGURE_DRAG_ASPRITE, 0) &
-                     osbyte_CONFIGURE_DRAG_ASPRITE_MASK) != 0);
+	drag.w = window.w;
+	drag.type = wimp_DRAG_USER_FIXED;
 
-  if (dragging_sprite)
-  {
-    dragasprite_start (dragasprite_HPOS_CENTRE | dragasprite_VPOS_CENTRE | dragasprite_NO_BOUND |
-                       dragasprite_BOUND_POINTER | dragasprite_DROP_SHADOW, wimpspriteop_AREA,
-                       icon.icon.data.indirected_text.text, &(drag.initial), &(drag.bbox));
-  }
-  else
-  {
-    wimp_drag_box (&drag);
-  }
+	drag.initial.x0 = ox + icon.icon.extent.x0;
+	drag.initial.y0 = oy + icon.icon.extent.y0;
+	drag.initial.x1 = ox + icon.icon.extent.x1;
+	drag.initial.y1 = oy + icon.icon.extent.y1;
 
-  global_drag_type = DRAG_SAVE;
+	drag.bbox.x0 = 0x80000000;
+	drag.bbox.y0 = 0x80000000;
+	drag.bbox.x1 = 0x7fffffff;
+	drag.bbox.y1 = 0x7fffffff;
+
+
+	/* Read CMOS RAM to see if solid drags are required. */
+
+	dragging_sprite = ((osbyte2 (osbyte_READ_CMOS, osbyte_CONFIGURE_DRAG_ASPRITE, 0) &
+			osbyte_CONFIGURE_DRAG_ASPRITE_MASK) != 0);
+
+	if (dragging_sprite)
+		dragasprite_start (dragasprite_HPOS_CENTRE | dragasprite_VPOS_CENTRE |
+			dragasprite_NO_BOUND | dragasprite_BOUND_POINTER | dragasprite_DROP_SHADOW,
+			wimpspriteop_AREA, icon.icon.data.indirected_text.text, &(drag.initial), &(drag.bbox));
+	else
+		wimp_drag_box (&drag);
+
+	global_drag_type = DRAG_SAVE;
+	drag_type = type;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -116,21 +144,28 @@ void start_save_window_drag (void)
  * other end.
  */
 
-void terminate_user_drag (wimp_dragged *drag)
+void terminate_user_drag(wimp_dragged *drag)
 {
-  wimp_pointer pointer;
-  char         *leafname;
+	wimp_pointer		pointer;
+	char			*leafname;
 
-  extern global_windows windows;
+	extern global_windows	windows;
 
-  if (dragging_sprite)
-  {
-    dragasprite_stop ();
-  }
+	if (dragging_sprite)
+		dragasprite_stop ();
 
-  leafname = find_leafname (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME));
-  wimp_get_pointer_info (&pointer);
-  send_start_data_save_function (pointer.w, pointer.i, pointer.pos, 0, drag_end_save, 0, PDF_FILE_TYPE, leafname);
+	wimp_get_pointer_info (&pointer);
+
+	switch (drag_type) {
+	case DRAG_SAVE_PDF:
+		leafname = find_leafname (indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_NAME));
+		send_start_data_save_function (pointer.w, pointer.i, pointer.pos, 0, drag_end_save_pdf, 0, PDF_FILE_TYPE, leafname);
+		break;
+	case DRAG_SAVE_SAVEAS:
+		leafname = find_leafname (indirected_icon_text(windows.save_as, SAVEAS_ICON_NAME));
+		send_start_data_save_function (pointer.w, pointer.i, pointer.pos, 0, drag_end_save_saveas, 0, PRINTPDF_FILE_TYPE, leafname);
+		break;
+	}
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -138,15 +173,14 @@ void terminate_user_drag (wimp_dragged *drag)
 /* After the DataSave exchange has completed, start the conversion using the filename returned.
  */
 
-int drag_end_save (char *filename)
+int drag_end_save_pdf(char *filename)
 {
-  extern global_windows windows;
+	extern global_windows		windows;
 
-  conversion_dialogue_end (filename);
+	conversion_dialogue_end(filename);
+	wimp_close_window(windows.save_pdf);
 
-  wimp_close_window (windows.save_pdf);
-
-  return (0);
+	return 0;
 }
 
 /* ==================================================================================================================
