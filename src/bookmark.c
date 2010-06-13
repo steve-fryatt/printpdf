@@ -73,7 +73,8 @@ void		close_bookmark_window(wimp_close *close);
 void		redraw_bookmark_window(wimp_draw *redraw);
 void		bookmark_click_handler(wimp_pointer *pointer);
 void		update_bookmark_window_title(bookmark_block *bm);
-void force_bookmark_window_redraw(bookmark_block *bm, int from, int to);
+void		force_bookmark_window_redraw(bookmark_block *bm, int from, int to);
+void		set_bookmark_window_extent(bookmark_block *bm);
 
 /* SaveAs Dialogue Handling */
 
@@ -621,6 +622,10 @@ void open_bookmark_window(bookmark_block *bm)
 		windows.bookmark_window_def->title_data.indirected_text.text = bm->window_title;
 		windows.bookmark_window_def->title_data.indirected_text.size = MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10;
 
+		windows.bookmark_window_def->extent.y0 = -((((bm->lines > BOOKMARK_MIN_LINES) ? bm->lines : BOOKMARK_MIN_LINES) * BOOKMARK_LINE_HEIGHT)
+				+ BOOKMARK_TOOLBAR_HEIGHT + (BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET)));
+
+
 		place_window_as_toolbar(windows.bookmark_window_def,
 				windows.bookmark_pane_def,
 				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
@@ -670,7 +675,12 @@ void close_bookmark_window(wimp_close *close)
 	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+
+/**
+ * Callback to handle redraw events on a bookmark window.
+ *
+ * \param  *redraw		The Wimp redraw event block.
+ */
 
 void redraw_bookmark_window(wimp_draw *redraw)
 {
@@ -737,7 +747,7 @@ void redraw_bookmark_window(wimp_draw *redraw)
 					- BOOKMARK_TOOLBAR_HEIGHT
 					+ BOOKMARK_ICON_HEIGHT);
 
-			sprintf(buf, "Line %d", y);
+			sprintf(buf, "%d", node->page);
 
 			icon[0].data.indirected_text.text = node->title;
 			icon[1].data.indirected_text.text = buf;
@@ -759,6 +769,7 @@ void redraw_bookmark_window(wimp_draw *redraw)
 		more = wimp_get_rectangle(redraw);
 	}
 }
+
 
 /**
  * Handle clicks in the Bookmarks windows.
@@ -846,12 +857,15 @@ void force_bookmark_window_redraw(bookmark_block *bm, int from, int to)
 {
 	int			x0, y0, x1, y1;
 	wimp_window_info	info;
+	os_error		*error;
 
 	if (bm == NULL)
 		return;
 
 	info.w = bm->window;
-	wimp_get_window_info_header_only(&info);
+	error = xwimp_get_window_info_header_only(&info);
+	if (error != NULL)
+		return;
 
 	x0 = info.extent.x0;
 	if (to < 0)
@@ -866,6 +880,60 @@ void force_bookmark_window_redraw(bookmark_block *bm, int from, int to)
 		y1 = -((BOOKMARK_LINE_HEIGHT * from) + BOOKMARK_TOOLBAR_HEIGHT);
 
 	wimp_force_redraw(bm->window, x0, y0, x1, y1);
+}
+
+
+/**
+ * Set the vertical extent of the a bookmarks window to suit the contents.
+ *
+ * \param  *bm			The window block.
+ */
+
+void set_bookmark_window_extent(bookmark_block *bm)
+{
+	int			new_y, visible_y, new_y_scroll;
+	wimp_window_info	info;
+	os_error		*error;
+
+	if (bm == NULL && bm->window != NULL)
+		return;
+
+	info.w = bm->window;
+	error = xwimp_get_window_info_header_only(&info);
+	if (error != NULL)
+		return;
+
+	new_y = -((((bm->lines > BOOKMARK_MIN_LINES) ? bm->lines : BOOKMARK_MIN_LINES) * BOOKMARK_LINE_HEIGHT)
+			+ BOOKMARK_TOOLBAR_HEIGHT + (BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET)));
+
+	if (new_y > (info.visible.y0 - info.visible.y1))
+		new_y = info.visible.y0 - info.visible.y1;
+
+	visible_y = info.yscroll +
+			(info.visible.y0 - info.visible.y1);
+
+	if ((info.flags & wimp_WINDOW_OPEN) && (visible_y < new_y)) {
+		new_y_scroll = info.yscroll;
+
+		if (visible_y < new_y) {
+			new_y_scroll = new_y - (info.visible.y0 - info.visible.y1);
+
+			if (new_y_scroll > 0) {
+				info.visible.y0 += new_y_scroll;
+				info.yscroll = 0;
+			} else {
+				info.yscroll = new_y_scroll;
+			}
+
+			error = xwimp_open_window((wimp_open *) &info);
+			if (error)
+				return;
+		}
+	}
+
+	info.extent.y0 = new_y;
+
+	error = xwimp_set_extent(bm->window, &(info.extent));
 }
 
 /* ****************************************************************************
@@ -1050,7 +1118,9 @@ void save_bookmark_file(bookmark_block *bm, char *filename)
 
 	while (node != NULL) {
 		fprintf(out, "@: %s\n", node->title);
-		fprintf(out, "Page: %d\n", node->destination);
+		fprintf(out, "Page: %d\n", node->page);
+		if (node->yoffset > 0)
+			fprintf(out, "YOffset: %d\n", node->yoffset);
 		if (node->level > 1)
 			fprintf(out, "Level: %d\n", node->level);
 		if (!node->expanded)
@@ -1120,7 +1190,8 @@ void load_bookmark_file(char *filename)
 					strncpy(new->title, value, MAX_BOOKMARK_LEN);
 					new->title[MAX_BOOKMARK_LEN - 1] = '\0';
 
-					new->destination = 0;
+					new->page = 0;
+					new->yoffset = 0;
 					new->expanded = 1;
 					new->level = 1;
 					new->count = 0;
@@ -1137,7 +1208,10 @@ void load_bookmark_file(char *filename)
 
 			} else if (strcmp_no_case(token, "Page") == 0) {
 				if (current != NULL)
-					current->destination = atoi(value);
+					current->page = atoi(value);
+			} else if (strcmp_no_case(token, "YOffset") == 0) {
+				if (current != NULL)
+					current->yoffset = atoi(value);
 			} else if (strcmp_no_case(token, "Level") == 0) {
 				if (current != NULL)
 					current->level = atoi(value);
@@ -1221,6 +1295,8 @@ void rebuild_bookmark_data(bookmark_block *bm)
 
 		bm->lines = count;
 	}
+
+	set_bookmark_window_extent(bm);
 }
 
 
@@ -1245,9 +1321,9 @@ void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params)
 			if (node->count > 0)
 				fprintf(pdfmark_file, " /Count %d", (node->expanded) ? node->count : -node->count);
 
-			fprintf(pdfmark_file, " /Page %d /Title (%s) /OUT pdfmark\n", node->destination,
+			fprintf(pdfmark_file, " /Page %d /View [/XYZ 0 %d null] /Title (%s) /OUT pdfmark\n",
+					node->page, node->yoffset,
 					convert_to_pdf_doc_encoding(buffer, node->title, MAX_BOOKMARK_LEN * 4));
 		}
 }
-
 

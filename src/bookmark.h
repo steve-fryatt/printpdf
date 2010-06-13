@@ -20,6 +20,7 @@
 #define BOOKMARK_ICON_HEIGHT 52
 #define BOOKMARK_LINE_OFFSET 0
 #define BOOKMARK_TOOLBAR_OFFSET 2
+#define BOOKMARK_MIN_LINES 10
 
 #define BOOKMARK_FILE_LINE_LEN 1024
 
@@ -44,7 +45,8 @@
 
 typedef struct bookmark_node {
 	char			title[MAX_BOOKMARK_LEN];
-	int			destination;
+	int			page;		/*< Destination page number.		*/
+	int			yoffset;	/*< Destination Y offset (pt from top).	*/
 	int			level;
 	int			count;
 
