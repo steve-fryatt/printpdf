@@ -810,7 +810,8 @@ void bookmark_click_handler(wimp_pointer *pointer)
 		node = bm->redraw[row].node;
 		row_x_pos = x - node->level * BOOKMARK_LINE_HEIGHT;
 
-		if (row_x_pos < BOOKMARK_LINE_HEIGHT && node->count > 0) {
+		if (pointer->buttons == wimp_CLICK_SELECT &&
+				row_x_pos < BOOKMARK_LINE_HEIGHT && node->count > 0) {
 			/* Handle expandion arrow clicks. */
 
 			node->expanded = !node->expanded;
