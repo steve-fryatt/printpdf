@@ -61,7 +61,6 @@ void		bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu);
 void		bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 void		bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning *warning);
 
-void prepare_bookmark_save_window(bookmark_block *bm);
 
 bookmark_block	*create_bookmark_block(void);
 void		delete_bookmark_block(bookmark_block *bookmark);
@@ -73,11 +72,18 @@ bookmark_block	*find_bookmark_toolbar(wimp_w window);
 bookmark_block	*find_bookmark_name(char *name);
 bookmark_block	*find_bookmark_block(bookmark_block *block);
 wimp_menu	*build_bookmark_menu(bookmark_params *params);
+
+/* SaveAs Dialogue Handling */
+
+void		prepare_bookmark_save_window(bookmark_block *bm);
+void		bookmark_save_as_click(wimp_pointer *pointer);
+void		bookmark_save_as_keypress(wimp_key *key);
+int		start_direct_dialog_save(void);
+void		start_direct_menu_save(bookmark_block *bm);
+
+/* Bookmark Data Processing */
+
 void		rebuild_bookmark_data(bookmark_block *bm);
-
-void bookmark_save_as_click(wimp_pointer *pointer);
-
-
 
 /* ==================================================================================================================
  * Global variables.
@@ -450,26 +456,21 @@ void bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning 
 
 void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection)
 {
-//	debug_printf("Bookmark menu selection");
-}
+	bookmark_block		*bm;
 
+	bm = (bookmark_block *) event_get_window_user_data(w);
+	if (bm == NULL)
+		return;
 
-/**
- */
-
-void prepare_bookmark_save_window(bookmark_block *bm)
-{
-	extern global_windows		windows;
-
-	if (strlen(bm->filename) > 0)
-		strncpy(indirected_icon_text(windows.save_as, SAVEAS_ICON_NAME),
-				bm->filename, MAX_BOOKMARK_FILENAME);
-	else
-		msgs_lookup("BMFileName", indirected_icon_text(windows.save_as,
-				SAVEAS_ICON_NAME), MAX_BOOKMARK_FILENAME);
-
-	event_add_window_user_data(windows.save_as, bm);
-	event_add_window_mouse_event(windows.save_as, bookmark_save_as_click);
+	switch (selection->items[0]) {
+	case BOOKMARK_MENU_FILE:
+		switch (selection->items[1]) {
+			case BOOKMARK_MENU_FILE_SAVE:
+				start_direct_menu_save(bm);
+				break;
+		}
+		break;
+	}
 }
 
 
@@ -801,30 +802,31 @@ int bookmark_validate_params(bookmark_params *params)
 	return 0;
 }
 
+
+/* ****************************************************************************
+ * SaveAs Dialogue Handling
+ * ****************************************************************************/
+
 /**
- * Output PDFMark data related to the associated bookmarks parameters file.
+ * Prepare the contents of the SaveAs window for the bookmark window.
  *
- * \param  *pdfmark_file	The file to write to.
- * \param  *params		The parameter block to use.
+ * \param  *bm			The bookmark file to which the window applies.
  */
 
-void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params)
+void prepare_bookmark_save_window(bookmark_block *bm)
 {
-	bookmark_node		*node;
-	char			buffer[MAX_BOOKMARK_LEN * 4];
+	extern global_windows		windows;
 
-	params->bookmarks = find_bookmark_block(params->bookmarks);
+	if (strlen(bm->filename) > 0)
+		strncpy(indirected_icon_text(windows.save_as, SAVEAS_ICON_NAME),
+				bm->filename, MAX_BOOKMARK_FILENAME);
+	else
+		msgs_lookup("BMFileName", indirected_icon_text(windows.save_as,
+				SAVEAS_ICON_NAME), MAX_BOOKMARK_FILENAME);
 
-	if (pdfmark_file != NULL && bookmark_data_available(params))
-		for (node = params->bookmarks->root; node != NULL; node = node->next) {
-			fprintf(pdfmark_file, "[");
-
-			if (node->count > 0)
-				fprintf(pdfmark_file, " /Count %d", (node->expanded) ? node->count : -node->count);
-
-			fprintf(pdfmark_file, " /Page %d /Title (%s) /OUT pdfmark\n", node->destination,
-					convert_to_pdf_doc_encoding(buffer, node->title, MAX_BOOKMARK_LEN * 4));
-		}
+	event_add_window_user_data(windows.save_as, bm);
+	event_add_window_mouse_event(windows.save_as, bookmark_save_as_click);
+	event_add_window_key_event(windows.save_as, bookmark_save_as_keypress);
 }
 
 
@@ -842,6 +844,81 @@ void bookmark_save_as_click(wimp_pointer *pointer)
 		if (pointer->buttons == wimp_DRAG_SELECT)
 			start_save_window_drag(DRAG_SAVE_SAVEAS);
 		break;
+	case SAVEAS_ICON_OK:
+		if (start_direct_dialog_save())
+			wimp_create_menu((wimp_menu *) -1, 0, 0);
+		break;
+	case SAVEAS_ICON_CANCEL:
+		wimp_create_menu((wimp_menu *) -1, 0, 0);
+		break;
+	}
+}
+
+
+/**
+ * Process keypresses in the SaveAs window.
+ */
+
+void bookmark_save_as_keypress(wimp_key *key)
+{
+	switch (key->c) {
+	case wimp_KEY_RETURN:
+		if (start_direct_dialog_save())
+			wimp_create_menu((wimp_menu *) -1, 0, 0);
+		break;
+	case wimp_KEY_ESCAPE:
+		wimp_create_menu((wimp_menu *) -1, 0, 0);
+		break;
+	}
+}
+
+/**
+ * Start a direct save from the SaveAs dialog.
+ *
+ * \return		1 if the save completed; else 0.
+ */
+
+int start_direct_dialog_save(void)
+{
+	bookmark_block		*bm;
+	char			*filename;
+	extern global_windows	windows;
+
+	bm = event_get_window_user_data(windows.save_as);
+	if (bm == NULL)
+		return 0;
+
+	filename = indirected_icon_text(windows.save_as, SAVEAS_ICON_NAME);
+
+	if (strchr(filename, '.') == NULL)
+		wimp_msgtrans_info_report("DragSave");
+	else {
+		save_bookmark_file(bm, filename);
+		return 1;
+	}
+
+	return 0;
+}
+
+/**
+ * Process a click File->Save menu selection, or Adjust-click on the
+ * Save toolbar icon.
+ *
+ * \param  *bm		The bookmark block to be saved.
+ */
+
+void start_direct_menu_save(bookmark_block *bm)
+{
+	wimp_pointer		pointer;
+
+	extern global_windows	windows;
+
+	if (strlen(bm->filename) > 0) {
+		save_bookmark_file(bm, bm->filename);
+	} else {
+		wimp_get_pointer_info(&pointer);
+		prepare_bookmark_save_window(bm);
+		create_standard_menu((wimp_menu *) windows.save_as, &pointer);
 	}
 }
 
@@ -868,6 +945,11 @@ int drag_end_save_saveas(char *filename)
 
 	return 0;
 }
+
+
+/* ****************************************************************************
+ * Bookmark Data Processing
+ * ****************************************************************************/
 
 /**
  * Save a bookmark file from memory to disc.
@@ -914,6 +996,8 @@ void save_bookmark_file(bookmark_block *bm, char *filename)
 
 	fclose(out);
 	osfile_set_type (filename, (bits) PRINTPDF_FILE_TYPE);
+
+	set_bookmark_unsaved_state(bm, 0);
 }
 
 
@@ -1073,4 +1157,32 @@ void rebuild_bookmark_data(bookmark_block *bm)
 		bm->lines = count;
 	}
 }
+
+
+/**
+ * Output PDFMark data related to the associated bookmarks parameters file.
+ *
+ * \param  *pdfmark_file	The file to write to.
+ * \param  *params		The parameter block to use.
+ */
+
+void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params)
+{
+	bookmark_node		*node;
+	char			buffer[MAX_BOOKMARK_LEN * 4];
+
+	params->bookmarks = find_bookmark_block(params->bookmarks);
+
+	if (pdfmark_file != NULL && bookmark_data_available(params))
+		for (node = params->bookmarks->root; node != NULL; node = node->next) {
+			fprintf(pdfmark_file, "[");
+
+			if (node->count > 0)
+				fprintf(pdfmark_file, " /Count %d", (node->expanded) ? node->count : -node->count);
+
+			fprintf(pdfmark_file, " /Page %d /Title (%s) /OUT pdfmark\n", node->destination,
+					convert_to_pdf_doc_encoding(buffer, node->title, MAX_BOOKMARK_LEN * 4));
+		}
+}
+
 

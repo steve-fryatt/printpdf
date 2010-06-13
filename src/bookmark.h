@@ -99,10 +99,15 @@ void process_bookmark_menu(bookmark_params *params, wimp_selection *selection);
 void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params);
 int bookmark_data_available(bookmark_params *params);
 int bookmark_validate_params(bookmark_params *params);
-void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params);
+
+/* SaveAs Dialogue Handling */
 
 int drag_end_save_saveas(char *filename);
+
+/* Bookmark Data Processing */
+
 void save_bookmark_file(bookmark_block *bm, char *filename);
 void load_bookmark_file(char *filename);
+void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params);
 
 #endif
