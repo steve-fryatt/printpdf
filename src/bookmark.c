@@ -1006,7 +1006,7 @@ int drag_end_save_saveas(char *filename)
 		return 0;
 
 	save_bookmark_file(bm, filename);
-	wimp_close_window(windows.save_as);
+	wimp_create_menu((wimp_menu *) -1, 0, 0);
 
 	return 0;
 }
