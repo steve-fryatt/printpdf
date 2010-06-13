@@ -51,12 +51,6 @@
  * Function prototypes.
  */
 
-void		open_bookmark_window(bookmark_block *bm);
-void		close_bookmark_window(wimp_close *close);
-void		redraw_bookmark_window(wimp_draw *redraw);
-
-void		bookmark_click_handler(wimp_pointer *pointer);
-
 void		bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu);
 void		bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 void		bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning *warning);
@@ -66,12 +60,20 @@ bookmark_block	*create_bookmark_block(void);
 void		delete_bookmark_block(bookmark_block *bookmark);
 
 void		set_bookmark_unsaved_state(bookmark_block *bm, int unsaved);
-void		update_bookmark_window_title(bookmark_block *bm);
 bookmark_block	*find_bookmark_window(wimp_w window);
 bookmark_block	*find_bookmark_toolbar(wimp_w window);
 bookmark_block	*find_bookmark_name(char *name);
 bookmark_block	*find_bookmark_block(bookmark_block *block);
 wimp_menu	*build_bookmark_menu(bookmark_params *params);
+
+/* Bookmark Window Handling */
+
+void		open_bookmark_window(bookmark_block *bm);
+void		close_bookmark_window(wimp_close *close);
+void		redraw_bookmark_window(wimp_draw *redraw);
+void		bookmark_click_handler(wimp_pointer *pointer);
+void		update_bookmark_window_title(bookmark_block *bm);
+void force_bookmark_window_redraw(bookmark_block *bm, int from, int to);
 
 /* SaveAs Dialogue Handling */
 
@@ -202,205 +204,6 @@ void delete_bookmark_block(bookmark_block *bookmark)
 	}
 }
 
-/**
- * Given a pointer click, create a new bookmark window.
- *
- * \param  *pointer		The details of the mouse click.
- */
-
-void create_new_bookmark_window(wimp_pointer *pointer)
-{
-	bookmark_block		*new;
-
-	new = create_bookmark_block();
-
-	if (new != NULL)
-		rebuild_bookmark_data(new);
-		open_bookmark_window(new);
-}
-
-/**
- * Create and open a window for a bookmark block.
- *
- * \param *bm		The block to open the window for.
- */
-
-void open_bookmark_window(bookmark_block *bm)
-{
-	extern global_windows	windows;
-	extern global_menus	menus;
-
-	if (bm != NULL && bm->window == NULL && bm->toolbar == NULL) {
-		windows.bookmark_window_def->title_data.indirected_text.text = bm->window_title;
-		windows.bookmark_window_def->title_data.indirected_text.size = MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10;
-
-		place_window_as_toolbar(windows.bookmark_window_def,
-				windows.bookmark_pane_def,
-				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
-		bm->window = wimp_create_window(windows.bookmark_window_def);
-		bm->toolbar = wimp_create_window(windows.bookmark_pane_def);
-
-		/* Register the window's event handlers. */
-
-		event_add_window_close_event(bm->window, close_bookmark_window);
-		event_add_window_redraw_event(bm->window, redraw_bookmark_window);
-		event_add_window_mouse_event(bm->window, bookmark_click_handler);
-		event_add_window_user_data(bm->window, bm);
-		event_add_window_menu(bm->window, menus.bookmarks,
-				bookmark_menu_prepare, bookmark_menu_selection,
-				NULL, bookmark_menu_warning);
-
-		event_add_window_menu(bm->toolbar, menus.bookmarks,
-				bookmark_menu_prepare, bookmark_menu_selection,
-				NULL, bookmark_menu_warning);
-
-		/* Open the window and toolbar. */
-
-		open_window(bm->window);
-		open_window_nested_as_toolbar(bm->toolbar, bm->window,
-				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
-	}
-}
-
-
-/**
- * Close the given bookmark window and delete all of the associated data.
- *
- * \param  *close		The Wimp close data block.
- */
-
-void close_bookmark_window(wimp_close *close)
-{
-	bookmark_block		*bm;
-
-	bm = find_bookmark_window(close->w);
-
-	if (bm != NULL) {
-		wimp_delete_window(bm->window);
-		wimp_delete_window(bm->toolbar);
-		event_delete_window(bm->window);
-		delete_bookmark_block(bm);
-	}
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void redraw_bookmark_window(wimp_draw *redraw)
-{
-	int			ox, oy, top, bottom, y;
-	osbool			more;
-	bookmark_node		*node;
-	wimp_icon		*icon;
-	char			buf[64];
-	bookmark_block		*bm;
-
-	extern global_windows	windows;
-	extern osspriteop_area	*wimp_sprites;
-
-
-	bm = (bookmark_block *) event_get_window_user_data(redraw->w);
-
-	if (bm == NULL)
-		return;
-
-
-	more = wimp_redraw_window(redraw);
-
-	ox = redraw->box.x0 - redraw->xscroll;
-	oy = redraw->box.y1 - redraw->yscroll;
-
-	icon = windows.bookmark_window_def->icons;
-
-	while (more) {
-		top = (oy - redraw->clip.y1 - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
-		if (top < 0)
-			top = 0;
-
-		bottom = ((BOOKMARK_LINE_HEIGHT * 1.5) + oy - redraw->clip.y0
-				- BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
-		if (bottom > bm->lines)
-			bottom = bm->lines;
-
-		for (y = top; y < bottom; y++) {
-			node = bm->redraw[y].node;
-
-			icon[0].extent.x0 = node->level * BOOKMARK_LINE_HEIGHT;
-
-			icon[0].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT);
-			icon[0].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT
-					+ BOOKMARK_ICON_HEIGHT);
-			icon[1].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT);
-			icon[1].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT
-					+ BOOKMARK_ICON_HEIGHT);
-			icon[2].extent.x0 = (node->level - 1) * BOOKMARK_LINE_HEIGHT;
-			icon[2].extent.x1 = icon[2].extent.x0 + BOOKMARK_ICON_HEIGHT;
-			icon[2].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT);
-			icon[2].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT
-					+ BOOKMARK_ICON_HEIGHT);
-
-			sprintf(buf, "Line %d", y);
-
-			icon[0].data.indirected_text.text = node->title;
-			icon[1].data.indirected_text.text = buf;
-			icon[2].data.indirected_sprite.id = (osspriteop_id) ((node->expanded) ? "nodee" : "nodec");
-			icon[2].data.indirected_sprite.area = wimp_sprites;
-			icon[2].data.indirected_sprite.size = 6;
-
-			wimp_plot_icon(&(icon[0]));
-			wimp_plot_icon(&(icon[1]));
-
-			/* Plot the expansion arrow for node heads, which show up
-			 * as entries whose count is non-zero.
-			 */
-
-			if (node->count > 0)
-				wimp_plot_icon(&(icon[2]));
-		}
-
-		more = wimp_get_rectangle(redraw);
-	}
-}
-
-/**
- * Handle clicks in the Bookmarks windows.
- *
- * \param  *pointer		The Wimp mouse click event data.
- */
-
-void bookmark_click_handler(wimp_pointer *pointer)
-{
-	bookmark_block		*bm;
-
-	bm = (bookmark_block *) event_get_window_user_data(pointer->w);
-
-	if (bm == NULL)
-		return;
-
-	debug_printf("Bookmark click handler...");
-
-	if ((bm = find_bookmark_window(pointer->w)) != NULL) {
-		/* It's a bookmark window! */
-
-		debug_printf("A click in bookmark window %s", bm->name);
-
-	} else if ((bm = find_bookmark_toolbar(pointer->w)) != NULL) {
-		/* It's a bookmark toolbar! */
-
-		debug_printf("A click in bookmark toolbar %s", bm->name);
-	}
-}
 
 
 /**
@@ -490,27 +293,6 @@ void set_bookmark_unsaved_state(bookmark_block *bm, int unsaved)
 }
 
 
-/**
- * Set the title of the bookmark window.
- *
- * \param  *bm			The block to set the window title for.
- */
-
-void update_bookmark_window_title(bookmark_block *bm)
-{
-	char		*asterisk;
-
-	asterisk = (bm->unsaved) ? " *" : "";
-
-	if (strlen(bm->filename) > 0)
-		snprintf(bm->window_title, MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10,
-				"%s (%s)%s", bm->filename, bm->name, asterisk);
-	else
-		snprintf(bm->window_title, MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10,
-				"%s%s", bm->name, asterisk);
-
-	xwimp_force_redraw_title(bm->window);
-}
 
 
 /**
@@ -802,6 +584,289 @@ int bookmark_validate_params(bookmark_params *params)
 	return 0;
 }
 
+
+/* ****************************************************************************
+ * Bookmark Window Handling
+ * ****************************************************************************/
+
+/**
+ * Given a pointer click, create a new bookmark window.
+ *
+ * \param  *pointer		The details of the mouse click.
+ */
+
+void create_new_bookmark_window(wimp_pointer *pointer)
+{
+	bookmark_block		*new;
+
+	new = create_bookmark_block();
+
+	if (new != NULL)
+		rebuild_bookmark_data(new);
+		open_bookmark_window(new);
+}
+
+/**
+ * Create and open a window for a bookmark block.
+ *
+ * \param *bm		The block to open the window for.
+ */
+
+void open_bookmark_window(bookmark_block *bm)
+{
+	extern global_windows	windows;
+	extern global_menus	menus;
+
+	if (bm != NULL && bm->window == NULL && bm->toolbar == NULL) {
+		windows.bookmark_window_def->title_data.indirected_text.text = bm->window_title;
+		windows.bookmark_window_def->title_data.indirected_text.size = MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10;
+
+		place_window_as_toolbar(windows.bookmark_window_def,
+				windows.bookmark_pane_def,
+				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
+		bm->window = wimp_create_window(windows.bookmark_window_def);
+		bm->toolbar = wimp_create_window(windows.bookmark_pane_def);
+
+		/* Register the window's event handlers. */
+
+		event_add_window_close_event(bm->window, close_bookmark_window);
+		event_add_window_redraw_event(bm->window, redraw_bookmark_window);
+		event_add_window_mouse_event(bm->window, bookmark_click_handler);
+		event_add_window_user_data(bm->window, bm);
+		event_add_window_menu(bm->window, menus.bookmarks,
+				bookmark_menu_prepare, bookmark_menu_selection,
+				NULL, bookmark_menu_warning);
+
+		event_add_window_menu(bm->toolbar, menus.bookmarks,
+				bookmark_menu_prepare, bookmark_menu_selection,
+				NULL, bookmark_menu_warning);
+
+		/* Open the window and toolbar. */
+
+		open_window(bm->window);
+		open_window_nested_as_toolbar(bm->toolbar, bm->window,
+				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
+	}
+}
+
+
+/**
+ * Close the given bookmark window and delete all of the associated data.
+ *
+ * \param  *close		The Wimp close data block.
+ */
+
+void close_bookmark_window(wimp_close *close)
+{
+	bookmark_block		*bm;
+
+	bm = find_bookmark_window(close->w);
+
+	if (bm != NULL) {
+		wimp_delete_window(bm->window);
+		wimp_delete_window(bm->toolbar);
+		event_delete_window(bm->window);
+		delete_bookmark_block(bm);
+	}
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+void redraw_bookmark_window(wimp_draw *redraw)
+{
+	int			ox, oy, top, bottom, y;
+	osbool			more;
+	bookmark_node		*node;
+	wimp_icon		*icon;
+	char			buf[64];
+	bookmark_block		*bm;
+
+	extern global_windows	windows;
+	extern osspriteop_area	*wimp_sprites;
+
+
+	bm = (bookmark_block *) event_get_window_user_data(redraw->w);
+
+	if (bm == NULL)
+		return;
+
+
+	more = wimp_redraw_window(redraw);
+
+	ox = redraw->box.x0 - redraw->xscroll;
+	oy = redraw->box.y1 - redraw->yscroll;
+
+	icon = windows.bookmark_window_def->icons;
+
+	while (more) {
+		top = (oy - redraw->clip.y1 - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
+		if (top < 0)
+			top = 0;
+
+		bottom = ((BOOKMARK_LINE_HEIGHT * 1.5) + oy - redraw->clip.y0
+				- BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
+		if (bottom > bm->lines)
+			bottom = bm->lines;
+
+		for (y = top; y < bottom; y++) {
+			node = bm->redraw[y].node;
+
+			icon[0].extent.x0 = node->level * BOOKMARK_LINE_HEIGHT;
+
+			icon[0].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+					+ BOOKMARK_LINE_OFFSET
+					- BOOKMARK_TOOLBAR_HEIGHT);
+			icon[0].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+					+ BOOKMARK_LINE_OFFSET
+					- BOOKMARK_TOOLBAR_HEIGHT
+					+ BOOKMARK_ICON_HEIGHT);
+			icon[1].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+					+ BOOKMARK_LINE_OFFSET
+					- BOOKMARK_TOOLBAR_HEIGHT);
+			icon[1].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+					+ BOOKMARK_LINE_OFFSET
+					- BOOKMARK_TOOLBAR_HEIGHT
+					+ BOOKMARK_ICON_HEIGHT);
+			icon[2].extent.x0 = (node->level - 1) * BOOKMARK_LINE_HEIGHT;
+			icon[2].extent.x1 = icon[2].extent.x0 + BOOKMARK_ICON_HEIGHT;
+			icon[2].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+					+ BOOKMARK_LINE_OFFSET
+					- BOOKMARK_TOOLBAR_HEIGHT);
+			icon[2].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+					+ BOOKMARK_LINE_OFFSET
+					- BOOKMARK_TOOLBAR_HEIGHT
+					+ BOOKMARK_ICON_HEIGHT);
+
+			sprintf(buf, "Line %d", y);
+
+			icon[0].data.indirected_text.text = node->title;
+			icon[1].data.indirected_text.text = buf;
+			icon[2].data.indirected_sprite.id = (osspriteop_id) ((node->expanded) ? "nodee" : "nodec");
+			icon[2].data.indirected_sprite.area = wimp_sprites;
+			icon[2].data.indirected_sprite.size = 6;
+
+			wimp_plot_icon(&(icon[0]));
+			wimp_plot_icon(&(icon[1]));
+
+			/* Plot the expansion arrow for node heads, which show up
+			 * as entries whose count is non-zero.
+			 */
+
+			if (node->count > 0)
+				wimp_plot_icon(&(icon[2]));
+		}
+
+		more = wimp_get_rectangle(redraw);
+	}
+}
+
+/**
+ * Handle clicks in the Bookmarks windows.
+ *
+ * \param  *pointer		The Wimp mouse click event data.
+ */
+
+void bookmark_click_handler(wimp_pointer *pointer)
+{
+	int			x, y, row, row_x_pos, row_y_pos;
+	bookmark_block		*bm;
+	bookmark_node		*node;
+	wimp_window_state	state;
+	os_error		*error;
+
+	bm = (bookmark_block *) event_get_window_user_data(pointer->w);
+	if (bm == NULL)
+		return;
+
+	state.w = pointer->w;
+	error = xwimp_get_window_state(&state);
+	if (error != NULL)
+		return;
+
+	x = pointer->pos.x - state.visible.x0 + state.xscroll;
+	y = state.visible.y1 - pointer->pos.y + state.yscroll;
+
+	row = (y - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
+	row_y_pos = ((y - BOOKMARK_TOOLBAR_HEIGHT) % BOOKMARK_LINE_HEIGHT)
+			 - BOOKMARK_LINE_OFFSET;
+
+	if (row >= bm->lines ||
+			row_y_pos < (BOOKMARK_LINE_HEIGHT - (BOOKMARK_LINE_OFFSET + BOOKMARK_ICON_HEIGHT)) ||
+			row_y_pos > (BOOKMARK_LINE_HEIGHT - BOOKMARK_LINE_OFFSET))
+		row = -1;
+
+	if (row != -1) {
+		node = bm->redraw[row].node;
+		row_x_pos = x - node->level * BOOKMARK_LINE_HEIGHT;
+
+		if (row_x_pos < BOOKMARK_LINE_HEIGHT && node->count > 0) {
+			/* Handle expandion arrow clicks. */
+
+			node->expanded = !node->expanded;
+			rebuild_bookmark_data(bm);
+			force_bookmark_window_redraw(bm, row, -1);
+			set_bookmark_unsaved_state(bm, 1);
+		}
+	}
+
+}
+
+/**
+ * Set the title of the bookmark window.
+ *
+ * \param  *bm			The block to set the window title for.
+ */
+
+void update_bookmark_window_title(bookmark_block *bm)
+{
+	char		*asterisk;
+
+	asterisk = (bm->unsaved) ? " *" : "";
+
+	if (strlen(bm->filename) > 0)
+		snprintf(bm->window_title, MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10,
+				"%s (%s)%s", bm->filename, bm->name, asterisk);
+	else
+		snprintf(bm->window_title, MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10,
+				"%s%s", bm->name, asterisk);
+
+	xwimp_force_redraw_title(bm->window);
+}
+
+
+/**
+ * Force part or all of the bookmarks window to redraw.
+ *
+ * \param  *bm			The window block to be redrawn.
+ * \param  from			The row to start the redraw at (-1 = from start)
+ * \param  to			The row to end the readraw at (-1 = to end)
+ */
+
+void force_bookmark_window_redraw(bookmark_block *bm, int from, int to)
+{
+	int			x0, y0, x1, y1;
+	wimp_window_info	info;
+
+	if (bm == NULL)
+		return;
+
+	info.w = bm->window;
+	wimp_get_window_info_header_only(&info);
+
+	x0 = info.extent.x0;
+	if (to < 0)
+		y0 = info.extent.y0;
+	else
+		y0 = -((BOOKMARK_LINE_HEIGHT * to) + BOOKMARK_TOOLBAR_HEIGHT);
+
+	x1 = info.extent.x1;
+	if (--from < 0)
+		y1 = -BOOKMARK_TOOLBAR_HEIGHT;
+	else
+		y1 = -((BOOKMARK_LINE_HEIGHT * from) + BOOKMARK_TOOLBAR_HEIGHT);
+
+	wimp_force_redraw(bm->window, x0, y0, x1, y1);
+}
 
 /* ****************************************************************************
  * SaveAs Dialogue Handling
