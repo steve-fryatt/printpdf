@@ -21,6 +21,7 @@
 #define BOOKMARK_LINE_OFFSET 0
 #define BOOKMARK_TOOLBAR_OFFSET 2
 #define BOOKMARK_MIN_LINES 10
+#define BOOKMARK_COLUMN_WIDTH 160
 
 #define BOOKMARK_FILE_LINE_LEN 1024
 
@@ -30,6 +31,15 @@
 
 #define BOOKMARK_MENU_FILE_INFO 0
 #define BOOKMARK_MENU_FILE_SAVE 1
+
+/* Bookmark Window icons. */
+
+#define BOOKMARK_WINDOW_COLUMNS 3
+
+#define BOOKMARK_ICON_EXPAND  0
+#define BOOKMARK_ICON_TITLE   1
+#define BOOKMARK_ICON_PAGE    2
+#define BOOKMARK_ICON_YEXTENT 3
 
 /* Save As Dialogue icons. */
 
@@ -72,6 +82,11 @@ typedef struct bookmark_block {
 
 	bookmark_redraw		*redraw;
 	int			lines;
+
+	int			column_pos[BOOKMARK_WINDOW_COLUMNS];
+	int			column_width[BOOKMARK_WINDOW_COLUMNS];
+	int			caret_row;
+	int			caret_col;
 
 	bookmark_node		*root;
 	int			nodes;

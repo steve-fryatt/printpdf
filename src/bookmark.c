@@ -75,6 +75,8 @@ void		bookmark_click_handler(wimp_pointer *pointer);
 void		update_bookmark_window_title(bookmark_block *bm);
 void		force_bookmark_window_redraw(bookmark_block *bm, int from, int to);
 void		set_bookmark_window_extent(bookmark_block *bm);
+void		set_bookmark_window_columns(bookmark_block *bm);
+void		calculate_bookmark_window_row_start(bookmark_block *bm, int row);
 
 /* SaveAs Dialogue Handling */
 
@@ -155,6 +157,8 @@ bookmark_block *create_bookmark_block(void)
 		new->root = NULL;
 		new->lines = 0;
 		new->nodes = 0;
+		new->caret_row = -1;
+		new->caret_col = -1;
 
 		update_bookmark_window_title(new);
 
@@ -625,7 +629,6 @@ void open_bookmark_window(bookmark_block *bm)
 		windows.bookmark_window_def->extent.y0 = -((((bm->lines > BOOKMARK_MIN_LINES) ? bm->lines : BOOKMARK_MIN_LINES) * BOOKMARK_LINE_HEIGHT)
 				+ BOOKMARK_TOOLBAR_HEIGHT + (BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET)));
 
-
 		place_window_as_toolbar(windows.bookmark_window_def,
 				windows.bookmark_pane_def,
 				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
@@ -648,6 +651,7 @@ void open_bookmark_window(bookmark_block *bm)
 
 		/* Open the window and toolbar. */
 
+		set_bookmark_window_columns(bm);
 		open_window(bm->window);
 		open_window_nested_as_toolbar(bm->toolbar, bm->window,
 				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
@@ -719,51 +723,56 @@ void redraw_bookmark_window(wimp_draw *redraw)
 			bottom = bm->lines;
 
 		for (y = top; y < bottom; y++) {
+			calculate_bookmark_window_row_start(bm, y);
 			node = bm->redraw[y].node;
 
-			icon[0].extent.x0 = node->level * BOOKMARK_LINE_HEIGHT;
+			icon[BOOKMARK_ICON_EXPAND].extent.x0 = bm->column_pos[BOOKMARK_ICON_EXPAND];
+			icon[BOOKMARK_ICON_EXPAND].extent.x1 = bm->column_pos[BOOKMARK_ICON_EXPAND] + bm->column_width[BOOKMARK_ICON_EXPAND];
+			icon[BOOKMARK_ICON_EXPAND].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+					+ BOOKMARK_LINE_OFFSET
+					- BOOKMARK_TOOLBAR_HEIGHT);
+			icon[BOOKMARK_ICON_EXPAND].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+					+ BOOKMARK_LINE_OFFSET
+					- BOOKMARK_TOOLBAR_HEIGHT
+					+ BOOKMARK_ICON_HEIGHT);
 
-			icon[0].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+			icon[BOOKMARK_ICON_TITLE].extent.x0 = bm->column_pos[BOOKMARK_ICON_TITLE];
+			icon[BOOKMARK_ICON_TITLE].extent.x1 = bm->column_pos[BOOKMARK_ICON_TITLE] + bm->column_width[BOOKMARK_ICON_TITLE];
+			icon[BOOKMARK_ICON_TITLE].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
 					+ BOOKMARK_LINE_OFFSET
 					- BOOKMARK_TOOLBAR_HEIGHT);
-			icon[0].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+			icon[BOOKMARK_ICON_TITLE].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
 					+ BOOKMARK_LINE_OFFSET
 					- BOOKMARK_TOOLBAR_HEIGHT
 					+ BOOKMARK_ICON_HEIGHT);
-			icon[1].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+
+			icon[BOOKMARK_ICON_PAGE].extent.x0 = bm->column_pos[BOOKMARK_ICON_PAGE];
+			icon[BOOKMARK_ICON_PAGE].extent.x1 = bm->column_pos[BOOKMARK_ICON_PAGE] + bm->column_width[BOOKMARK_ICON_PAGE];
+			icon[BOOKMARK_ICON_PAGE].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
 					+ BOOKMARK_LINE_OFFSET
 					- BOOKMARK_TOOLBAR_HEIGHT);
-			icon[1].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT
-					+ BOOKMARK_ICON_HEIGHT);
-			icon[2].extent.x0 = (node->level - 1) * BOOKMARK_LINE_HEIGHT;
-			icon[2].extent.x1 = icon[2].extent.x0 + BOOKMARK_ICON_HEIGHT;
-			icon[2].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT);
-			icon[2].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
+			icon[BOOKMARK_ICON_PAGE].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
 					+ BOOKMARK_LINE_OFFSET
 					- BOOKMARK_TOOLBAR_HEIGHT
 					+ BOOKMARK_ICON_HEIGHT);
 
 			sprintf(buf, "%d", node->page);
 
-			icon[0].data.indirected_text.text = node->title;
-			icon[1].data.indirected_text.text = buf;
-			icon[2].data.indirected_sprite.id = (osspriteop_id) ((node->expanded) ? "nodee" : "nodec");
-			icon[2].data.indirected_sprite.area = wimp_sprites;
-			icon[2].data.indirected_sprite.size = 6;
+			icon[BOOKMARK_ICON_TITLE].data.indirected_text.text = node->title;
+			icon[BOOKMARK_ICON_PAGE].data.indirected_text.text = buf;
+			icon[BOOKMARK_ICON_EXPAND].data.indirected_sprite.id = (osspriteop_id) ((node->expanded) ? "nodee" : "nodec");
+			icon[BOOKMARK_ICON_EXPAND].data.indirected_sprite.area = wimp_sprites;
+			icon[BOOKMARK_ICON_EXPAND].data.indirected_sprite.size = 6;
 
-			wimp_plot_icon(&(icon[0]));
-			wimp_plot_icon(&(icon[1]));
+			wimp_plot_icon(&(icon[BOOKMARK_ICON_TITLE]));
+			wimp_plot_icon(&(icon[BOOKMARK_ICON_PAGE]));
 
 			/* Plot the expansion arrow for node heads, which show up
 			 * as entries whose count is non-zero.
 			 */
 
 			if (node->count > 0)
-				wimp_plot_icon(&(icon[2]));
+				wimp_plot_icon(&(icon[BOOKMARK_ICON_EXPAND]));
 		}
 
 		more = wimp_get_rectangle(redraw);
@@ -779,7 +788,7 @@ void redraw_bookmark_window(wimp_draw *redraw)
 
 void bookmark_click_handler(wimp_pointer *pointer)
 {
-	int			x, y, row, row_x_pos, row_y_pos;
+	int			i, x, y, row, col, row_x_pos, row_y_pos;
 	bookmark_block		*bm;
 	bookmark_node		*node;
 	wimp_window_state	state;
@@ -807,11 +816,19 @@ void bookmark_click_handler(wimp_pointer *pointer)
 		row = -1;
 
 	if (row != -1) {
+		calculate_bookmark_window_row_start(bm, row);
 		node = bm->redraw[row].node;
 		row_x_pos = x - node->level * BOOKMARK_LINE_HEIGHT;
+		col = -1;
 
-		if (pointer->buttons == wimp_CLICK_SELECT &&
-				row_x_pos < BOOKMARK_LINE_HEIGHT && node->count > 0) {
+		for (i=0; i<BOOKMARK_WINDOW_COLUMNS; i++)
+			if (x >= bm->column_pos[i] && x <= bm->column_pos[i]+bm->column_width[i]) {
+				col = i;
+				break;
+			}
+
+		if (col == BOOKMARK_ICON_EXPAND && pointer->buttons == wimp_CLICK_SELECT &&
+				node->count > 0) {
 			/* Handle expandion arrow clicks. */
 
 			node->expanded = !node->expanded;
@@ -820,7 +837,6 @@ void bookmark_click_handler(wimp_pointer *pointer)
 			set_bookmark_unsaved_state(bm, 1);
 		}
 	}
-
 }
 
 /**
@@ -936,6 +952,82 @@ void set_bookmark_window_extent(bookmark_block *bm)
 
 	error = xwimp_set_extent(bm->window, &(info.extent));
 }
+
+
+/**
+ * Set the column positions for the given bookmark window.
+ *
+ * \param  *bm			The bookmark window to set.
+ */
+
+void set_bookmark_window_columns(bookmark_block *bm)
+{
+	int			i;
+	wimp_window_info	info;
+	os_error		*error;
+
+
+	if (bm == NULL)
+		return;
+
+	info.w = bm->window;
+	error = xwimp_get_window_info_header_only(&info);
+	if (error != NULL)
+		return;
+
+	/* The position of the left-hand end of the row is set on the fly. */
+
+	bm->column_pos[BOOKMARK_ICON_EXPAND] = 0;
+	bm->column_width[BOOKMARK_ICON_EXPAND] = BOOKMARK_ICON_HEIGHT;
+
+	bm->column_pos[BOOKMARK_ICON_TITLE] = 0;
+	bm->column_width[BOOKMARK_ICON_TITLE] = 0;
+
+	/* Set the widths of the right-hand end. */
+
+	for (i=BOOKMARK_ICON_PAGE; i<BOOKMARK_WINDOW_COLUMNS; i++)
+		bm->column_width[i] = BOOKMARK_COLUMN_WIDTH;
+
+	/* The right-hand position is measured one gutter from the window's
+	 * X extent.
+	 */
+
+	bm->column_pos[BOOKMARK_WINDOW_COLUMNS-1] = info.extent.x1 - (bm->column_width[BOOKMARK_WINDOW_COLUMNS-1] +
+			(BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET)));
+
+	/* Any remaining columns (if there are any) are calculated back from this. */
+
+	for (i=BOOKMARK_WINDOW_COLUMNS-2; i>=BOOKMARK_ICON_PAGE; i--)
+		bm->column_pos[i] = bm->column_pos[i+1] - (bm->column_width[i] +
+			(BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET)));
+
+	// \TODO -- Shift any writable icon, if it is in the wrong place.
+}
+
+
+/**
+ * Calculate the column details for the start of the given bookmark window
+ * row, and update the column_pos[] and column_width[] arrays.
+ *
+ * \param  *bm			The window to calculate for.
+ * \param  row			The row to calculate.
+ */
+
+void calculate_bookmark_window_row_start(bookmark_block *bm, int row)
+{
+	bookmark_node		*node;
+
+	if (bm == NULL || row >= bm->lines)
+		return;
+
+	node = bm->redraw[row].node;
+
+	bm->column_pos[BOOKMARK_ICON_EXPAND] = (node->level - 1) * BOOKMARK_LINE_HEIGHT;
+	bm->column_pos[BOOKMARK_ICON_TITLE] = node->level * BOOKMARK_LINE_HEIGHT;
+	bm->column_width[BOOKMARK_ICON_TITLE] = bm->column_pos[BOOKMARK_ICON_PAGE] - bm->column_pos[BOOKMARK_ICON_TITLE] -
+			(BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET));
+}
+
 
 /* ****************************************************************************
  * SaveAs Dialogue Handling
