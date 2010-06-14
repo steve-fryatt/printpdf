@@ -1537,9 +1537,13 @@ void rebuild_bookmark_data(bookmark_block *bm)
 	 */
 
 	if (bm == bookmarks_edit) {
-		wimp_get_caret_position(&caret);
-		edit_node = bm->redraw[bm->caret_row].node;
-		edit_col = bm->caret_col;
+		if (xwimp_get_caret_position(&caret) == NULL) {
+			edit_node = bm->redraw[bm->caret_row].node;
+			edit_col = bm->caret_col;
+		} else {
+			edit_node = NULL;
+			edit_col = -1;
+		}
 		bookmark_remove_edit_icon();
 	} else {
 		edit_node = NULL;
