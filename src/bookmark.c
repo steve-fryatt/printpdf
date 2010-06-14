@@ -72,9 +72,11 @@ void		open_bookmark_window(bookmark_block *bm);
 void		close_bookmark_window(wimp_close *close);
 void		redraw_bookmark_window(wimp_draw *redraw);
 void		bookmark_click_handler(wimp_pointer *pointer);
+void		bookmark_key_handler(wimp_key *key);
 void		bookmark_lose_caret(wimp_caret *caret);
 int		bookmark_place_edit_icon(bookmark_block *bm, int row, int col);
 void		bookmark_remove_edit_icon(void);
+void		bookmark_resync_edit_with_file(void);
 void		update_bookmark_window_title(bookmark_block *bm);
 void		force_bookmark_window_redraw(bookmark_block *bm, int from, int to);
 void		set_bookmark_window_extent(bookmark_block *bm);
@@ -103,6 +105,7 @@ static bookmark_block	*bookmarks_list = NULL;
 static int		untitled_number = 1;
 
 static bookmark_block	*bookmarks_edit = NULL;
+static char		*bookmarks_edit_buffer = NULL;
 
 static wimp_menu	*bookmarks_menu = NULL;
 static bookmark_block	**bookmarks_menu_links = NULL;
@@ -646,12 +649,14 @@ void open_bookmark_window(bookmark_block *bm)
 		event_add_window_close_event(bm->window, close_bookmark_window);
 		event_add_window_redraw_event(bm->window, redraw_bookmark_window);
 		event_add_window_mouse_event(bm->window, bookmark_click_handler);
+		event_add_window_key_event(bm->window, bookmark_key_handler);
 		event_add_window_lose_caret_event(bm->window, bookmark_lose_caret);
 		event_add_window_user_data(bm->window, bm);
 		event_add_window_menu(bm->window, menus.bookmarks,
 				bookmark_menu_prepare, bookmark_menu_selection,
 				NULL, bookmark_menu_warning);
 
+		event_add_window_user_data(bm->toolbar, bm);
 		event_add_window_menu(bm->toolbar, menus.bookmarks,
 				bookmark_menu_prepare, bookmark_menu_selection,
 				NULL, bookmark_menu_warning);
@@ -703,7 +708,7 @@ void redraw_bookmark_window(wimp_draw *redraw)
 	osbool			more;
 	bookmark_node		*node;
 	wimp_icon		*icon;
-	char			buf[64];
+	char			buf[MAX_BOOKMARK_NUM_LEN];
 	bookmark_block		*bm;
 
 	extern global_windows	windows;
@@ -767,7 +772,7 @@ void redraw_bookmark_window(wimp_draw *redraw)
 					- BOOKMARK_TOOLBAR_HEIGHT
 					+ BOOKMARK_ICON_HEIGHT);
 
-			sprintf(buf, "%d", node->page);
+			snprintf(buf, MAX_BOOKMARK_NUM_LEN, "%d", node->page);
 
 			icon[BOOKMARK_ICON_TITLE].data.indirected_text.text = node->title;
 			icon[BOOKMARK_ICON_PAGE].data.indirected_text.text = buf;
@@ -775,15 +780,21 @@ void redraw_bookmark_window(wimp_draw *redraw)
 			icon[BOOKMARK_ICON_EXPAND].data.indirected_sprite.area = wimp_sprites;
 			icon[BOOKMARK_ICON_EXPAND].data.indirected_sprite.size = 6;
 
-			wimp_plot_icon(&(icon[BOOKMARK_ICON_TITLE]));
-			wimp_plot_icon(&(icon[BOOKMARK_ICON_PAGE]));
-
 			/* Plot the expansion arrow for node heads, which show up
 			 * as entries whose count is non-zero.
 			 */
 
 			if (node->count > 0)
 				wimp_plot_icon(&(icon[BOOKMARK_ICON_EXPAND]));
+
+			/* Plot the column icons, if they aren't replaced by a real
+			 * icon for data entry.
+			 */
+
+			if (!(bm->caret_col == BOOKMARK_ICON_TITLE && bm->caret_row == y))
+				wimp_plot_icon(&(icon[BOOKMARK_ICON_TITLE]));
+			if (!(bm->caret_col == BOOKMARK_ICON_PAGE && bm->caret_row == y))
+				wimp_plot_icon(&(icon[BOOKMARK_ICON_PAGE]));
 		}
 
 		more = wimp_get_rectangle(redraw);
@@ -855,6 +866,20 @@ void bookmark_click_handler(wimp_pointer *pointer)
 
 
 /**
+ * Callback handler for Wimp Key events.
+ *
+ * \param  *key			The associated wimp event block.
+ */
+
+void bookmark_key_handler(wimp_key *key)
+{
+	if (bookmarks_edit != NULL &&
+			bookmarks_edit->window == key->w && bookmarks_edit->edit_icon == key->i)
+		bookmark_resync_edit_with_file();
+}
+
+
+/**
  * Callback handler for Wimp Lose Caret events.
  *
  * \param  *caret		The associated wimp event block.
@@ -870,6 +895,11 @@ void bookmark_lose_caret(wimp_caret *caret)
 		return;
 
 	wimp_get_caret_position(&current);
+
+	/* If the window losing the caret is the same as the current caret
+	 * window, this message is a result of the transition and so
+	 * can safely be ignored.
+	 */
 
 	if (current.w != bookmarks_edit->window)
 		bookmark_remove_edit_icon();
@@ -887,6 +917,7 @@ void bookmark_lose_caret(wimp_caret *caret)
 
 int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 {
+	size_t				buf_len;
 	wimp_icon_create		icon;
 	extern global_windows		windows;
 
@@ -898,6 +929,28 @@ int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 	calculate_bookmark_window_row_start(bm, row);
 
 	memcpy(&(icon.icon), &(windows.bookmark_window_def->icons[col]), sizeof(wimp_icon));
+
+	if (bookmarks_edit_buffer != NULL)
+		free(bookmarks_edit_buffer);
+
+	buf_len = (col == BOOKMARK_ICON_TITLE) ? MAX_BOOKMARK_LEN : MAX_BOOKMARK_NUM_LEN;
+
+	bookmarks_edit_buffer = (char *) malloc(buf_len);
+
+	if (bookmarks_edit_buffer == NULL)
+		return 1;
+
+	icon.icon.data.indirected_text.text = bookmarks_edit_buffer;
+	icon.icon.data.indirected_text.size = buf_len;
+
+	switch (col) {
+	case BOOKMARK_ICON_TITLE:
+		strncpy(bookmarks_edit_buffer, bm->redraw[row].node->title, buf_len);
+		break;
+	case BOOKMARK_ICON_PAGE:
+		snprintf(bookmarks_edit_buffer, buf_len, "%d", bm->redraw[row].node->page);
+		break;
+	}
 
 	icon.w = bm->window;
 	icon.icon.extent.x0 = bm->column_pos[col];
@@ -922,11 +975,9 @@ int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 
 void bookmark_remove_edit_icon(void)
 {
-	debug_printf("About to remove icon");
-
 	if (bookmarks_edit != NULL &&
 			bookmarks_edit->edit_icon != wimp_ICON_WINDOW) {
-		// \TODO -- Synch icon contents to data here.
+		bookmark_resync_edit_with_file();
 
 		wimp_delete_icon(bookmarks_edit->window, bookmarks_edit->edit_icon);
 		bookmarks_edit->edit_icon = wimp_ICON_WINDOW;
@@ -934,8 +985,41 @@ void bookmark_remove_edit_icon(void)
 		bookmarks_edit->caret_col = -1;
 
 		bookmarks_edit = NULL;
+		if (bookmarks_edit_buffer != NULL) {
+			free(bookmarks_edit_buffer);
+			bookmarks_edit_buffer = NULL;
+		}
+	}
+}
 
-		debug_printf("Icon removed");
+
+/**
+ * Sync the edit icon contents with the underlying file.
+ */
+
+void bookmark_resync_edit_with_file(void)
+{
+	int		page;
+
+	if (bookmarks_edit == NULL ||
+			bookmarks_edit->edit_icon == wimp_ICON_WINDOW)
+		return;
+
+	switch (bookmarks_edit->caret_col) {
+	case BOOKMARK_ICON_TITLE:
+		if (strcmp(bookmarks_edit->redraw[bookmarks_edit->caret_row].node->title, bookmarks_edit_buffer) != 0) {
+			strncpy(bookmarks_edit->redraw[bookmarks_edit->caret_row].node->title, bookmarks_edit_buffer, MAX_BOOKMARK_LEN);
+			set_bookmark_unsaved_state(bookmarks_edit, 1);
+		}
+		break;
+	case BOOKMARK_ICON_PAGE:
+		page = atoi(bookmarks_edit_buffer);
+
+		if (page != bookmarks_edit->redraw[bookmarks_edit->caret_row].node->page) {
+			bookmarks_edit->redraw[bookmarks_edit->caret_row].node->page = page;
+			set_bookmark_unsaved_state(bookmarks_edit, 1);
+		}
+		break;
 	}
 }
 
@@ -1441,11 +1525,26 @@ void load_bookmark_file(char *filename)
 
 void rebuild_bookmark_data(bookmark_block *bm)
 {
-	bookmark_node		*node, *n;
-	int			count, i;
+	bookmark_node		*node, *n, *edit_node, *edit_parent;;
+	int			count, i, edit_col;
+	wimp_caret		caret;
 
 	if (bm == NULL)
 		return;
+
+	/* If there is an edit icon in the window, find its node and position
+	 * before deleting it.
+	 */
+
+	if (bm == bookmarks_edit) {
+		wimp_get_caret_position(&caret);
+		edit_node = bm->redraw[bm->caret_row].node;
+		edit_col = bm->caret_col;
+		bookmark_remove_edit_icon();
+	} else {
+		edit_node = NULL;
+		edit_col = -1;
+	}
 
 	/* Find the number of entries in the block list, and reallocate the
 	 * redraw array if it has changed.
@@ -1474,6 +1573,8 @@ void rebuild_bookmark_data(bookmark_block *bm)
 		node->count = count;
 	}
 
+	edit_parent = NULL;
+
 	if (bm->redraw != NULL) {
 		count = 0;
 
@@ -1481,11 +1582,19 @@ void rebuild_bookmark_data(bookmark_block *bm)
 			bm->redraw[count].node = node;
 			bm->redraw[count].selected = 0;
 
-			/* Skip past any contracted lines. */
+			/* Skip past any contracted lines and identify if the
+			 * edited node is one of them.
+			 */
 
-			if (!node->expanded)
-				for (i = node->count; node != NULL && i > 0; node = node->next)
+			if (!node->expanded) {
+				n = node;
+
+				for (i = node->count; node != NULL && i > 0; node = node->next) {
 					i--;
+					if (node->next == edit_node)
+						edit_parent = n;
+				}
+			}
 
 			count++;
 		}
@@ -1494,6 +1603,21 @@ void rebuild_bookmark_data(bookmark_block *bm)
 	}
 
 	set_bookmark_window_extent(bm);
+
+	/* If there was an edit icon, find its new home and restore it. */
+
+	if (edit_node != NULL) {
+		if (edit_parent != NULL)
+			edit_node = edit_parent;
+
+		for (i = 0; i < bm->lines && bm->redraw[i].node != edit_node; i++);
+
+		if (i < bm->lines) {
+			bookmark_place_edit_icon(bm, i, edit_col);
+			wimp_set_caret_position(bm->window, bm->edit_icon, caret.pos.x,
+			(-(i+1) * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET + 4 - BOOKMARK_TOOLBAR_HEIGHT), -1, -1);
+		}
+	}
 }
 
 

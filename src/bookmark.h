@@ -11,6 +11,7 @@
  */
 
 #define MAX_BOOKMARK_LEN 64  /* The real maximum is 256, but Adobe recommend 32 max for practicality. */
+#define MAX_BOOKMARK_NUM_LEN 10
 #define MAX_BOOKMARK_BLOCK_NAME 64
 #define MAX_BOOKMARK_FIELD_LEN 20
 #define MAX_BOOKMARK_FILENAME 256
