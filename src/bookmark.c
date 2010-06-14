@@ -1151,6 +1151,9 @@ void prepare_bookmark_save_window(bookmark_block *bm)
 		msgs_lookup("BMFileName", indirected_icon_text(windows.save_as,
 				SAVEAS_ICON_NAME), MAX_BOOKMARK_FILENAME);
 
+	snprintf(indirected_icon_text(windows.save_as, SAVEAS_ICON_FILE),
+			MAX_BOOKMARK_FILESPR, "file_%3x", PRINTPDF_FILE_TYPE);
+
 	event_add_window_user_data(windows.save_as, bm);
 	event_add_window_mouse_event(windows.save_as, bookmark_save_as_click);
 	event_add_window_key_event(windows.save_as, bookmark_save_as_keypress);
