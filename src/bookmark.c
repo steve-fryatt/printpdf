@@ -72,6 +72,9 @@ void		open_bookmark_window(bookmark_block *bm);
 void		close_bookmark_window(wimp_close *close);
 void		redraw_bookmark_window(wimp_draw *redraw);
 void		bookmark_click_handler(wimp_pointer *pointer);
+void		bookmark_lose_caret(wimp_caret *caret);
+int		bookmark_place_edit_icon(bookmark_block *bm, int row, int col);
+void		bookmark_remove_edit_icon(void);
 void		update_bookmark_window_title(bookmark_block *bm);
 void		force_bookmark_window_redraw(bookmark_block *bm, int from, int to);
 void		set_bookmark_window_extent(bookmark_block *bm);
@@ -96,8 +99,10 @@ void		rebuild_bookmark_data(bookmark_block *bm);
 
 /* Pointer to bookmark window data list. */
 
-static bookmark_block *bookmarks_list = NULL;
+static bookmark_block	*bookmarks_list = NULL;
 static int		untitled_number = 1;
+
+static bookmark_block	*bookmarks_edit = NULL;
 
 static wimp_menu	*bookmarks_menu = NULL;
 static bookmark_block	**bookmarks_menu_links = NULL;
@@ -159,6 +164,7 @@ bookmark_block *create_bookmark_block(void)
 		new->nodes = 0;
 		new->caret_row = -1;
 		new->caret_col = -1;
+		new->edit_icon = wimp_ICON_WINDOW;
 
 		update_bookmark_window_title(new);
 
@@ -538,7 +544,7 @@ wimp_menu *build_bookmark_menu(bookmark_params *params)
  * \param  *params		The parameters to use.
  */
 
-void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params)
+void fill_bookmark_field(wimp_w window, wimp_i icon, bookmark_params *params)
 {
 	params->bookmarks = find_bookmark_block(params->bookmarks);
 
@@ -640,6 +646,7 @@ void open_bookmark_window(bookmark_block *bm)
 		event_add_window_close_event(bm->window, close_bookmark_window);
 		event_add_window_redraw_event(bm->window, redraw_bookmark_window);
 		event_add_window_mouse_event(bm->window, bookmark_click_handler);
+		event_add_window_lose_caret_event(bm->window, bookmark_lose_caret);
 		event_add_window_user_data(bm->window, bm);
 		event_add_window_menu(bm->window, menus.bookmarks,
 				bookmark_menu_prepare, bookmark_menu_selection,
@@ -675,6 +682,10 @@ void close_bookmark_window(wimp_close *close)
 		wimp_delete_window(bm->window);
 		wimp_delete_window(bm->toolbar);
 		event_delete_window(bm->window);
+
+		if (bookmarks_edit == bm)
+			bookmarks_edit = NULL;
+
 		delete_bookmark_block(bm);
 	}
 }
@@ -835,9 +846,99 @@ void bookmark_click_handler(wimp_pointer *pointer)
 			rebuild_bookmark_data(bm);
 			force_bookmark_window_redraw(bm, row, -1);
 			set_bookmark_unsaved_state(bm, 1);
+		} else if (col >= BOOKMARK_ICON_TITLE && pointer->buttons == wimp_CLICK_SELECT) {
+			if (!bookmark_place_edit_icon(bm, row, col))
+				wimp_set_caret_position(bm->window, bm->edit_icon, x, y, -1, -1);
 		}
 	}
 }
+
+
+/**
+ * Callback handler for Wimp Lose Caret events.
+ *
+ * \param  *caret		The associated wimp event block.
+ */
+
+void bookmark_lose_caret(wimp_caret *caret)
+{
+	bookmark_block		*bm;
+	wimp_caret		current;
+
+	bm = (bookmark_block *) event_get_window_user_data(caret->w);
+	if (bm == NULL || bookmarks_edit != bm)
+		return;
+
+	wimp_get_caret_position(&current);
+
+	if (current.w != bookmarks_edit->window)
+		bookmark_remove_edit_icon();
+}
+
+
+/**
+ * Place the edit icon into a bookmark window at the specified location.
+ *
+ * \param  *bm			The bookmark window to place the icon in.
+ * \param  row			The row to place the icon in.
+ * \param  col			The column to place the icon in.
+ * \return			0 if icon placed OK; else 1;
+ */
+
+int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
+{
+	wimp_icon_create		icon;
+	extern global_windows		windows;
+
+	if (bm == NULL || (bm == bookmarks_edit && bm->caret_row == row && bm->caret_col == col))
+		return 1;
+
+	bookmark_remove_edit_icon();
+
+	calculate_bookmark_window_row_start(bm, row);
+
+	memcpy(&(icon.icon), &(windows.bookmark_window_def->icons[col]), sizeof(wimp_icon));
+
+	icon.w = bm->window;
+	icon.icon.extent.x0 = bm->column_pos[col];
+	icon.icon.extent.x1 = bm->column_pos[col] + bm->column_width[col];
+	icon.icon.extent.y0 = (-(row+1) * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET - BOOKMARK_TOOLBAR_HEIGHT);
+	icon.icon.extent.y1 = (-(row+1) * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET - BOOKMARK_TOOLBAR_HEIGHT + BOOKMARK_ICON_HEIGHT);
+	if (xwimp_create_icon(&icon, &(bm->edit_icon)) == NULL) {
+		bookmarks_edit = bm;
+		bm->caret_row = row;
+		bm->caret_col = col;
+	} else {
+		bm->edit_icon = wimp_ICON_WINDOW;
+	}
+
+	return (bm->edit_icon == wimp_ICON_WINDOW) ? 1 : 0;
+}
+
+
+/**
+ * Remove the edit icon from a bookmark window.
+ */
+
+void bookmark_remove_edit_icon(void)
+{
+	debug_printf("About to remove icon");
+
+	if (bookmarks_edit != NULL &&
+			bookmarks_edit->edit_icon != wimp_ICON_WINDOW) {
+		// \TODO -- Synch icon contents to data here.
+
+		wimp_delete_icon(bookmarks_edit->window, bookmarks_edit->edit_icon);
+		bookmarks_edit->edit_icon = wimp_ICON_WINDOW;
+		bookmarks_edit->caret_row = -1;
+		bookmarks_edit->caret_col = -1;
+
+		bookmarks_edit = NULL;
+
+		debug_printf("Icon removed");
+	}
+}
+
 
 /**
  * Set the title of the bookmark window.

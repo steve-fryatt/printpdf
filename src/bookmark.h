@@ -79,6 +79,7 @@ typedef struct bookmark_block {
 
 	wimp_w			window;
 	wimp_w			toolbar;
+	wimp_i			edit_icon;
 
 	bookmark_redraw		*redraw;
 	int			lines;
