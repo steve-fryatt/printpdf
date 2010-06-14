@@ -27,6 +27,9 @@
 
 #define BOOKMARK_FILE_LINE_LEN 1024
 
+#define BOOKMARK_ABOVE 1
+#define BOOKMARK_BELOW 2
+
 /* Bookmarks Window Menu Structure. */
 
 #define BOOKMARK_MENU_FILE 0

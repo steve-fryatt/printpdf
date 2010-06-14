@@ -74,6 +74,8 @@ void		redraw_bookmark_window(wimp_draw *redraw);
 void		bookmark_click_handler(wimp_pointer *pointer);
 void		bookmark_key_handler(wimp_key *key);
 void		bookmark_lose_caret(wimp_caret *caret);
+void		bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *caret);
+void		bookmark_insert_edit_row(bookmark_block *bm, wimp_caret *caret);
 int		bookmark_place_edit_icon(bookmark_block *bm, int row, int col);
 void		bookmark_remove_edit_icon(void);
 void		bookmark_resync_edit_with_file(void);
@@ -181,6 +183,8 @@ bookmark_block *create_bookmark_block(void)
 /**
  * Delete a bookmark block and its associated data.
  *
+ * ** This does not delete the windows tied to the block! **
+ *
  * \param  *bookmark		The block to delete.
  */
 
@@ -216,6 +220,50 @@ void delete_bookmark_block(bookmark_block *bookmark)
 
 		convert_validate_params();
 	}
+}
+
+
+/**
+ * Insert a new node into the list.  If before is not NULL, the node is inserted
+ * beofre that node in the list; otherwise, it is inserted at the end.
+ *
+ * \param  *bm			The bookmark block to insert into.
+ * \param  *before		The node to insert before (NULL for list end).
+ * \return			The inserted node; NULL indicates a failure.
+ */
+
+bookmark_node *insert_bookmark_node(bookmark_block *bm, bookmark_node *before)
+{
+	bookmark_node		**node, *new = NULL;
+
+	if (bm == NULL)
+		return new;
+
+	node = &(bm->root);
+	if (node == NULL)
+		return new;
+
+	while (*node != before && *node != NULL)
+		node = &((*node)->next);
+
+	new = (bookmark_node *) malloc(sizeof(bookmark_node));
+
+	if (new == NULL)
+		return new;
+
+	strncpy(new->title, "", MAX_BOOKMARK_LEN);
+
+	new->page = 0;
+	new->yoffset = 0;
+	new->expanded = 1;
+	new->level = 1;
+	new->count = 0;
+	new->next = NULL;
+
+	new->next = *node;
+	*node = new;
+
+	return new;
 }
 
 
@@ -616,6 +664,7 @@ void create_new_bookmark_window(wimp_pointer *pointer)
 	new = create_bookmark_block();
 
 	if (new != NULL)
+		insert_bookmark_node(new, NULL);
 		rebuild_bookmark_data(new);
 		open_bookmark_window(new);
 }
@@ -772,7 +821,10 @@ void redraw_bookmark_window(wimp_draw *redraw)
 					- BOOKMARK_TOOLBAR_HEIGHT
 					+ BOOKMARK_ICON_HEIGHT);
 
-			snprintf(buf, MAX_BOOKMARK_NUM_LEN, "%d", node->page);
+			if (node->page > 0)
+				snprintf(buf, MAX_BOOKMARK_NUM_LEN, "%d", node->page);
+			else
+				*buf = '\0';
 
 			icon[BOOKMARK_ICON_TITLE].data.indirected_text.text = node->title;
 			icon[BOOKMARK_ICON_PAGE].data.indirected_text.text = buf;
@@ -873,9 +925,39 @@ void bookmark_click_handler(wimp_pointer *pointer)
 
 void bookmark_key_handler(wimp_key *key)
 {
-	if (bookmarks_edit != NULL &&
-			bookmarks_edit->window == key->w && bookmarks_edit->edit_icon == key->i)
-		bookmark_resync_edit_with_file();
+	bookmark_block		*bm;
+
+	bm = (bookmark_block *) event_get_window_user_data(key->w);
+	if (bm == NULL)
+		return;
+
+	if (bookmarks_edit != NULL && bookmarks_edit->window == key->w && bookmarks_edit->edit_icon == key->i) {
+		switch (key->c) {
+		case wimp_KEY_RETURN:
+			bookmark_insert_edit_row(bm, (wimp_caret *) key);
+			break;
+		case wimp_KEY_UP:
+			bookmark_change_edit_row(bm, BOOKMARK_ABOVE, (wimp_caret *) key);
+			break;
+		case wimp_KEY_DOWN:
+			bookmark_change_edit_row(bm, BOOKMARK_BELOW, (wimp_caret *) key);
+			break;
+		default:
+			bookmark_resync_edit_with_file();
+			break;
+		}
+	}
+
+	/* Pass on combinations of F12 to the rest of the Wimp.  This is ugly,
+	 * but doing it "right" would require working out if the key was used
+	 * by the code above -- not easy.
+	 */
+
+	if ((key->c == wimp_KEY_F12) ||
+			(key->c == (wimp_KEY_F12 | wimp_KEY_SHIFT)) ||
+			(key->c == (wimp_KEY_F12 | wimp_KEY_CONTROL)) ||
+			(key->c == (wimp_KEY_F12 | wimp_KEY_SHIFT | wimp_KEY_CONTROL)))
+		wimp_process_key(key->c);
 }
 
 
@@ -903,6 +985,84 @@ void bookmark_lose_caret(wimp_caret *caret)
 
 	if (current.w != bookmarks_edit->window)
 		bookmark_remove_edit_icon();
+}
+
+
+/**
+ * Move the caret up or down a row in a bookmark window.
+ *
+ * \param  *bm			The bookmark window concerned.
+ * \param  direction		The direction to move (BOOKMARK_ABOVE or _BELOW).
+ * \param  *caret		A block detailing the current caret position.
+ */
+
+void bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *caret)
+{
+	int			row;
+
+	if (bm == NULL)
+		return;
+
+	if (caret->w != bm->window || bm->caret_row == -1 || bm->caret_col == -1)
+		return;
+
+	if ((direction == BOOKMARK_ABOVE && bm->caret_row <= 0) ||
+			(direction == BOOKMARK_BELOW && (bm->caret_row + 1) >= bm->lines))
+		return;
+
+	if (direction == BOOKMARK_ABOVE)
+		row = bm->caret_row - 1;
+	else if (direction == BOOKMARK_BELOW)
+		row = bm->caret_row + 1;
+	else
+		row = bm->caret_row;
+
+	if (row != bm->caret_row) {
+		bookmark_place_edit_icon(bm, row, bm->caret_col);
+		wimp_set_caret_position(bm->window, bm->edit_icon, caret->pos.x,
+				(-(row+1) * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET + 4 - BOOKMARK_TOOLBAR_HEIGHT), -1, -1);
+	}
+}
+
+
+/**
+ * Insert a line into the edit window in the specified location and move the
+ * caret accordingly.
+ *
+ * \param  *bm			The bookmark window concerned.
+ * \param  *caret		A block detailing the current caret position.
+ */
+
+void bookmark_insert_edit_row(bookmark_block *bm, wimp_caret *caret)
+{
+	bookmark_node		*new;
+	int			direction;
+
+	if (bm == NULL)
+		return;
+
+	if (caret->w != bm->window || bm->caret_row == -1 || bm->caret_col == -1)
+		return;
+
+	direction = (caret->index == 0 && bm->caret_col == 1 &&
+			strlen(bm->redraw[bm->caret_row].node->title) > 0) ?
+			BOOKMARK_ABOVE : BOOKMARK_BELOW;
+
+	if (direction == BOOKMARK_ABOVE) {
+		new = insert_bookmark_node(bm, bm->redraw[bm->caret_row].node);
+		if (bm->caret_row == 0)
+			new->level = 1;
+		else
+			new->level = bm->redraw[bm->caret_row-1].node->level;
+		rebuild_bookmark_data(bm);
+		force_bookmark_window_redraw(bm, bm->caret_row - 1, -1);
+	} else {
+		new = insert_bookmark_node(bm, ((bm->caret_row + 1) < bm->lines) ? bm->redraw[bm->caret_row+1].node : NULL);
+		new->level = bm->redraw[bm->caret_row].node->level;
+		rebuild_bookmark_data(bm);
+		force_bookmark_window_redraw(bm, bm->caret_row, -1);
+		bookmark_change_edit_row(bm, BOOKMARK_BELOW, caret);
+	}
 }
 
 
@@ -948,7 +1108,10 @@ int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 		strncpy(bookmarks_edit_buffer, bm->redraw[row].node->title, buf_len);
 		break;
 	case BOOKMARK_ICON_PAGE:
-		snprintf(bookmarks_edit_buffer, buf_len, "%d", bm->redraw[row].node->page);
+		if (bm->redraw[row].node->page > 0)
+			snprintf(bookmarks_edit_buffer, buf_len, "%d", bm->redraw[row].node->page);
+		else
+			*bookmarks_edit_buffer = '\0';
 		break;
 	}
 
@@ -1641,14 +1804,16 @@ void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params)
 
 	if (pdfmark_file != NULL && bookmark_data_available(params))
 		for (node = params->bookmarks->root; node != NULL; node = node->next) {
-			fprintf(pdfmark_file, "[");
+			if (strlen(node->title) > 0 && node->page > 0) {
+				fprintf(pdfmark_file, "[");
 
-			if (node->count > 0)
-				fprintf(pdfmark_file, " /Count %d", (node->expanded) ? node->count : -node->count);
+				if (node->count > 0)
+					fprintf(pdfmark_file, " /Count %d", (node->expanded) ? node->count : -node->count);
 
-			fprintf(pdfmark_file, " /Page %d /View [/XYZ 0 %d null] /Title (%s) /OUT pdfmark\n",
-					node->page, node->yoffset,
-					convert_to_pdf_doc_encoding(buffer, node->title, MAX_BOOKMARK_LEN * 4));
+				fprintf(pdfmark_file, " /Page %d /View [/XYZ 0 %d null] /Title (%s) /OUT pdfmark\n",
+						node->page, node->yoffset,
+						convert_to_pdf_doc_encoding(buffer, node->title, MAX_BOOKMARK_LEN * 4));
+			}
 		}
 }
 
