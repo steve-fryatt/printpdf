@@ -85,6 +85,10 @@ void		set_bookmark_window_extent(bookmark_block *bm);
 void		set_bookmark_window_columns(bookmark_block *bm);
 void		calculate_bookmark_window_row_start(bookmark_block *bm, int row);
 
+/* File Info Dialogue Handling */
+
+void prepare_file_info_window(bookmark_block *bm);
+
 /* SaveAs Dialogue Handling */
 
 void		prepare_bookmark_save_window(bookmark_block *bm);
@@ -300,6 +304,9 @@ void bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning 
 	switch (warning->selection.items[0]) {
 	case BOOKMARK_MENU_FILE:
 		switch (warning->selection.items[1]) {
+			case BOOKMARK_MENU_FILE_INFO:
+				prepare_file_info_window(bm);
+				break;
 			case BOOKMARK_MENU_FILE_SAVE:
 				prepare_bookmark_save_window(bm);
 				break;
@@ -1403,6 +1410,38 @@ void calculate_bookmark_window_row_start(bookmark_block *bm, int row)
 	bm->column_pos[BOOKMARK_ICON_TITLE] = node->level * BOOKMARK_LINE_HEIGHT;
 	bm->column_width[BOOKMARK_ICON_TITLE] = bm->column_pos[BOOKMARK_ICON_PAGE] - bm->column_pos[BOOKMARK_ICON_TITLE] -
 			(BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET));
+}
+
+
+/* ****************************************************************************
+ * File Info Dialogue Handling
+ * ****************************************************************************/
+
+/**
+ * Prepare the contents of the File Info dialogue.
+ *
+ * \param  *bm			The bookmark file to be used.
+ */
+
+void prepare_file_info_window(bookmark_block *bm)
+{
+	extern global_windows		windows;
+
+	if (bm == NULL)
+		return;
+
+	strncpy(indirected_icon_text(windows.file_info, FILEINFO_ICON_NAME), bm->name,
+			indirected_icon_length(windows.file_info, FILEINFO_ICON_NAME));
+
+	if (strlen(bm->filename) > 0)
+		strncpy(indirected_icon_text(windows.file_info, FILEINFO_ICON_LOCATION), bm->filename,
+				indirected_icon_length(windows.file_info, FILEINFO_ICON_LOCATION));
+	else
+		msgs_lookup("Unsaved", indirected_icon_text(windows.file_info, FILEINFO_ICON_LOCATION),
+				indirected_icon_length(windows.file_info, FILEINFO_ICON_LOCATION));
+
+	msgs_lookup((bm->unsaved) ? "Yes" : "No", indirected_icon_text(windows.file_info, FILEINFO_ICON_MODIFIED),
+				indirected_icon_length(windows.file_info, FILEINFO_ICON_MODIFIED));
 }
 
 

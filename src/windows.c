@@ -70,6 +70,23 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
     wimp_msgtrans_fatal_report ("BadTemplate");
   }
 
+  /* File Info Window.
+   *
+   * Created now.
+   */
+
+  window_def = load_window_template ("FileInfo");
+  if (window_def != NULL)
+  {
+    windows.file_info = wimp_create_window (window_def);
+    add_ihelp_window (windows.file_info, "FileInfo", NULL);
+    free (window_def);
+  }
+  else
+  {
+    wimp_msgtrans_fatal_report ("BadTemplate");
+  }
+
   /* Save PDF Window.
    *
    * Created now.

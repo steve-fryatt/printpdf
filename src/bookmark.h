@@ -53,6 +53,13 @@
 #define SAVEAS_ICON_NAME   2
 #define SAVEAS_ICON_FILE   3
 
+/* File Info Dialogue icons. */
+
+#define FILEINFO_ICON_NAME     1
+#define FILEINFO_ICON_LOCATION 3
+#define FILEINFO_ICON_MODIFIED 5
+#define FILEINFO_ICON_DATE     7
+
 
 /* ==================================================================================================================
  * Data structures

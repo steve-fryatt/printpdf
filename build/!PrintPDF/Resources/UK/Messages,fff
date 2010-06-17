@@ -26,6 +26,10 @@ Info:Information
 
 DepthOff:Off
 
+Yes:Yes
+No:No
+Unsaved:Not Saved
+
 # Bookmarks system
 
 UntBM:Bookmarks %0

@@ -63,6 +63,7 @@ void load_menu_definitions(char *menu_file)
 
 	if (menu_defs != NULL) {
 		load_menus_dbox(menu_defs, "ProgInfo", windows.prog_info);
+		load_menus_dbox(menu_defs, "FileInfo", windows.file_info);
 		load_menus_dbox(menu_defs, "SaveAs", windows.save_as);
 
 		menus.icon_bar = menu_list[0];
