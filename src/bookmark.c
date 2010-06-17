@@ -1070,18 +1070,24 @@ void bookmark_insert_edit_row(bookmark_block *bm, wimp_caret *caret)
 
 	if (direction == BOOKMARK_ABOVE) {
 		new = insert_bookmark_node(bm, bm->redraw[bm->caret_row].node);
-		if (bm->caret_row == 0)
-			new->level = 1;
-		else
-			new->level = bm->redraw[bm->caret_row-1].node->level;
-		rebuild_bookmark_data(bm);
-		force_bookmark_window_redraw(bm, bm->caret_row - 1, -1);
+		if (new != NULL) {
+			if (bm->caret_row == 0)
+				new->level = 1;
+			else
+				new->level = bm->redraw[bm->caret_row-1].node->level;
+			rebuild_bookmark_data(bm);
+			force_bookmark_window_redraw(bm, bm->caret_row - 1, -1);
+			set_bookmark_unsaved_state(bm, 1);
+		}
 	} else {
 		new = insert_bookmark_node(bm, ((bm->caret_row + 1) < bm->lines) ? bm->redraw[bm->caret_row+1].node : NULL);
-		new->level = bm->redraw[bm->caret_row].node->level;
-		rebuild_bookmark_data(bm);
-		force_bookmark_window_redraw(bm, bm->caret_row, -1);
-		bookmark_change_edit_row(bm, BOOKMARK_BELOW, caret);
+		if (new != NULL) {
+			new->level = bm->redraw[bm->caret_row].node->level;
+			rebuild_bookmark_data(bm);
+			force_bookmark_window_redraw(bm, bm->caret_row, -1);
+			bookmark_change_edit_row(bm, BOOKMARK_BELOW, caret);
+			set_bookmark_unsaved_state(bm, 1);
+		}
 	}
 }
 
