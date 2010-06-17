@@ -942,6 +942,26 @@ void bookmark_key_handler(wimp_key *key)
 		case wimp_KEY_DOWN:
 			bookmark_change_edit_row(bm, BOOKMARK_BELOW, (wimp_caret *) key);
 			break;
+		case wimp_KEY_TAB:
+			if (bm->caret_col < BOOKMARK_WINDOW_COLUMNS - 1)
+				bookmark_place_edit_icon(bm, bm->caret_row, bm->caret_col + 1);
+			else if (bm->caret_row < bm->lines - 1)
+				bookmark_place_edit_icon(bm, bm->caret_row + 1, BOOKMARK_ICON_TITLE);
+			else {
+				bookmark_insert_edit_row(bm, (wimp_caret *) key);
+				bookmark_place_edit_icon(bm, bm->caret_row, BOOKMARK_ICON_TITLE);
+			}
+			if (bm->edit_icon != wimp_ICON_WINDOW)
+				put_caret_at_end(bm->window, bm->edit_icon);
+			break;
+		case wimp_KEY_TAB | wimp_KEY_SHIFT:
+			if (bm->caret_col > BOOKMARK_ICON_TITLE)
+				bookmark_place_edit_icon(bm, bm->caret_row, bm->caret_col - 1);
+			else if (bm->caret_row > 0)
+				bookmark_place_edit_icon(bm, bm->caret_row - 1, BOOKMARK_WINDOW_COLUMNS - 1);
+			if (bm->edit_icon != wimp_ICON_WINDOW)
+				put_caret_at_end(bm->window, bm->edit_icon);
+			break;
 		default:
 			bookmark_resync_edit_with_file();
 			break;
@@ -1068,6 +1088,9 @@ void bookmark_insert_edit_row(bookmark_block *bm, wimp_caret *caret)
 
 /**
  * Place the edit icon into a bookmark window at the specified location.
+ * Note that this does not place the caret in the icon, so care must be taken
+ * to ensure that this happens before Wimp_Poll is called again to avoid a
+ * LoseCaret event being received.
  *
  * \param  *bm			The bookmark window to place the icon in.
  * \param  row			The row to place the icon in.
