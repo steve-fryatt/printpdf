@@ -61,9 +61,9 @@
 #define FILEINFO_ICON_DATE     7
 
 
-/* ==================================================================================================================
+/* ****************************************************************************
  * Data structures
- */
+ * ****************************************************************************/
 
 typedef struct bookmark_node {
 	char			title[MAX_BOOKMARK_LEN];
@@ -111,19 +111,21 @@ typedef struct bookmark_params {
 	bookmark_block		*bookmarks;
 } bookmark_params;
 
-/* ==================================================================================================================
- * Function prototypes.
- */
 
-/* Handle the PDFMark window and menu. */
+/* ****************************************************************************
+ * Function prototypes
+ * ****************************************************************************/
+
+/* Bookmarks System Initialisation and Termination */
 
 void initialise_bookmarks(void);
 void terminate_bookmarks(void);
 
+/* PDF Creation Interface */
+
 void initialise_bookmark_settings(bookmark_params *params);
 void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon);
 void process_bookmark_menu(bookmark_params *params, wimp_selection *selection);
-
 void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params);
 int bookmark_data_available(bookmark_params *params);
 int bookmark_validate_params(bookmark_params *params);
