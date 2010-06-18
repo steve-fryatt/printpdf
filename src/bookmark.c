@@ -73,7 +73,6 @@ void		close_bookmark_window(wimp_close *close);
 void		redraw_bookmark_window(wimp_draw *redraw);
 void		bookmark_click_handler(wimp_pointer *pointer);
 void		bookmark_key_handler(wimp_key *key);
-void		bookmark_lose_caret(wimp_caret *caret);
 void		bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *caret);
 void		bookmark_insert_edit_row(bookmark_block *bm, wimp_caret *caret);
 int		bookmark_place_edit_icon(bookmark_block *bm, int row, int col);
@@ -706,7 +705,6 @@ void open_bookmark_window(bookmark_block *bm)
 		event_add_window_redraw_event(bm->window, redraw_bookmark_window);
 		event_add_window_mouse_event(bm->window, bookmark_click_handler);
 		event_add_window_key_event(bm->window, bookmark_key_handler);
-		event_add_window_lose_caret_event(bm->window, bookmark_lose_caret);
 		event_add_window_user_data(bm->window, bm);
 		event_add_window_menu(bm->window, menus.bookmarks,
 				bookmark_menu_prepare, bookmark_menu_selection,
@@ -985,33 +983,6 @@ void bookmark_key_handler(wimp_key *key)
 			(key->c == (wimp_KEY_F12 | wimp_KEY_CONTROL)) ||
 			(key->c == (wimp_KEY_F12 | wimp_KEY_SHIFT | wimp_KEY_CONTROL)))
 		wimp_process_key(key->c);
-}
-
-
-/**
- * Callback handler for Wimp Lose Caret events.
- *
- * \param  *caret		The associated wimp event block.
- */
-
-void bookmark_lose_caret(wimp_caret *caret)
-{
-	bookmark_block		*bm;
-	wimp_caret		current;
-
-	bm = (bookmark_block *) event_get_window_user_data(caret->w);
-	if (bm == NULL || bookmarks_edit != bm)
-		return;
-
-	wimp_get_caret_position(&current);
-
-	/* If the window losing the caret is the same as the current caret
-	 * window, this message is a result of the transition and so
-	 * can safely be ignored.
-	 */
-
-	if (current.w != bookmarks_edit->window)
-		bookmark_remove_edit_icon();
 }
 
 
