@@ -81,6 +81,10 @@ void		set_bookmark_window_extent(bookmark_block *bm);
 void		set_bookmark_window_columns(bookmark_block *bm);
 void		calculate_bookmark_window_row_start(bookmark_block *bm, int row);
 
+/* Bookmark Toolbar Handling */
+
+void		bookmark_toolbar_click_handler(wimp_pointer *pointer);
+
 /* Bookmark Window Menu Handling */
 
 void		bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu);
@@ -617,6 +621,8 @@ void open_bookmark_window(bookmark_block *bm)
 {
 	extern global_windows	windows;
 	extern global_menus	menus;
+	extern osspriteop_area	*wimp_sprites;
+
 
 	if (bm != NULL && bm->window == NULL && bm->toolbar == NULL) {
 		windows.bookmark_window_def->title_data.indirected_text.text = bm->window_title;
@@ -624,6 +630,8 @@ void open_bookmark_window(bookmark_block *bm)
 
 		windows.bookmark_window_def->extent.y0 = -((((bm->lines > BOOKMARK_MIN_LINES) ? bm->lines : BOOKMARK_MIN_LINES) * BOOKMARK_LINE_HEIGHT)
 				+ BOOKMARK_TOOLBAR_HEIGHT + (BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET)));
+
+		windows.bookmark_pane_def->sprite_area = wimp_sprites;
 
 		place_window_as_toolbar(windows.bookmark_window_def,
 				windows.bookmark_pane_def,
@@ -643,6 +651,7 @@ void open_bookmark_window(bookmark_block *bm)
 				NULL, bookmark_menu_warning);
 
 		event_add_window_user_data(bm->toolbar, bm);
+		event_add_window_mouse_event(bm->toolbar, bookmark_toolbar_click_handler);
 		event_add_window_menu(bm->toolbar, menus.bookmarks,
 				bookmark_menu_prepare, bookmark_menu_selection,
 				NULL, bookmark_menu_warning);
@@ -1003,10 +1012,34 @@ void bookmark_insert_edit_row(bookmark_block *bm, wimp_caret *caret)
 
 
 /**
+ * Change the indentation level of the current row.
+ *
+ */
+
+void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node)
+{
+	bookmark_node		*n, *parent;
+
+	if (bm == NULL)
+		return;
+
+	/* Find the parent node.  At the end, parent points to the parent node,
+	 * or is NULL if the node is the root or isn't found.
+	 */
+
+	for (parent = bm->root; parent != NULL && parent->next != node; parent = parent->next);
+
+
+
+
+	rebuild_bookmark_data(bm);
+	set_bookmark_unsaved_state(bm, 1);
+}
+
+
+/**
  * Place the edit icon into a bookmark window at the specified location.
- * Note that this does not place the caret in the icon, so care must be taken
- * to ensure that this happens before Wimp_Poll is called again to avoid a
- * LoseCaret event being received.
+ * Note that this does not place the caret in the icon.
  *
  * \param  *bm			The bookmark window to place the icon in.
  * \param  row			The row to place the icon in.
@@ -1314,6 +1347,39 @@ void calculate_bookmark_window_row_start(bookmark_block *bm, int row)
 	bm->column_width[BOOKMARK_ICON_TITLE] = bm->column_pos[BOOKMARK_ICON_PAGE] - bm->column_pos[BOOKMARK_ICON_TITLE] -
 			(BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET));
 }
+
+
+/* ****************************************************************************
+ * Bookmark Toolbar Handling
+ * ****************************************************************************/
+
+/**
+ * Handle clicks in the Bookmarks toolbars.
+ *
+ * \param  *pointer		The Wimp mouse click event data.
+ */
+
+void bookmark_toolbar_click_handler(wimp_pointer *pointer)
+{
+	bookmark_block		*bm;
+	extern global_windows	windows;
+
+	bm = (bookmark_block *) event_get_window_user_data(pointer->w);
+	if (bm == NULL)
+		return;
+
+	switch (pointer->i) {
+	case BOOKMARK_TB_SAVE:
+		prepare_bookmark_save_window(bm);
+		if (pointer->buttons == wimp_CLICK_SELECT)
+			create_standard_menu((wimp_menu *) windows.save_as, pointer);
+		else if (pointer->buttons == wimp_CLICK_ADJUST)
+			start_direct_menu_save(bm);
+		break;
+
+	}
+}
+
 
 /* ****************************************************************************
  * Bookmark Window Menu Handling

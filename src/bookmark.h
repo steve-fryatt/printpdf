@@ -46,6 +46,14 @@
 #define BOOKMARK_ICON_PAGE    2
 #define BOOKMARK_ICON_YEXTENT 3
 
+/* Bookmark Toolbar icons. */
+
+#define BOOKMARK_TB_SAVE     0
+#define BOOKMARK_TB_DEMOTEG  1
+#define BOOKMARK_TB_DEMOTE   2
+#define BOOKMARK_TB_PROMOTE  3
+#define BOOKMARK_TB_PROMOTEG 4
+
 /* Save As Dialogue icons. */
 
 #define SAVEAS_ICON_OK     0
