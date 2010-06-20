@@ -74,6 +74,7 @@ void		bookmark_lose_caret_handler(wimp_caret *caret);
 void		bookmark_gain_caret_handler(wimp_caret *caret);
 void		bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *caret);
 void		bookmark_insert_edit_row(bookmark_block *bm, wimp_caret *caret);
+void		bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node, int action);
 int		bookmark_place_edit_icon(bookmark_block *bm, int row, int col);
 void		bookmark_remove_edit_icon(void);
 void		bookmark_resync_edit_with_file(void);
@@ -1066,9 +1067,10 @@ void bookmark_insert_edit_row(bookmark_block *bm, wimp_caret *caret)
  *
  */
 
-void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node)
+void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node, int action)
 {
-	bookmark_node		*n, *parent;
+	bookmark_node		*parent;
+	int			redraw_from, redraw_to, base;
 
 	if (bm == NULL)
 		return;
@@ -1079,11 +1081,59 @@ void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *nod
 
 	for (parent = bm->root; parent != NULL && parent->next != node; parent = parent->next);
 
+	/* If there is no parent, then either we have the root node (which can never have
+	 * any level other than 1) or the list is broken.  Either way, get out now.
+	 */
 
+	if (parent == NULL)
+		return;
 
+	redraw_from = -1;
+	redraw_to   = -1;
 
-	rebuild_bookmark_data(bm);
-	set_bookmark_unsaved_state(bm, 1);
+	switch (action) {
+	case BOOKMARK_TB_PROMOTE:
+		if (node->level <= parent->level) {
+			node->level++;
+			redraw_from = bm->caret_row;
+			redraw_to = bm->caret_row + 1;
+		}
+		break;
+	case BOOKMARK_TB_PROMOTEG:
+		if (node->level <= parent->level) {
+			for (base = node->level; node != NULL && node->level >= base; node = node->next)
+				node->level++;
+			redraw_from = bm->caret_row;
+		}
+		break;
+	case BOOKMARK_TB_DEMOTE:
+		if (node->level > 1) {
+			node->level--;
+			while (node->next != NULL && node->next->level > (node->level + 1)) {
+				node = node->next;
+				node->level--;
+			}
+			redraw_from = bm->caret_row;
+		}
+		break;
+	case BOOKMARK_TB_DEMOTEG:
+		if (node->level > 1) {
+			for (base = node->level; node != NULL && node->level >= base; node = node->next)
+				node->level--;
+			redraw_from = bm->caret_row;
+		}
+		break;
+	}
+
+	/* If the redraw limits have been set, assume an update had happened
+	 * and perform the recalculation and tidying up.
+	 */
+
+	if (redraw_from != -1 || redraw_to != -1) {
+		rebuild_bookmark_data(bm);
+		set_bookmark_unsaved_state(bm, 1);
+		force_bookmark_window_redraw(bm, redraw_from, redraw_to);
+	}
 }
 
 
@@ -1426,7 +1476,12 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 		else if (pointer->buttons == wimp_CLICK_ADJUST)
 			start_direct_menu_save(bm);
 		break;
-
+	case BOOKMARK_TB_PROMOTE:
+	case BOOKMARK_TB_PROMOTEG:
+	case BOOKMARK_TB_DEMOTE:
+	case BOOKMARK_TB_DEMOTEG:
+		bookmark_change_edit_row_indentation(bm, bm->redraw[bm->caret_row].node, (int) pointer->i);
+		break;
 	}
 }
 
