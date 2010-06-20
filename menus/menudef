@@ -34,7 +34,9 @@ menu(bookmarks, "PrintPDF")
 	item("File") {
 		submenu(bm_file);
 	}
-	item("Line");
+	item("Line") {
+		submenu(bm_line);
+	}
 }
 
 /**
@@ -53,4 +55,18 @@ menu(bm_file, "File")
 			warning;
 		}
 	}
+}
+
+/**
+ * Bookmarks Window -- Line Submenu.
+ */
+
+menu(bm_line, "Line")
+{
+	item("Promote");
+	item("Demote") {
+		dotted;
+	}
+	item("Promote all");
+	item("Demote all");
 }

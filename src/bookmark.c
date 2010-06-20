@@ -92,6 +92,7 @@ void		bookmark_toolbar_click_handler(wimp_pointer *pointer);
 
 void		bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu);
 void		bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+void		bookmark_menu_close(wimp_w w, wimp_menu *menu);
 void		bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning *warning);
 
 /* File Info Dialogue Handling */
@@ -406,6 +407,7 @@ bookmark_block *create_bookmark_block(void)
 		new->caret_row = -1;
 		new->caret_col = -1;
 		new->edit_icon = wimp_ICON_WINDOW;
+		new->menu_row = -1;
 
 		update_bookmark_window_title(new);
 
@@ -653,7 +655,7 @@ void open_bookmark_window(bookmark_block *bm)
 		event_add_window_user_data(bm->window, bm);
 		event_add_window_menu(bm->window, menus.bookmarks,
 				bookmark_menu_prepare, bookmark_menu_selection,
-				NULL, bookmark_menu_warning);
+				bookmark_menu_close, bookmark_menu_warning);
 
 		event_add_window_user_data(bm->toolbar, bm);
 		event_add_window_mouse_event(bm->toolbar, bookmark_toolbar_click_handler);
@@ -741,6 +743,17 @@ void redraw_bookmark_window(wimp_draw *redraw)
 		for (y = top; y < bottom; y++) {
 			calculate_bookmark_window_row_start(bm, y);
 			node = bm->redraw[y].node;
+
+			if (y == bm->menu_row) {
+				wimp_set_colour (wimp_COLOUR_VERY_DARK_GREY);
+				os_plot(os_MOVE_TO, redraw->clip.x0,
+						oy + (-(y+1) * BOOKMARK_LINE_HEIGHT
+						- BOOKMARK_TOOLBAR_HEIGHT
+						+ BOOKMARK_LINE_HEIGHT - 2));
+				os_plot(os_PLOT_RECTANGLE + os_PLOT_TO, redraw->clip.x1,
+						oy + (-(y+1) * BOOKMARK_LINE_HEIGHT
+						- BOOKMARK_TOOLBAR_HEIGHT));
+			}
 
 			icon[BOOKMARK_ICON_EXPAND].extent.x0 = bm->column_pos[BOOKMARK_ICON_EXPAND];
 			icon[BOOKMARK_ICON_EXPAND].extent.x1 = bm->column_pos[BOOKMARK_ICON_EXPAND] + bm->column_width[BOOKMARK_ICON_EXPAND];
@@ -1095,15 +1108,15 @@ void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *nod
 	case BOOKMARK_TB_PROMOTE:
 		if (node->level <= parent->level) {
 			node->level++;
-			redraw_from = bm->caret_row;
-			redraw_to = bm->caret_row + 1;
+			redraw_from = bm->caret_row-1;
+			redraw_to = bm->caret_row;
 		}
 		break;
 	case BOOKMARK_TB_PROMOTEG:
 		if (node->level <= parent->level) {
 			for (base = node->level; node != NULL && node->level >= base; node = node->next)
 				node->level++;
-			redraw_from = bm->caret_row;
+			redraw_from = bm->caret_row-1;
 		}
 		break;
 	case BOOKMARK_TB_DEMOTE:
@@ -1113,14 +1126,14 @@ void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *nod
 				node = node->next;
 				node->level--;
 			}
-			redraw_from = bm->caret_row;
+			redraw_from = bm->caret_row-1;
 		}
 		break;
 	case BOOKMARK_TB_DEMOTEG:
 		if (node->level > 1) {
 			for (base = node->level; node != NULL && node->level >= base; node = node->next)
 				node->level--;
-			redraw_from = bm->caret_row;
+			redraw_from = bm->caret_row-1;
 		}
 		break;
 	}
@@ -1308,13 +1321,13 @@ void force_bookmark_window_redraw(bookmark_block *bm, int from, int to)
 	if (to < 0)
 		y0 = info.extent.y0;
 	else
-		y0 = -((BOOKMARK_LINE_HEIGHT * to) + BOOKMARK_TOOLBAR_HEIGHT);
+		y0 = -((BOOKMARK_LINE_HEIGHT * (to+1)) + BOOKMARK_TOOLBAR_HEIGHT);
 
 	x1 = info.extent.x1;
 	if (--from < 0)
 		y1 = -BOOKMARK_TOOLBAR_HEIGHT;
 	else
-		y1 = -((BOOKMARK_LINE_HEIGHT * from) + BOOKMARK_TOOLBAR_HEIGHT);
+		y1 = -((BOOKMARK_LINE_HEIGHT * (from+1)) + BOOKMARK_TOOLBAR_HEIGHT);
 
 	wimp_force_redraw(bm->window, x0, y0, x1, y1);
 }
@@ -1499,7 +1512,37 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 
 void bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu)
 {
-//	debug_printf("Bookmark menu prepare");
+	int			x, y, row, row_y_pos;
+	bookmark_block		*bm;
+	bookmark_node		*node;
+	wimp_window_state	state;
+	os_error		*error;
+
+	bm = (bookmark_block *) event_get_window_user_data(pointer->w);
+	if (bm == NULL)
+		return;
+
+	state.w = pointer->w;
+	error = xwimp_get_window_state(&state);
+	if (error != NULL)
+		return;
+
+	x = pointer->pos.x - state.visible.x0 + state.xscroll;
+	y = state.visible.y1 - pointer->pos.y + state.yscroll;
+
+	row = (y - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
+	row_y_pos = ((y - BOOKMARK_TOOLBAR_HEIGHT) % BOOKMARK_LINE_HEIGHT)
+			 - BOOKMARK_LINE_OFFSET;
+
+	if (row >= bm->lines ||
+			row_y_pos < (BOOKMARK_LINE_HEIGHT - (BOOKMARK_LINE_OFFSET + BOOKMARK_ICON_HEIGHT)) ||
+			row_y_pos > (BOOKMARK_LINE_HEIGHT - BOOKMARK_LINE_OFFSET))
+		row = -1;
+
+	if (row != -1) {
+		bm->menu_row = row;
+		force_bookmark_window_redraw(bm, bm->menu_row, bm->menu_row);
+	}
 }
 
 
@@ -1560,6 +1603,25 @@ void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selectio
 				break;
 		}
 		break;
+	}
+}
+
+
+/**
+ * Handle the bookmark window menu closing.
+ */
+
+void bookmark_menu_close(wimp_w w, wimp_menu *menu)
+{
+	bookmark_block		*bm;
+
+	bm = (bookmark_block *) event_get_window_user_data(w);
+	if (bm == NULL)
+		return;
+
+	if (bm->menu_row != -1) {
+		force_bookmark_window_redraw(bm, bm->menu_row, bm->menu_row);
+		bm->menu_row = -1;
 	}
 }
 

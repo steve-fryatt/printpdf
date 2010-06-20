@@ -20,7 +20,7 @@
 #define BOOKMARK_TOOLBAR_HEIGHT 82
 #define BOOKMARK_LINE_HEIGHT 56
 #define BOOKMARK_ICON_HEIGHT 48
-#define BOOKMARK_LINE_OFFSET 0
+#define BOOKMARK_LINE_OFFSET 4
 #define BOOKMARK_TOOLBAR_OFFSET 2
 #define BOOKMARK_MIN_LINES 10
 #define BOOKMARK_COLUMN_WIDTH 160
@@ -108,6 +108,8 @@ typedef struct bookmark_block {
 	int			column_width[BOOKMARK_WINDOW_COLUMNS];
 	int			caret_row;
 	int			caret_col;
+
+	int			menu_row;
 
 	bookmark_node		*root;
 	int			nodes;
