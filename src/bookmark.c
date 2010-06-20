@@ -1690,6 +1690,8 @@ void save_bookmark_file(bookmark_block *bm, char *filename)
 	fclose(out);
 	osfile_set_type (filename, (bits) PRINTPDF_FILE_TYPE);
 
+	strncpy(bm->filename, filename, MAX_BOOKMARK_FILENAME);
+	bm->unsaved = 1; /* Force the titlebar to update, even if the file was already saved. */
 	set_bookmark_unsaved_state(bm, 0);
 }
 
