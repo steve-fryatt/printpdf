@@ -66,8 +66,13 @@ void load_menu_definitions(char *menu_file)
 		load_menus_dbox(menu_defs, "FileInfo", windows.file_info);
 		load_menus_dbox(menu_defs, "SaveAs", windows.save_as);
 
+		/* The order that menus are stored in the array depends on the
+		 * order that they are defined in the menudefs file!
+		 */
+
 		menus.icon_bar = menu_list[0];
 		menus.bookmarks = menu_list[1];
+		menus.bookmarks_sub_line = menu_list[3];
 	}
 }
 

@@ -28,6 +28,7 @@ typedef struct {
 	wimp_menu	*icon_bar;
 	wimp_menu	*params;
 	wimp_menu	*bookmarks;
+	wimp_menu	*bookmarks_sub_line;
 	wimp_menu	*bookmarks_list;
 } global_menus;
 

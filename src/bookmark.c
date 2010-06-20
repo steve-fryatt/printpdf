@@ -744,6 +744,8 @@ void redraw_bookmark_window(wimp_draw *redraw)
 			calculate_bookmark_window_row_start(bm, y);
 			node = bm->redraw[y].node;
 
+			/* Plot the menu highlight. */
+
 			if (y == bm->menu_row) {
 				wimp_set_colour (wimp_COLOUR_VERY_DARK_GREY);
 				os_plot(os_MOVE_TO, redraw->clip.x0,
@@ -754,6 +756,8 @@ void redraw_bookmark_window(wimp_draw *redraw)
 						oy + (-(y+1) * BOOKMARK_LINE_HEIGHT
 						- BOOKMARK_TOOLBAR_HEIGHT));
 			}
+
+			/* Set the icons up for plotting. */
 
 			icon[BOOKMARK_ICON_EXPAND].extent.x0 = bm->column_pos[BOOKMARK_ICON_EXPAND];
 			icon[BOOKMARK_ICON_EXPAND].extent.x1 = bm->column_pos[BOOKMARK_ICON_EXPAND] + bm->column_width[BOOKMARK_ICON_EXPAND];
@@ -979,15 +983,26 @@ void bookmark_lose_caret_handler(wimp_caret *caret)
 void bookmark_gain_caret_handler(wimp_caret *caret)
 {
 	bookmark_block		*bm;
+	bookmark_node		*node, *parent;
 
 	bm = (bookmark_block *) event_get_window_user_data(caret->w);
 	if (bm == NULL)
 		return;
 
+	if (bm->caret_row != -1) {
+		node = bm->redraw[bm->caret_row].node;
+		for (parent = bm->root; parent != NULL && parent->next != node; parent = parent->next);
+	} else {
+		node = NULL;
+		parent = NULL;
+	}
 
-	set_icons_shaded(bm->toolbar, 0, 4,
-			BOOKMARK_TB_DEMOTEG, BOOKMARK_TB_DEMOTE,
-			BOOKMARK_TB_PROMOTE, BOOKMARK_TB_PROMOTEG);
+	/* Set up the toolbar icons. */
+
+	set_icons_shaded(bm->toolbar, node == NULL || parent == NULL || node->level <= 1,
+			2, BOOKMARK_TB_DEMOTEG, BOOKMARK_TB_DEMOTE);
+	set_icons_shaded(bm->toolbar, node == NULL || parent == NULL || node->level > parent->level,
+			2, BOOKMARK_TB_PROMOTE, BOOKMARK_TB_PROMOTEG);
 }
 
 
@@ -1514,12 +1529,13 @@ void bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu)
 {
 	int			x, y, row, row_y_pos;
 	bookmark_block		*bm;
-	bookmark_node		*node;
+	bookmark_node		*node, *parent;
 	wimp_window_state	state;
 	os_error		*error;
+	extern global_menus	menus;
 
 	bm = (bookmark_block *) event_get_window_user_data(pointer->w);
-	if (bm == NULL)
+	if (bm == NULL || menu != menus.bookmarks)
 		return;
 
 	state.w = pointer->w;
@@ -1539,10 +1555,29 @@ void bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu)
 			row_y_pos > (BOOKMARK_LINE_HEIGHT - BOOKMARK_LINE_OFFSET))
 		row = -1;
 
+	/* Set up the row highlight in the bookmark window and find the node and
+	 * parent node blocks.
+	 */
+
 	if (row != -1) {
+		node = bm->redraw[row].node;
+		for (parent = bm->root; parent != NULL && parent->next != node; parent = parent->next);
+
 		bm->menu_row = row;
 		force_bookmark_window_redraw(bm, bm->menu_row, bm->menu_row);
+	} else {
+		node = NULL;
+		parent = NULL;
 	}
+
+	/* Set up the menu itself. */
+
+	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_LINE, row == -1);
+
+	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_PROMOTE, node == NULL || parent == NULL || node->level > parent->level);
+	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_PROMOTEG, node == NULL || parent == NULL || node->level > parent->level);
+	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_DEMOTE, node == NULL || parent == NULL || node->level <= 1);
+	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_DEMOTEG, node == NULL || parent == NULL || node->level <= 1);
 }
 
 

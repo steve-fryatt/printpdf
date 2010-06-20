@@ -33,9 +33,15 @@
 /* Bookmarks Window Menu Structure. */
 
 #define BOOKMARK_MENU_FILE 0
+#define BOOKMARK_MENU_LINE 1
 
 #define BOOKMARK_MENU_FILE_INFO 0
 #define BOOKMARK_MENU_FILE_SAVE 1
+
+#define BOOKMARK_MENU_LINE_PROMOTE  0
+#define BOOKMARK_MENU_LINE_DEMOTE   1
+#define BOOKMARK_MENU_LINE_PROMOTEG 2
+#define BOOKMARK_MENU_LINE_DEMOTEG  3
 
 /* Bookmark Window icons. */
 
