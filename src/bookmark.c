@@ -1169,7 +1169,9 @@ int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 	wimp_icon_create		icon;
 	extern global_windows		windows;
 
-	if (bm == NULL || (bm == bookmarks_edit && bm->caret_row == row && bm->caret_col == col))
+	if (bm == NULL || (bm == bookmarks_edit && bm->caret_row == row && bm->caret_col == col) ||
+			row < 0 || row >= bm->lines ||
+			col < BOOKMARK_ICON_TITLE || col >= BOOKMARK_WINDOW_COLUMNS)
 		return 1;
 
 	bookmark_remove_edit_icon();
@@ -1575,8 +1577,9 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 /**
  * Prepare the bookmark window menu for (re)-opening.
  *
- * \param  *pointer		Pointer to the Wimp Pointer event block.
+ * \param  w			The handle of the menu's parent window.
  * \param  *menu		Pointer to the menu being opened.
+ * \param  *pointer		Pointer to the Wimp Pointer event block.
  */
 
 void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
@@ -1589,10 +1592,6 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 	extern global_menus	menus;
 
 	bm = (bookmark_block *) event_get_window_user_data(w);
-
-
-	debug_printf("bm=0x%x, menu=0x%x", bm, menu);
-
 	if (bm == NULL || menu != menus.bookmarks)
 		return;
 
@@ -1621,9 +1620,6 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 		node = NULL;
 		parent = NULL;
 	}
-
-	debug_printf("Prepare bookmark menu for row %d.", row);
-
 
 	/* Set up the menu itself. */
 

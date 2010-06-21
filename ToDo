@@ -2,6 +2,7 @@ PrintPDF -- ToDo List
 ---------------------
 
 * File Info window.
-* Line menu entries.
 * Add Line->Insert above/below.
 * Insert caret into window on window open.
+* Drag and drop of window lines.
+* Fix the line margin calculations properly.
