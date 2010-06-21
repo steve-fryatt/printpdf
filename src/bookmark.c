@@ -83,6 +83,8 @@ void		force_bookmark_window_redraw(bookmark_block *bm, int from, int to);
 void		set_bookmark_window_extent(bookmark_block *bm);
 void		set_bookmark_window_columns(bookmark_block *bm);
 void		calculate_bookmark_window_row_start(bookmark_block *bm, int row);
+int		calculate_bookmark_window_click_row(bookmark_block *bm, wimp_pointer *pointer, wimp_window_state *state);
+int		calculate_bookmark_window_click_column(bookmark_block *bm, wimp_pointer *pointer, wimp_window_state *state);
 
 /* Bookmark Toolbar Handling */
 
@@ -830,7 +832,7 @@ void redraw_bookmark_window(wimp_draw *redraw)
 
 void bookmark_click_handler(wimp_pointer *pointer)
 {
-	int			i, x, y, row, col, row_x_pos, row_y_pos;
+	int			x, y, row, col;
 	bookmark_block		*bm;
 	bookmark_node		*node;
 	wimp_window_state	state;
@@ -845,29 +847,15 @@ void bookmark_click_handler(wimp_pointer *pointer)
 	if (error != NULL)
 		return;
 
+
+	row = calculate_bookmark_window_click_row(bm, pointer, &state);
+	col = calculate_bookmark_window_click_column(bm, pointer, &state);
+
 	x = pointer->pos.x - state.visible.x0 + state.xscroll;
 	y = state.visible.y1 - pointer->pos.y + state.yscroll;
 
-	row = (y - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
-	row_y_pos = ((y - BOOKMARK_TOOLBAR_HEIGHT) % BOOKMARK_LINE_HEIGHT)
-			 - BOOKMARK_LINE_OFFSET;
-
-	if (row >= bm->lines ||
-			row_y_pos < (BOOKMARK_LINE_HEIGHT - (BOOKMARK_LINE_OFFSET + BOOKMARK_ICON_HEIGHT)) ||
-			row_y_pos > (BOOKMARK_LINE_HEIGHT - BOOKMARK_LINE_OFFSET))
-		row = -1;
-
-	if (row != -1) {
-		calculate_bookmark_window_row_start(bm, row);
+	if (row != -1 && col != -1) {
 		node = bm->redraw[row].node;
-		row_x_pos = x - node->level * BOOKMARK_LINE_HEIGHT;
-		col = -1;
-
-		for (i=0; i<BOOKMARK_WINDOW_COLUMNS; i++)
-			if (x >= bm->column_pos[i] && x <= bm->column_pos[i]+bm->column_width[i]) {
-				col = i;
-				break;
-			}
 
 		if (col == BOOKMARK_ICON_EXPAND && pointer->buttons == wimp_CLICK_SELECT &&
 				node->count > 0) {
@@ -1476,6 +1464,72 @@ void calculate_bookmark_window_row_start(bookmark_block *bm, int row)
 			(BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET));
 }
 
+/**
+ * Calculate the row that the mouse was clicked over in a bookmark window.
+ *
+ * \param  *bm			The bookmark block for the window.
+ * \param  *pointer		The Wimp pointer data.
+ * \param  *state		The bookmark window state.
+ * \return			The row (from 0) or -1 if none.
+ */
+
+int calculate_bookmark_window_click_row(bookmark_block *bm, wimp_pointer *pointer, wimp_window_state *state)
+{
+	int			y, row, row_y_pos;
+
+	if (bm == NULL || state == NULL)
+		return -1;
+
+	y = state->visible.y1 - pointer->pos.y + state->yscroll;
+
+	row = (y - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
+	row_y_pos = ((y - BOOKMARK_TOOLBAR_HEIGHT) % BOOKMARK_LINE_HEIGHT) - BOOKMARK_LINE_OFFSET;
+
+	if (row >= bm->lines ||
+			row_y_pos < (BOOKMARK_LINE_HEIGHT - (BOOKMARK_LINE_OFFSET + BOOKMARK_ICON_HEIGHT)) ||
+			row_y_pos > (BOOKMARK_LINE_HEIGHT - BOOKMARK_LINE_OFFSET))
+		row = -1;
+
+	return row;
+}
+
+
+/**
+ * Calculate the column that the mouse was clicked over in a bookmark window.
+ *
+ * \param  *bm			The bookmark block for the window.
+ * \param  *pointer		The Wimp pointer data.
+ * \param  *state		The bookmark window state.
+ * \return			The column (from 0) or -1 if none.
+ */
+
+int calculate_bookmark_window_click_column(bookmark_block *bm, wimp_pointer *pointer, wimp_window_state *state)
+{
+	int			i, x, row, col;
+
+	if (bm == NULL || state == NULL)
+		return -1;
+
+	row = calculate_bookmark_window_click_row(bm, pointer, state);
+
+	if (row < 0 || row >= bm->lines)
+		return -1;
+
+	x = pointer->pos.x - state->visible.x0 + state->xscroll;
+
+	calculate_bookmark_window_row_start(bm, row);
+	col = -1;
+
+	for (i=0; i<BOOKMARK_WINDOW_COLUMNS; i++)
+		if (x >= bm->column_pos[i] && x <= bm->column_pos[i]+bm->column_width[i]) {
+			col = i;
+			break;
+		}
+
+	return col;
+}
+
+
 
 /* ****************************************************************************
  * Bookmark Toolbar Handling
@@ -1527,7 +1581,7 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 
 void bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu)
 {
-	int			x, y, row, row_y_pos;
+	int			row;
 	bookmark_block		*bm;
 	bookmark_node		*node, *parent;
 	wimp_window_state	state;
@@ -1543,17 +1597,7 @@ void bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu)
 	if (error != NULL)
 		return;
 
-	x = pointer->pos.x - state.visible.x0 + state.xscroll;
-	y = state.visible.y1 - pointer->pos.y + state.yscroll;
-
-	row = (y - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
-	row_y_pos = ((y - BOOKMARK_TOOLBAR_HEIGHT) % BOOKMARK_LINE_HEIGHT)
-			 - BOOKMARK_LINE_OFFSET;
-
-	if (row >= bm->lines ||
-			row_y_pos < (BOOKMARK_LINE_HEIGHT - (BOOKMARK_LINE_OFFSET + BOOKMARK_ICON_HEIGHT)) ||
-			row_y_pos > (BOOKMARK_LINE_HEIGHT - BOOKMARK_LINE_OFFSET))
-		row = -1;
+	row = calculate_bookmark_window_click_row(bm, pointer, &state);
 
 	/* Set up the row highlight in the bookmark window and find the node and
 	 * parent node blocks.
