@@ -35,7 +35,9 @@ menu(bookmarks, "PrintPDF")
 		submenu(bm_file);
 	}
 	item("Line") {
-		submenu(bm_line);
+		submenu(bm_line) {
+			always;
+		}
 	}
 }
 

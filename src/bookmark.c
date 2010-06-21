@@ -92,7 +92,7 @@ void		bookmark_toolbar_click_handler(wimp_pointer *pointer);
 
 /* Bookmark Window Menu Handling */
 
-void		bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu);
+void		bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 void		bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 void		bookmark_menu_close(wimp_w w, wimp_menu *menu);
 void		bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning *warning);
@@ -1579,7 +1579,7 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
  * \param  *menu		Pointer to the menu being opened.
  */
 
-void bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu)
+void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 {
 	int			row;
 	bookmark_block		*bm;
@@ -1588,16 +1588,24 @@ void bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu)
 	os_error		*error;
 	extern global_menus	menus;
 
-	bm = (bookmark_block *) event_get_window_user_data(pointer->w);
+	bm = (bookmark_block *) event_get_window_user_data(w);
+
+
+	debug_printf("bm=0x%x, menu=0x%x", bm, menu);
+
 	if (bm == NULL || menu != menus.bookmarks)
 		return;
 
-	state.w = pointer->w;
-	error = xwimp_get_window_state(&state);
-	if (error != NULL)
-		return;
-
-	row = calculate_bookmark_window_click_row(bm, pointer, &state);
+	if (bm->menu_row != -1) {
+		row = bm->menu_row;
+	} else {
+		state.w = pointer->w;
+		error = xwimp_get_window_state(&state);
+		if (error == NULL)
+			row = calculate_bookmark_window_click_row(bm, pointer, &state);
+		else
+			row = -1;
+	}
 
 	/* Set up the row highlight in the bookmark window and find the node and
 	 * parent node blocks.
@@ -1614,14 +1622,21 @@ void bookmark_menu_prepare(wimp_pointer *pointer, wimp_menu *menu)
 		parent = NULL;
 	}
 
+	debug_printf("Prepare bookmark menu for row %d.", row);
+
+
 	/* Set up the menu itself. */
 
 	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_LINE, row == -1);
 
-	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_PROMOTE, node == NULL || parent == NULL || node->level > parent->level);
-	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_PROMOTEG, node == NULL || parent == NULL || node->level > parent->level);
-	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_DEMOTE, node == NULL || parent == NULL || node->level <= 1);
-	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_DEMOTEG, node == NULL || parent == NULL || node->level <= 1);
+	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_PROMOTE,
+			row == -1 || node == NULL || parent == NULL || node->level > parent->level);
+	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_PROMOTEG,
+			row == -1 || node == NULL || parent == NULL || node->level > parent->level);
+	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_DEMOTE,
+			row == -1 || node == NULL || parent == NULL || node->level <= 1);
+	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_DEMOTEG,
+			row == -1 || node == NULL || parent == NULL || node->level <= 1);
 }
 
 
@@ -1677,9 +1692,25 @@ void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selectio
 	switch (selection->items[0]) {
 	case BOOKMARK_MENU_FILE:
 		switch (selection->items[1]) {
-			case BOOKMARK_MENU_FILE_SAVE:
-				start_direct_menu_save(bm);
-				break;
+		case BOOKMARK_MENU_FILE_SAVE:
+			start_direct_menu_save(bm);
+			break;
+		}
+		break;
+	case BOOKMARK_MENU_LINE:
+		switch (selection->items[1]) {
+		case BOOKMARK_MENU_LINE_PROMOTE:
+			bookmark_change_edit_row_indentation(bm, bm->redraw[bm->menu_row].node, BOOKMARK_TB_PROMOTE);
+			break;
+		case BOOKMARK_MENU_LINE_PROMOTEG:
+			bookmark_change_edit_row_indentation(bm, bm->redraw[bm->menu_row].node, BOOKMARK_TB_PROMOTEG);
+			break;
+		case BOOKMARK_MENU_LINE_DEMOTE:
+			bookmark_change_edit_row_indentation(bm, bm->redraw[bm->menu_row].node, BOOKMARK_TB_DEMOTE);
+			break;
+		case BOOKMARK_MENU_LINE_DEMOTEG:
+			bookmark_change_edit_row_indentation(bm, bm->redraw[bm->menu_row].node, BOOKMARK_TB_DEMOTEG);
+			break;
 		}
 		break;
 	}
