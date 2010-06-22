@@ -6,3 +6,4 @@ PrintPDF -- ToDo List
 * Insert caret into window on window open.
 * Drag and drop of window lines.
 * Fix the line margin calculations properly.
+* Redraw promote and demote actions correctly, setting the lower redraw bound from the terminating node.

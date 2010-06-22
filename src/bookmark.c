@@ -1086,7 +1086,7 @@ void bookmark_insert_edit_row(bookmark_block *bm, wimp_caret *caret)
 void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node, int action)
 {
 	bookmark_node		*parent;
-	int			redraw_from, redraw_to, base;
+	int			redraw_from, redraw_to, base, line;
 
 	if (bm == NULL)
 		return;
@@ -1104,6 +1104,11 @@ void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *nod
 	if (parent == NULL)
 		return;
 
+	for (line = 0; line < bm->lines && bm->redraw[line].node != node; line++);
+
+	if (line == 0 || bm->redraw[line].node != node)
+		return;
+
 	redraw_from = -1;
 	redraw_to   = -1;
 
@@ -1111,15 +1116,15 @@ void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *nod
 	case BOOKMARK_TB_PROMOTE:
 		if (node->level <= parent->level) {
 			node->level++;
-			redraw_from = bm->caret_row-1;
-			redraw_to = bm->caret_row;
+			redraw_from = line-1;
+			redraw_to = line;
 		}
 		break;
 	case BOOKMARK_TB_PROMOTEG:
 		if (node->level <= parent->level) {
 			for (base = node->level; node != NULL && node->level >= base; node = node->next)
 				node->level++;
-			redraw_from = bm->caret_row-1;
+			redraw_from = line-1;
 		}
 		break;
 	case BOOKMARK_TB_DEMOTE:
@@ -1129,14 +1134,14 @@ void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *nod
 				node = node->next;
 				node->level--;
 			}
-			redraw_from = bm->caret_row-1;
+			redraw_from = line-1;
 		}
 		break;
 	case BOOKMARK_TB_DEMOTEG:
 		if (node->level > 1) {
 			for (base = node->level; node != NULL && node->level >= base; node = node->next)
 				node->level--;
-			redraw_from = bm->caret_row-1;
+			redraw_from = line-1;
 		}
 		break;
 	}
