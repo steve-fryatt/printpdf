@@ -100,6 +100,7 @@ typedef struct bookmark_block {
 	char			name[MAX_BOOKMARK_BLOCK_NAME];
 	char			filename[MAX_BOOKMARK_FILENAME];
 	char			window_title[MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10];
+	os_date_and_time	datestamp;
 
 	int			unsaved;
 

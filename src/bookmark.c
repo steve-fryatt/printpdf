@@ -17,6 +17,7 @@
 #include "oslib/os.h"
 #include "oslib/osbyte.h"
 #include "oslib/osfile.h"
+#include "oslib/territory.h"
 #include "oslib/wimp.h"
 
 /* SF-Lib header files. */
@@ -1762,12 +1763,18 @@ void prepare_file_info_window(bookmark_block *bm)
 	strncpy(indirected_icon_text(windows.file_info, FILEINFO_ICON_NAME), bm->name,
 			indirected_icon_length(windows.file_info, FILEINFO_ICON_NAME));
 
-	if (strlen(bm->filename) > 0)
+	if (strlen(bm->filename) > 0) {
 		strncpy(indirected_icon_text(windows.file_info, FILEINFO_ICON_LOCATION), bm->filename,
 				indirected_icon_length(windows.file_info, FILEINFO_ICON_LOCATION));
-	else
+		territory_convert_standard_date_and_time (territory_CURRENT, (os_date_and_time const *) bm->datestamp,
+				indirected_icon_text(windows.file_info, FILEINFO_ICON_DATE),
+				indirected_icon_length(windows.file_info, FILEINFO_ICON_DATE));
+	} else {
 		msgs_lookup("Unsaved", indirected_icon_text(windows.file_info, FILEINFO_ICON_LOCATION),
 				indirected_icon_length(windows.file_info, FILEINFO_ICON_LOCATION));
+		msgs_lookup("Unsaved", indirected_icon_text(windows.file_info, FILEINFO_ICON_DATE),
+				indirected_icon_length(windows.file_info, FILEINFO_ICON_DATE));
+	}
 
 	msgs_lookup((bm->unsaved) ? "Yes" : "No", indirected_icon_text(windows.file_info, FILEINFO_ICON_MODIFIED),
 				indirected_icon_length(windows.file_info, FILEINFO_ICON_MODIFIED));
@@ -1936,6 +1943,7 @@ void save_bookmark_file(bookmark_block *bm, char *filename)
 {
 	FILE			*out;
 	bookmark_node		*node;
+	bits			load;
 
 	if (bm == NULL)
 		return;
@@ -1973,6 +1981,9 @@ void save_bookmark_file(bookmark_block *bm, char *filename)
 	fclose(out);
 	osfile_set_type (filename, (bits) PRINTPDF_FILE_TYPE);
 
+	osfile_read_stamped(filename, &load, (bits *) bm->datestamp, NULL, NULL, NULL);
+	bm->datestamp[4] = load & 0xff;
+
 	strncpy(bm->filename, filename, MAX_BOOKMARK_FILENAME);
 	bm->unsaved = 1; /* Force the titlebar to update, even if the file was already saved. */
 	set_bookmark_unsaved_state(bm, 0);
@@ -1993,6 +2004,7 @@ void load_bookmark_file(char *filename)
 	bookmark_node		*current, *new;
 	int			result, bookmarks = 0, unknown_data = 0;
 	char			section[BOOKMARK_FILE_LINE_LEN], token[BOOKMARK_FILE_LINE_LEN], value[BOOKMARK_FILE_LINE_LEN];
+	bits			load;
 
 
 	block = create_bookmark_block();
@@ -2001,6 +2013,9 @@ void load_bookmark_file(char *filename)
 		// \TODO -- Add an error report here.
 		return;
 	}
+
+	osfile_read_stamped(filename, &load, (bits *) block->datestamp, NULL, NULL, NULL);
+	block->datestamp[4] = load & 0xff;
 
 	in = fopen(filename, "r");
 
