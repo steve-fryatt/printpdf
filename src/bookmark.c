@@ -671,6 +671,11 @@ void open_bookmark_window(bookmark_block *bm)
 		open_window(bm->window);
 		open_window_nested_as_toolbar(bm->toolbar, bm->window,
 				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
+
+		/* Place the caret. */
+
+		if (!bookmark_place_edit_icon(bm, 0, BOOKMARK_ICON_TITLE))
+			put_caret_at_end(bm->window, bm->edit_icon);
 	}
 }
 
