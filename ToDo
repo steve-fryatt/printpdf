@@ -1,7 +1,6 @@
 PrintPDF -- ToDo List
 ---------------------
 
-* File Info window (datestamp).
 * Add Line->Insert above/below.
 * Drag and drop of window lines.
 * Fix the line margin calculations properly.

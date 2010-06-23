@@ -1943,7 +1943,7 @@ void save_bookmark_file(bookmark_block *bm, char *filename)
 {
 	FILE			*out;
 	bookmark_node		*node;
-	bits			load;
+	bits			load, exec;
 
 	if (bm == NULL)
 		return;
@@ -1981,7 +1981,11 @@ void save_bookmark_file(bookmark_block *bm, char *filename)
 	fclose(out);
 	osfile_set_type (filename, (bits) PRINTPDF_FILE_TYPE);
 
-	osfile_read_stamped(filename, &load, (bits *) bm->datestamp, NULL, NULL, NULL);
+	osfile_read_stamped(filename, &load, &exec, NULL, NULL, NULL);
+	bm->datestamp[0] = exec & 0xff;
+	bm->datestamp[1] = (exec & 0xff00) >> 8;
+	bm->datestamp[2] = (exec & 0xff0000) >> 16;
+	bm->datestamp[3] = (exec & 0xff000000) >> 24;
 	bm->datestamp[4] = load & 0xff;
 
 	strncpy(bm->filename, filename, MAX_BOOKMARK_FILENAME);
@@ -2004,7 +2008,7 @@ void load_bookmark_file(char *filename)
 	bookmark_node		*current, *new;
 	int			result, bookmarks = 0, unknown_data = 0;
 	char			section[BOOKMARK_FILE_LINE_LEN], token[BOOKMARK_FILE_LINE_LEN], value[BOOKMARK_FILE_LINE_LEN];
-	bits			load;
+	bits			load, exec;
 
 
 	block = create_bookmark_block();
@@ -2014,7 +2018,11 @@ void load_bookmark_file(char *filename)
 		return;
 	}
 
-	osfile_read_stamped(filename, &load, (bits *) block->datestamp, NULL, NULL, NULL);
+	osfile_read_stamped(filename, &load, &exec, NULL, NULL, NULL);
+	block->datestamp[0] = exec & 0xff;
+	block->datestamp[1] = (exec & 0xff00) >> 8;
+	block->datestamp[2] = (exec & 0xff0000) >> 16;
+	block->datestamp[3] = (exec & 0xff000000) >> 24;
 	block->datestamp[4] = load & 0xff;
 
 	in = fopen(filename, "r");
