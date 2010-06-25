@@ -77,6 +77,8 @@ void		bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *ca
 void		bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *caret);
 void		bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direction);
 void		bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node, int action);
+void		bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *contract);
+void		bookmark_tree_node_expansion(bookmark_block *bm, int expand);
 int		bookmark_place_edit_icon(bookmark_block *bm, int row, int col);
 void		bookmark_remove_edit_icon(void);
 void		bookmark_resync_edit_with_file(void);
@@ -674,6 +676,8 @@ void open_bookmark_window(bookmark_block *bm)
 		open_window_nested_as_toolbar(bm->toolbar, bm->window,
 				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
 
+		bookmark_toolbar_set_expansion_icons(bm, NULL, NULL);
+
 		/* Place the caret. */
 
 		if (!bookmark_place_edit_icon(bm, 0, BOOKMARK_ICON_TITLE))
@@ -872,6 +876,7 @@ void bookmark_click_handler(wimp_pointer *pointer)
 			rebuild_bookmark_data(bm);
 			force_bookmark_window_redraw(bm, row, -1);
 			set_bookmark_unsaved_state(bm, 1);
+			bookmark_toolbar_set_expansion_icons(bm, NULL, NULL);
 		} else if (col >= BOOKMARK_ICON_TITLE && pointer->buttons == wimp_CLICK_SELECT) {
 			if (!bookmark_place_edit_icon(bm, row, col))
 				wimp_set_caret_position(bm->window, bm->edit_icon, x, y, -1, -1);
@@ -1188,6 +1193,74 @@ void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *nod
 		set_bookmark_unsaved_state(bm, 1);
 		force_bookmark_window_redraw(bm, redraw_from, redraw_to);
 	}
+}
+
+
+/**
+ * Shade or unshade the expansion and contraction icons in the toolbar if
+ * expand == NULL and contract == NULL, orreturn the settings for the two actions.
+ *
+ * \param  *bm			The bookmark window to act on.
+ * \param  *expand		A variable to return the expand setting in, or NULL.
+ * \param  *contract		A variable to return the contract setting in, or NULL.
+ */
+
+void bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *contract)
+{
+	bookmark_node		*node;
+	int			e=0, c=0;
+
+	if (bm == NULL)
+		return;
+
+	for (node = bm->root; node != NULL; node = node->next) {
+		if (node->count > 0 && node->expanded == 0)
+			e = 1;
+
+		if (node->count > 0 && node->expanded == 1)
+			c = 1;
+	}
+
+	if (expand != NULL || contract != NULL) {
+		if (expand != NULL)
+			*expand = e;
+		if (contract != NULL)
+			*contract = c;
+	} else {
+		set_icon_shaded(bm->toolbar, BOOKMARK_TB_EXPAND, !e);
+		set_icon_shaded(bm->toolbar, BOOKMARK_TB_CONTRACT, !c);
+	}
+}
+
+
+
+/**
+ * Expand or contract all the nodes in a window.
+ *
+ * \param  *bm			The bookmark window to alter.
+ * \param  expand		1 to expand the tree; 0 to contract.
+ */
+
+void bookmark_tree_node_expansion(bookmark_block *bm, int expanded)
+{
+	bookmark_node		*node;
+
+	if (bm == NULL)
+		return;
+
+	node = bm->root;
+
+	while (node != NULL) {
+		if (node->count > 0)
+			node->expanded = expanded;
+
+		node = node->next;
+	}
+
+	rebuild_bookmark_data(bm);
+	set_bookmark_unsaved_state(bm, 1);
+	force_bookmark_window_redraw(bm, -1, -1);
+	bookmark_toolbar_set_expansion_icons(bm, NULL, NULL);
 }
 
 
@@ -1604,6 +1677,12 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 	case BOOKMARK_TB_DEMOTEG:
 		bookmark_change_edit_row_indentation(bm, bm->redraw[bm->caret_row].node, (int) pointer->i);
 		break;
+	case BOOKMARK_TB_EXPAND:
+		 bookmark_tree_node_expansion(bm, 1);
+		 break;
+	case BOOKMARK_TB_CONTRACT:
+		 bookmark_tree_node_expansion(bm, 0);
+		 break;
 	}
 }
 
@@ -1622,7 +1701,7 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 
 void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 {
-	int			row;
+	int			row, expand, contract;
 	bookmark_block		*bm;
 	bookmark_node		*node, *parent;
 	wimp_window_state	state;
@@ -1661,8 +1740,13 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 
 	/* Set up the menu itself. */
 
+	bookmark_toolbar_set_expansion_icons(bm, &expand, &contract);
+
 	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_LEVEL, row == -1);
 	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_INSERT, row == -1);
+
+	shade_menu_item(menus.bookmarks_sub_view, BOOKMARK_MENU_VIEW_EXPAND, !expand);
+	shade_menu_item(menus.bookmarks_sub_view, BOOKMARK_MENU_VIEW_CONTRACT, !contract);
 
 	shade_menu_item(menus.bookmarks_sub_level, BOOKMARK_MENU_LEVEL_PROMOTE,
 			row == -1 || node == NULL || parent == NULL || node->level > parent->level);
@@ -1735,6 +1819,16 @@ void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selectio
 			break;
 		}
 		break;
+	case BOOKMARK_MENU_VIEW:
+		switch (selection->items[1]) {
+		case BOOKMARK_MENU_VIEW_EXPAND:
+			bookmark_tree_node_expansion(bm, 1);
+			break;
+		case BOOKMARK_MENU_VIEW_CONTRACT:
+			bookmark_tree_node_expansion(bm, 0);
+			break;
+		}
+		break;
 	case BOOKMARK_MENU_LEVEL:
 		switch (selection->items[1]) {
 		case BOOKMARK_MENU_LEVEL_PROMOTE:
@@ -1761,6 +1855,7 @@ void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selectio
 			bookmark_insert_edit_row(bm, bm->redraw[bm->menu_row].node, BOOKMARK_BELOW);
 			break;
 		}
+		break;
 	}
 }
 

@@ -72,8 +72,9 @@ void load_menu_definitions(char *menu_file)
 
 		menus.icon_bar = menu_list[0];
 		menus.bookmarks = menu_list[1];
-		menus.bookmarks_sub_level = menu_list[3];
-		menus.bookmarks_sub_insert = menu_list[4];
+		menus.bookmarks_sub_view = menu_list[3];
+		menus.bookmarks_sub_level = menu_list[4];
+		menus.bookmarks_sub_insert = menu_list[5];
 	}
 }
 

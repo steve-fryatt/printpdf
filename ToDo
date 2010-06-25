@@ -5,6 +5,7 @@ PrintPDF -- ToDo List
 * Stagger the opening of new windows.
 * Interactive help for all new windows.
 * Change the name of a bookmark set.
+* Documentation.
 
 
 * Fix the line margin calculations properly.

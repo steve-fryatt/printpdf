@@ -33,6 +33,9 @@ menu(bookmarks, "PrintPDF")
 {
 	item("File") {
 		submenu(bm_file);
+	}
+	item("View") {
+		submenu(bm_view);
 		dotted;
 	}
 	item("Level") {
@@ -63,6 +66,16 @@ menu(bm_file, "File")
 			warning;
 		}
 	}
+}
+
+/**
+ * Bookmarks Window -- View Submenu.
+ */
+
+menu(bm_view, "View")
+{
+	item("Expand all");
+	item("Contract all");
 }
 
 /**
