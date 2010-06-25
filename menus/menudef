@@ -33,9 +33,15 @@ menu(bookmarks, "PrintPDF")
 {
 	item("File") {
 		submenu(bm_file);
+		dotted;
 	}
-	item("Line") {
-		submenu(bm_line) {
+	item("Level") {
+		submenu(bm_level) {
+			always;
+		}
+	}
+	item("Insert") {
+		submenu(bm_insert) {
 			always;
 		}
 	}
@@ -60,10 +66,10 @@ menu(bm_file, "File")
 }
 
 /**
- * Bookmarks Window -- Line Submenu.
+ * Bookmarks Window -- Level Submenu.
  */
 
-menu(bm_line, "Line")
+menu(bm_level, "Level")
 {
 	item("Promote");
 	item("Demote") {
@@ -71,4 +77,14 @@ menu(bm_line, "Line")
 	}
 	item("Promote all");
 	item("Demote all");
+}
+
+/**
+ * Bookmarks Window -- Insert Submenu.
+ */
+
+menu(bm_insert, "Insert")
+{
+	item("Before");
+	item("After");
 }

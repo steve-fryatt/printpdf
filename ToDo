@@ -3,8 +3,11 @@ PrintPDF -- ToDo List
 
 * Add Line->Insert above/below.
 * Drag and drop of window lines.
-* Fix the line margin calculations properly.
-* Redraw promote and demote actions correctly, setting the lower redraw bound from the terminating node.
 * Stagger the opening of new windows.
 * Interactive help for all new windows.
 * Change the name of a bookmark set.
+
+
+* Fix the line margin calculations properly.
+* Redraw promote and demote actions correctly, setting the lower redraw bound from the terminating node.
+

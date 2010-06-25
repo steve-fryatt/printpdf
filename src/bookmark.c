@@ -1634,16 +1634,20 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 
 	/* Set up the menu itself. */
 
-	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_LINE, row == -1);
+	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_LEVEL, row == -1);
+	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_INSERT, row == -1);
 
-	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_PROMOTE,
+	shade_menu_item(menus.bookmarks_sub_level, BOOKMARK_MENU_LEVEL_PROMOTE,
 			row == -1 || node == NULL || parent == NULL || node->level > parent->level);
-	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_PROMOTEG,
+	shade_menu_item(menus.bookmarks_sub_level, BOOKMARK_MENU_LEVEL_PROMOTEG,
 			row == -1 || node == NULL || parent == NULL || node->level > parent->level);
-	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_DEMOTE,
+	shade_menu_item(menus.bookmarks_sub_level, BOOKMARK_MENU_LEVEL_DEMOTE,
 			row == -1 || node == NULL || parent == NULL || node->level <= 1);
-	shade_menu_item(menus.bookmarks_sub_line, BOOKMARK_MENU_LINE_DEMOTEG,
+	shade_menu_item(menus.bookmarks_sub_level, BOOKMARK_MENU_LEVEL_DEMOTEG,
 			row == -1 || node == NULL || parent == NULL || node->level <= 1);
+
+	shade_menu_item(menus.bookmarks_sub_insert, BOOKMARK_MENU_INSERT_ABOVE, row == -1);
+	shade_menu_item(menus.bookmarks_sub_insert, BOOKMARK_MENU_INSERT_BELOW, row == -1);
 }
 
 
@@ -1704,18 +1708,18 @@ void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selectio
 			break;
 		}
 		break;
-	case BOOKMARK_MENU_LINE:
+	case BOOKMARK_MENU_LEVEL:
 		switch (selection->items[1]) {
-		case BOOKMARK_MENU_LINE_PROMOTE:
+		case BOOKMARK_MENU_LEVEL_PROMOTE:
 			bookmark_change_edit_row_indentation(bm, bm->redraw[bm->menu_row].node, BOOKMARK_TB_PROMOTE);
 			break;
-		case BOOKMARK_MENU_LINE_PROMOTEG:
+		case BOOKMARK_MENU_LEVEL_PROMOTEG:
 			bookmark_change_edit_row_indentation(bm, bm->redraw[bm->menu_row].node, BOOKMARK_TB_PROMOTEG);
 			break;
-		case BOOKMARK_MENU_LINE_DEMOTE:
+		case BOOKMARK_MENU_LEVEL_DEMOTE:
 			bookmark_change_edit_row_indentation(bm, bm->redraw[bm->menu_row].node, BOOKMARK_TB_DEMOTE);
 			break;
-		case BOOKMARK_MENU_LINE_DEMOTEG:
+		case BOOKMARK_MENU_LEVEL_DEMOTEG:
 			bookmark_change_edit_row_indentation(bm, bm->redraw[bm->menu_row].node, BOOKMARK_TB_DEMOTEG);
 			break;
 		}
