@@ -130,6 +130,7 @@ typedef struct bookmark_block {
 	int			caret_col;
 
 	int			menu_row;
+	int			drag_row;
 
 	bookmark_node		*root;
 	int			nodes;

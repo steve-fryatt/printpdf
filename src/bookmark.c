@@ -91,6 +91,9 @@ void		set_bookmark_window_columns(bookmark_block *bm);
 void		calculate_bookmark_window_row_start(bookmark_block *bm, int row);
 int		calculate_bookmark_window_click_row(bookmark_block *bm, wimp_pointer *pointer, wimp_window_state *state);
 int		calculate_bookmark_window_click_column(bookmark_block *bm, wimp_pointer *pointer, wimp_window_state *state);
+void		bookmark_line_drag(bookmark_block *bm, int line);
+void		bookmark_terminate_line_drag(wimp_dragged *drag, void *data);
+
 
 /* Bookmark Toolbar Handling */
 
@@ -121,6 +124,12 @@ void		start_direct_menu_save(bookmark_block *bm);
 
 void		rebuild_bookmark_data(bookmark_block *bm);
 
+/* ****************************************************************************
+ * Macros
+ * ****************************************************************************/
+
+#define LINE_Y0(x) (-((x)+1) * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET - BOOKMARK_TOOLBAR_HEIGHT)
+#define LINE_Y1(x) (-((x)+1) * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET - BOOKMARK_TOOLBAR_HEIGHT + BOOKMARK_ICON_HEIGHT)
 
 /* ****************************************************************************
  * Global variables
@@ -418,6 +427,7 @@ bookmark_block *create_bookmark_block(void)
 		new->caret_col = -1;
 		new->edit_icon = wimp_ICON_WINDOW;
 		new->menu_row = -1;
+		new->drag_row = -1;
 
 		update_bookmark_window_title(new);
 
@@ -804,7 +814,7 @@ void redraw_bookmark_window(wimp_draw *redraw)
 
 			/* Plot the menu highlight. */
 
-			if (y == bm->menu_row) {
+			if (y == bm->menu_row || y == bm->drag_row) {
 				wimp_set_colour (wimp_COLOUR_VERY_DARK_GREY);
 				os_plot(os_MOVE_TO, redraw->clip.x0,
 						oy + (-(y+1) * BOOKMARK_LINE_HEIGHT
@@ -819,33 +829,18 @@ void redraw_bookmark_window(wimp_draw *redraw)
 
 			icon[BOOKMARK_ICON_EXPAND].extent.x0 = bm->column_pos[BOOKMARK_ICON_EXPAND];
 			icon[BOOKMARK_ICON_EXPAND].extent.x1 = bm->column_pos[BOOKMARK_ICON_EXPAND] + bm->column_width[BOOKMARK_ICON_EXPAND];
-			icon[BOOKMARK_ICON_EXPAND].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT);
-			icon[BOOKMARK_ICON_EXPAND].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT
-					+ BOOKMARK_ICON_HEIGHT);
+			icon[BOOKMARK_ICON_EXPAND].extent.y0 = LINE_Y0(y);
+			icon[BOOKMARK_ICON_EXPAND].extent.y1 = LINE_Y1(y);
 
 			icon[BOOKMARK_ICON_TITLE].extent.x0 = bm->column_pos[BOOKMARK_ICON_TITLE];
 			icon[BOOKMARK_ICON_TITLE].extent.x1 = bm->column_pos[BOOKMARK_ICON_TITLE] + bm->column_width[BOOKMARK_ICON_TITLE];
-			icon[BOOKMARK_ICON_TITLE].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT);
-			icon[BOOKMARK_ICON_TITLE].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT
-					+ BOOKMARK_ICON_HEIGHT);
+			icon[BOOKMARK_ICON_TITLE].extent.y0 = LINE_Y0(y);
+			icon[BOOKMARK_ICON_TITLE].extent.y1 = LINE_Y1(y);
 
 			icon[BOOKMARK_ICON_PAGE].extent.x0 = bm->column_pos[BOOKMARK_ICON_PAGE];
 			icon[BOOKMARK_ICON_PAGE].extent.x1 = bm->column_pos[BOOKMARK_ICON_PAGE] + bm->column_width[BOOKMARK_ICON_PAGE];
-			icon[BOOKMARK_ICON_PAGE].extent.y0 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT);
-			icon[BOOKMARK_ICON_PAGE].extent.y1 = (-(y+1) * BOOKMARK_LINE_HEIGHT
-					+ BOOKMARK_LINE_OFFSET
-					- BOOKMARK_TOOLBAR_HEIGHT
-					+ BOOKMARK_ICON_HEIGHT);
+			icon[BOOKMARK_ICON_PAGE].extent.y0 = LINE_Y0(y);
+			icon[BOOKMARK_ICON_PAGE].extent.y1 = LINE_Y1(y);
 
 			if (node->page > 0)
 				snprintf(buf, MAX_BOOKMARK_NUM_LEN, "%d", node->page);
@@ -924,6 +919,8 @@ void bookmark_click_handler(wimp_pointer *pointer)
 		} else if (col >= BOOKMARK_ICON_TITLE && pointer->buttons == wimp_CLICK_SELECT) {
 			if (!bookmark_place_edit_icon(bm, row, col))
 				wimp_set_caret_position(bm->window, bm->edit_icon, x, y, -1, -1);
+		} else if (col >= BOOKMARK_ICON_TITLE && pointer->buttons == wimp_DRAG_SELECT) {
+			bookmark_line_drag(bm, row);
 		}
 	}
 }
@@ -1090,8 +1087,7 @@ void bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *car
 
 	if (row != bm->caret_row) {
 		bookmark_place_edit_icon(bm, row, bm->caret_col);
-		wimp_set_caret_position(bm->window, bm->edit_icon, caret->pos.x,
-				(-(row+1) * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET + 4 - BOOKMARK_TOOLBAR_HEIGHT), -1, -1);
+		wimp_set_caret_position(bm->window, bm->edit_icon, caret->pos.x, LINE_Y0(row)+4, -1, -1);
 	}
 }
 
@@ -1441,8 +1437,8 @@ int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 	icon.w = bm->window;
 	icon.icon.extent.x0 = bm->column_pos[col];
 	icon.icon.extent.x1 = bm->column_pos[col] + bm->column_width[col];
-	icon.icon.extent.y0 = (-(row+1) * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET - BOOKMARK_TOOLBAR_HEIGHT);
-	icon.icon.extent.y1 = (-(row+1) * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET - BOOKMARK_TOOLBAR_HEIGHT + BOOKMARK_ICON_HEIGHT);
+	icon.icon.extent.y0 = LINE_Y0(row);
+	icon.icon.extent.y1 = LINE_Y1(row);
 	if (xwimp_create_icon(&icon, &(bm->edit_icon)) == NULL) {
 		bookmarks_edit = bm;
 		bm->caret_row = row;
@@ -1766,6 +1762,193 @@ int calculate_bookmark_window_click_column(bookmark_block *bm, wimp_pointer *poi
 	return col;
 }
 
+
+/**
+ * Start dragging a line in the bookmark window.
+ */
+
+void bookmark_line_drag(bookmark_block *bm, int line)
+{
+	wimp_window_state	window;
+	wimp_auto_scroll_info	auto_scroll;
+	wimp_drag		drag;
+	int			ox, oy;
+
+	extern global_windows	windows;
+
+	if (bm == NULL || line < 0 || line >= bm->lines)
+		return;
+
+	/* Get the basic information about the window. */
+
+	window.w = bm->window;
+	if (xwimp_get_window_state(&window) != NULL)
+		return;
+
+	ox = window.visible.x0 - window.xscroll;
+	oy = window.visible.y1 - window.yscroll;
+
+	/* Set up the drag parameters. */
+
+	drag.w = bm->window;
+	drag.type = wimp_DRAG_USER_FIXED;
+
+	drag.initial.x0 = ox;
+	drag.initial.y0 = oy + LINE_Y0(line);
+	drag.initial.x1 = ox + (window.visible.x1 - window.visible.x0);
+	drag.initial.y1 = oy + LINE_Y1(line);
+
+	drag.bbox.x0 = window.visible.x0;
+	drag.bbox.y0 = window.visible.y0;
+	drag.bbox.x1 = window.visible.x1;
+	drag.bbox.y1 = window.visible.y1;
+
+	/* Read CMOS RAM to see if solid drags are required. */
+/*
+	dragging_sprite = ((osbyte2(osbyte_READ_CMOS, osbyte_CONFIGURE_DRAG_ASPRITE, 0) &
+			osbyte_CONFIGURE_DRAG_ASPRITE_MASK) != 0);
+*/
+//	if (0 && dragging_sprite) /* This is never used, though it could be... */
+/*		dragasprite_start(dragasprite_HPOS_CENTRE | dragasprite_VPOS_CENTRE | dragasprite_NO_BOUND |
+				dragasprite_BOUND_POINTER | dragasprite_DROP_SHADOW, wimpspriteop_AREA,
+				"", &(drag.initial), &(drag.bbox));
+	else
+*/		wimp_drag_box(&drag);
+
+	/* Initialise the autoscroll. */
+
+	if (xos_swi_number_from_string("Wimp_AutoScroll", NULL) == NULL) {
+		auto_scroll.w = windows.queue_pane;
+		auto_scroll.pause_zone_sizes.x0 = 0;
+		auto_scroll.pause_zone_sizes.y0 = AUTO_SCROLL_MARGIN;
+		auto_scroll.pause_zone_sizes.x1 = 0;
+		auto_scroll.pause_zone_sizes.y1 = AUTO_SCROLL_MARGIN;
+		auto_scroll.pause_duration = 0;
+		auto_scroll.state_change = (void *) 1;
+
+		wimp_auto_scroll (wimp_AUTO_SCROLL_ENABLE_VERTICAL, &auto_scroll);
+	}
+
+//	dragging_start_line = line;
+	bm->drag_row = line;
+	force_bookmark_window_redraw(bm, line, line);
+	event_set_drag_handler(bookmark_terminate_line_drag, NULL, (void *) bm);
+}
+
+
+/**
+ * Callback handler for bookmark window drag termination.
+ *
+ * \param  *drag		The Wimp poll block from termination.
+ */
+
+void bookmark_terminate_line_drag(wimp_dragged *drag, void *data)
+{
+	bookmark_block		*bm;
+	bookmark_node		*node, *target, *n;
+	wimp_pointer		pointer;
+	wimp_window_state	state;
+	int			row, i;
+
+	extern global_windows	windows;
+
+	/* Terminate the drag and end the autoscroll. */
+
+	if (xos_swi_number_from_string("Wimp_AutoScroll", NULL) == NULL)
+		wimp_auto_scroll(0, NULL);
+
+//	if (dragging_sprite)
+//		dragasprite_stop();
+
+	/* Having stopped the drag, validate the data block. */
+
+	bm = (bookmark_block *) data;
+	if (bm == NULL)
+		return;
+
+	/* Get the line at which the drag ended. */
+
+
+	wimp_get_pointer_info(&pointer);
+
+	state.w = bm->window;
+	wimp_get_window_state(&state);
+
+	/* Caculate the window row manually, as we don't care about 'icons' but
+	 * the position *between* them.  Row is the row before which the dragged
+	 * item was dropped.
+	 */
+
+	row = state.visible.y1 - pointer.pos.y - state.yscroll;
+	row = (row - BOOKMARK_TOOLBAR_HEIGHT + (BOOKMARK_LINE_HEIGHT / 2)) / BOOKMARK_LINE_HEIGHT;
+	if (row > bm->lines)
+		row = bm->lines;
+
+	/* If there is a move to do, carry it out. */
+
+	if (row != bm->drag_row && row != bm->drag_row + 1) {
+		node = bm->redraw[bm->drag_row].node;
+
+		if (row < bm->lines)
+			target = bm->redraw[row].node;
+		else
+			target = NULL;
+
+		/* If the node was a parent, then drop all the children down a level
+		 * to compensate for its deletion.
+		 */
+
+		n = node->next;
+		i = node->count;
+
+		while (n != NULL && i > 0) {
+			n->level--;
+			n = n->next;
+			i--;
+		}
+
+		/* Unlink the node. */
+
+		if (bm->root == node) {
+			bm->root = node->next;
+		} else {
+			for (n = bm->root; n != NULL && n->next != node; n = n->next);
+			if (n != NULL)
+				n->next = node->next;
+		}
+
+		/* Link the node back in its new home. */
+
+		if (bm->root == target) {
+			node->next = bm->root;
+			bm->root = node;
+		} else {
+			for (n = bm->root; n != NULL && n->next != target; n = n->next);
+			if (n != NULL) {
+				node->next = n->next;
+				n->next = node;
+			}
+		}
+
+		/* Fix the indentation.  At the end of the list, take the previous node's
+		 * level, otherwise take the following node's.
+		 */
+
+		if (target == NULL)
+			node->level = n->level;
+		else
+			node->level = target->level;
+
+		rebuild_bookmark_data(bm);
+		set_bookmark_unsaved_state(bm, 1);
+
+		force_bookmark_window_redraw(bm, (row < bm->drag_row) ? row-1 : bm->drag_row-1, -1);
+	} else {
+		force_bookmark_window_redraw(bm, bm->drag_row, bm->drag_row);
+	}
+
+	bm->drag_row = -1;
+}
 
 
 /* ****************************************************************************
