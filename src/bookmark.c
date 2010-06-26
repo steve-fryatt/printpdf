@@ -952,8 +952,10 @@ void bookmark_key_handler(wimp_key *key)
 		case wimp_KEY_BACKSPACE:
 			bookmark_resync_edit_with_file();
 			if (bm->caret_col == BOOKMARK_ICON_TITLE && bm->caret_row > 0 &&
-					 strlen(bm->redraw[bm->caret_row].node->title) == 0)
+					 strlen(bm->redraw[bm->caret_row].node->title) == 0) {
 				bookmark_delete_edit_row(bm, bm->redraw[bm->caret_row].node);
+				put_caret_at_end(bm->window, bm->edit_icon);
+			}
 			break;
 		case wimp_KEY_UP:
 			bookmark_change_edit_row(bm, BOOKMARK_ABOVE, (wimp_caret *) key);
@@ -1219,7 +1221,7 @@ void bookmark_delete_edit_row(bookmark_block *bm, bookmark_node *node)
 		if (xwimp_get_caret_position(&caret) != NULL)
 			return;
 
-		if (node->next == NULL)
+		if (bm->root != node)
 			bookmark_change_edit_row(bm, BOOKMARK_ABOVE, &caret);
 		else
 			bookmark_change_edit_row(bm, BOOKMARK_BELOW, &caret);
