@@ -1074,8 +1074,11 @@ void bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *care
 
 	bookmark_insert_edit_row(bm, node, direction);
 
-	if (direction == BOOKMARK_BELOW)
-		bookmark_change_edit_row(bm, BOOKMARK_BELOW, caret);
+	if (direction == BOOKMARK_BELOW) {
+		if (!bookmark_place_edit_icon(bm, bm->caret_row+1, BOOKMARK_ICON_TITLE))
+			put_caret_at_end(bm->window, bm->edit_icon);
+
+	}
 }
 
 
