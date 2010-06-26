@@ -77,6 +77,7 @@ void		bookmark_gain_caret_handler(wimp_caret *caret);
 void		bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *caret);
 void		bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *caret);
 int		bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direction);
+void		bookmark_delete_edit_row(bookmark_block *bm, bookmark_node *node);
 void		bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node, int action);
 void		bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *contract);
 void		bookmark_tree_node_expansion(bookmark_block *bm, int expand);
@@ -947,6 +948,13 @@ void bookmark_key_handler(wimp_key *key)
 		case wimp_KEY_RETURN:
 			bookmark_insert_edit_row_from_keypress(bm, (wimp_caret *) key);
 			break;
+		case wimp_KEY_DELETE:
+		case wimp_KEY_BACKSPACE:
+			bookmark_resync_edit_with_file();
+			if (bm->caret_col == BOOKMARK_ICON_TITLE && bm->caret_row > 0 &&
+					 strlen(bm->redraw[bm->caret_row].node->title) == 0)
+				bookmark_delete_edit_row(bm, bm->redraw[bm->caret_row].node);
+			break;
 		case wimp_KEY_UP:
 			bookmark_change_edit_row(bm, BOOKMARK_ABOVE, (wimp_caret *) key);
 			break;
@@ -1221,7 +1229,7 @@ void bookmark_delete_edit_row(bookmark_block *bm, bookmark_node *node)
 
 	delete_bookmark_node(bm, node);
 	rebuild_bookmark_data(bm);
-	force_bookmark_window_redraw(bm, line + 1, -1);
+	force_bookmark_window_redraw(bm, line, -1);
 	set_bookmark_unsaved_state(bm, 1);
 }
 
