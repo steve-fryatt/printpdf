@@ -48,6 +48,7 @@ menu(bookmarks, "PrintPDF")
 			always;
 		}
 	}
+	item("Delete row");
 }
 
 /**
@@ -98,6 +99,6 @@ menu(bm_level, "Level")
 
 menu(bm_insert, "Insert")
 {
-	item("Before");
-	item("After");
+	item("Before row");
+	item("After row");
 }

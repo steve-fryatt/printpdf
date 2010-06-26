@@ -57,6 +57,7 @@ wimp_menu	*build_bookmark_menu(bookmark_params *params);
 bookmark_block	*create_bookmark_block(void);
 void		delete_bookmark_block(bookmark_block *bookmark);
 bookmark_node	*insert_bookmark_node(bookmark_block *bm, bookmark_node *before);
+void		delete_bookmark_node(bookmark_block *bm, bookmark_node *node);
 void		set_bookmark_unsaved_state(bookmark_block *bm, int unsaved);
 
 bookmark_block	*find_bookmark_window(wimp_w window);
@@ -510,6 +511,43 @@ bookmark_node *insert_bookmark_node(bookmark_block *bm, bookmark_node *before)
 	*node = new;
 
 	return new;
+}
+
+
+/**
+ * Delete a bookmark node from a block.
+ *
+ * \param  *bm			The bookmark block.
+ * \param  *node		The node to delete.
+ */
+
+void delete_bookmark_node(bookmark_block *bm, bookmark_node *node)
+{
+	bookmark_node		*parent = NULL;
+
+	if (bm == NULL || node == NULL || bm->root == NULL)
+		return;
+
+	/* Find the parent node; if parent == NULL then either the node is at
+	 * the head of the list or it wasn't in the list.
+	 */
+
+	if (bm->root != node)
+		for (parent = bm->root; parent != NULL && parent->next != node; parent = parent->next);
+
+	/* At this point, give up if the supplied node wasn't in the list. */
+
+	if (parent == NULL && bm->root != node)
+		return;
+
+	/* Unlink the node and free its memory. */
+
+	if (parent != NULL)
+		parent->next = node->next;
+	else
+		bm->root = node->next;
+
+	free(node);
 }
 
 
@@ -1124,6 +1162,67 @@ int bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direct
 	}
 
 	return status;
+}
+
+
+/**
+ * Delete a line from the bookmark window.
+ *
+ * \param  *bm			The window block.
+ * \param  *node		The node to be deleted.
+ */
+
+void bookmark_delete_edit_row(bookmark_block *bm, bookmark_node *node)
+{
+	int			i, line;
+	bookmark_node		*n;
+	wimp_caret		caret;
+
+	if (bm == NULL || node == NULL)
+		return;
+
+	/* If there's only one node, it can't be deleted. */
+
+	if (bm->root == node && node->next == NULL)
+		return;
+
+	/* Find the line in the bookmark window. */
+
+	for (line = -1; line < bm->lines && bm->redraw[line].node != node; line++);
+	if (line == -1 || bm->redraw[line].node != node)
+		return;
+
+	/* If the node was a parent, then drop all the children down a level
+	 * to compensate for its deletion.
+	 */
+
+	n = node->next;
+	i = node->count;
+
+	while (n != NULL && i > 0) {
+		n->level--;
+		n = n->next;
+		i--;
+	}
+
+	/* Move the edit line if it is in the line to be deleted. */
+
+	if (bm->caret_row == line) {
+		if (xwimp_get_caret_position(&caret) != NULL)
+			return;
+
+		if (node->next == NULL)
+			bookmark_change_edit_row(bm, BOOKMARK_ABOVE, &caret);
+		else
+			bookmark_change_edit_row(bm, BOOKMARK_BELOW, &caret);
+	}
+
+	/* Delete the line and tidy up. */
+
+	delete_bookmark_node(bm, node);
+	rebuild_bookmark_data(bm);
+	force_bookmark_window_redraw(bm, line + 1, -1);
+	set_bookmark_unsaved_state(bm, 1);
 }
 
 
@@ -1815,6 +1914,8 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 
 	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_LEVEL, row == -1);
 	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_INSERT, row == -1);
+	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_DELETE,
+			row == -1 || (bm->root == node && node->next == NULL));
 
 	shade_menu_item(menus.bookmarks_sub_view, BOOKMARK_MENU_VIEW_EXPAND, !expand);
 	shade_menu_item(menus.bookmarks_sub_view, BOOKMARK_MENU_VIEW_CONTRACT, !contract);
@@ -1927,6 +2028,8 @@ void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selectio
 			break;
 		}
 		break;
+	case BOOKMARK_MENU_DELETE:
+		bookmark_delete_edit_row(bm, bm->redraw[bm->menu_row].node);
 	}
 }
 
