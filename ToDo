@@ -4,10 +4,12 @@ PrintPDF -- ToDo List
 * Drag and drop of window lines.
 * Stagger the opening of new windows.
 * Interactive help for all new windows.
-* Change the name of a bookmark set.
+* Set bookmark toolbar name field width.
+* Scrolling windows, and scroll edit line/other operations into view.
 * Documentation.
 
 
 * Fix the line margin calculations properly.
 * Redraw promote and demote actions correctly, setting the lower redraw bound from the terminating node.
+* Lines and toolbar adjust to window width.
 

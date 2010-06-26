@@ -29,6 +29,7 @@ DepthOff:Off
 Yes:Yes
 No:No
 Unsaved:Not saved
+USTitle:<unsaved>
 
 # Bookmarks system
 
@@ -40,7 +41,8 @@ BMListMenu:Bookmarks
 DragSave:To save, enter a full pathname or drag the file to a directory viewer.
 NoQueueDir:The queue directory is invalid.
 FOpenFailed:The PDF file could not be created: does it already exist?
-UnknownFileData:The file contained unregognised tokens: some data may have been discarded.
+UnknownFileData:The file contained unrecognised tokens: some data may have been discarded.
+UnknownFileFormat:The file format version wasn't known: some data may have been lost.
 
 # ps2pdf command-line option lists.
 

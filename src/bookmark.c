@@ -93,6 +93,8 @@ int		calculate_bookmark_window_click_column(bookmark_block *bm, wimp_pointer *po
 /* Bookmark Toolbar Handling */
 
 void		bookmark_toolbar_click_handler(wimp_pointer *pointer);
+void		bookmark_toolbar_key_handler(wimp_key *key);
+void		bookmark_resync_toolbar_name_with_file(bookmark_block *bm);
 
 /* Bookmark Window Menu Handling */
 
@@ -665,9 +667,15 @@ void open_bookmark_window(bookmark_block *bm)
 
 		event_add_window_user_data(bm->toolbar, bm);
 		event_add_window_mouse_event(bm->toolbar, bookmark_toolbar_click_handler);
+		event_add_window_key_event(bm->toolbar, bookmark_toolbar_key_handler);
 		event_add_window_menu(bm->toolbar, menus.bookmarks,
 				bookmark_menu_prepare, bookmark_menu_selection,
 				NULL, bookmark_menu_warning);
+
+		/* Set up the toolbar. */
+
+		bookmark_toolbar_set_expansion_icons(bm, NULL, NULL);
+		icon_strncpy(bm->toolbar, BOOKMARK_TB_NAME, bm->name);
 
 		/* Open the window and toolbar. */
 
@@ -675,8 +683,6 @@ void open_bookmark_window(bookmark_block *bm)
 		open_window(bm->window);
 		open_window_nested_as_toolbar(bm->toolbar, bm->window,
 				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
-
-		bookmark_toolbar_set_expansion_icons(bm, NULL, NULL);
 
 		/* Place the caret. */
 
@@ -1396,16 +1402,18 @@ void bookmark_resync_edit_with_file(void)
 
 void update_bookmark_window_title(bookmark_block *bm)
 {
-	char		*asterisk;
+	char		*asterisk, buf[256];
 
 	asterisk = (bm->unsaved) ? " *" : "";
 
-	if (strlen(bm->filename) > 0)
+	if (strlen(bm->filename) > 0) {
 		snprintf(bm->window_title, MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10,
-				"%s (%s)%s", bm->filename, bm->name, asterisk);
-	else
+				"%s%s", bm->filename, asterisk);
+	} else {
+		msgs_lookup("USTitle", buf, sizeof(buf));
 		snprintf(bm->window_title, MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10,
-				"%s%s", bm->name, asterisk);
+				"%s%s", buf, asterisk);
+	}
 
 	xwimp_force_redraw_title(bm->window);
 }
@@ -1678,14 +1686,70 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 		bookmark_change_edit_row_indentation(bm, bm->redraw[bm->caret_row].node, (int) pointer->i);
 		break;
 	case BOOKMARK_TB_EXPAND:
-		 bookmark_tree_node_expansion(bm, 1);
-		 break;
+		bookmark_tree_node_expansion(bm, 1);
+		break;
 	case BOOKMARK_TB_CONTRACT:
-		 bookmark_tree_node_expansion(bm, 0);
-		 break;
+		bookmark_tree_node_expansion(bm, 0);
+		break;
 	}
 }
 
+
+/**
+ * Callback handler for Wimp Key events in the toolbar.
+ *
+ * \param  *key			The associated wimp event block.
+ */
+
+void bookmark_toolbar_key_handler(wimp_key *key)
+{
+	bookmark_block		*bm;
+
+	bm = (bookmark_block *) event_get_window_user_data(key->w);
+	if (bm == NULL)
+		return;
+
+	switch (key->c) {
+	case wimp_KEY_RETURN:
+	case wimp_KEY_TAB:
+		bookmark_place_edit_icon(bm, 0, BOOKMARK_ICON_TITLE);
+		break;
+	default:
+		bookmark_resync_toolbar_name_with_file(bm);
+		break;
+	}
+
+	/* Pass on combinations of F12 to the rest of the Wimp.  This is ugly,
+	 * but doing it "right" would require working out if the key was used
+	 * by the code above -- not easy.
+	 */
+
+	if ((key->c == wimp_KEY_F12) ||
+			(key->c == (wimp_KEY_F12 | wimp_KEY_SHIFT)) ||
+			(key->c == (wimp_KEY_F12 | wimp_KEY_CONTROL)) ||
+			(key->c == (wimp_KEY_F12 | wimp_KEY_SHIFT | wimp_KEY_CONTROL)))
+		wimp_process_key(key->c);
+}
+
+
+/**
+ * Resync the toolbar name field with the stored name.
+ *
+ * \param  *bm			The window to resync.
+ */
+
+void bookmark_resync_toolbar_name_with_file(bookmark_block *bm)
+{
+	if (bm == NULL)
+		return;
+
+	if (strcmp(indirected_icon_text(bm->toolbar, BOOKMARK_TB_NAME),
+			bm->name) != 0) {
+		strncpy(bm->name, indirected_icon_text(bm->toolbar, BOOKMARK_TB_NAME),
+				MAX_BOOKMARK_BLOCK_NAME);
+		set_bookmark_unsaved_state(bm, 1);
+	}
+}
 
 /* ****************************************************************************
  * Bookmark Window Menu Handling
@@ -2098,6 +2162,7 @@ void save_bookmark_file(bookmark_block *bm, char *filename)
 	/* Write the bookmarks section. */
 
 	fprintf(out, "[Bookmarks]\n");
+	fprintf(out, "Name: %s\n", bm->name);
 
 	node = bm->root;
 
@@ -2142,7 +2207,7 @@ void load_bookmark_file(char *filename)
 	FILE			*in;
 	bookmark_block		*block;
 	bookmark_node		*current, *new;
-	int			result, bookmarks = 0, unknown_data = 0;
+	int			result, bookmarks = 0, unknown_data = 0, unknown_format = 0;
 	char			section[BOOKMARK_FILE_LINE_LEN], token[BOOKMARK_FILE_LINE_LEN], value[BOOKMARK_FILE_LINE_LEN];
 	bits			load, exec;
 
@@ -2185,7 +2250,9 @@ void load_bookmark_file(char *filename)
 			bookmarks = (strcmp_no_case(section, "Bookmarks") == 0);
 
 		if (bookmarks) {
-			if (strcmp_no_case(token, "@") == 0) {
+			if (strcmp_no_case(token, "Name") == 0) {
+				strncpy(block->name, value, MAX_BOOKMARK_BLOCK_NAME);
+			} else if (strcmp_no_case(token, "@") == 0) {
 				new = (bookmark_node *) malloc(sizeof(bookmark_node));
 
 				if (new != NULL) {
@@ -2223,6 +2290,13 @@ void load_bookmark_file(char *filename)
 			} else {
 				unknown_data = 1;
 			}
+		} else {
+			if (strcmp_no_case(token, "Format") == 0) {
+				if (strcmp(value, "1.00") != 0)
+					unknown_format = 1;
+			} else {
+				unknown_data = 1;
+			}
 		}
 	}
 
@@ -2232,6 +2306,9 @@ void load_bookmark_file(char *filename)
 
 	if (unknown_data)
 		wimp_msgtrans_info_report ("UnknownFileData");
+
+	if (unknown_format)
+		wimp_msgtrans_info_report ("UnknownFileFormat");
 
 	rebuild_bookmark_data(block);
 	open_bookmark_window(block);

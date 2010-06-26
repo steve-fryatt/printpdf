@@ -62,13 +62,15 @@
 
 /* Bookmark Toolbar icons. */
 
-#define BOOKMARK_TB_SAVE     0
-#define BOOKMARK_TB_DEMOTEG  1
-#define BOOKMARK_TB_DEMOTE   2
-#define BOOKMARK_TB_PROMOTE  3
-#define BOOKMARK_TB_PROMOTEG 4
-#define BOOKMARK_TB_EXPAND   5
-#define BOOKMARK_TB_CONTRACT 6
+#define BOOKMARK_TB_NAME 0
+
+#define BOOKMARK_TB_SAVE     1
+#define BOOKMARK_TB_DEMOTEG  2
+#define BOOKMARK_TB_DEMOTE   3
+#define BOOKMARK_TB_PROMOTE  4
+#define BOOKMARK_TB_PROMOTEG 5
+#define BOOKMARK_TB_EXPAND   6
+#define BOOKMARK_TB_CONTRACT 7
 
 /* Save As Dialogue icons. */
 
