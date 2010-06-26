@@ -75,7 +75,7 @@ void		bookmark_lose_caret_handler(wimp_caret *caret);
 void		bookmark_gain_caret_handler(wimp_caret *caret);
 void		bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *caret);
 void		bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *caret);
-void		bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direction);
+int		bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direction);
 void		bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node, int action);
 void		bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *contract);
 void		bookmark_tree_node_expansion(bookmark_block *bm, int expand);
@@ -1073,6 +1073,8 @@ void bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *care
 
 	node = bm->redraw[bm->caret_row].node;
 
+	debug_printf("Insert node 0x%x with action %d", node, direction);
+
 	bookmark_insert_edit_row(bm, node, direction);
 
 	if (direction == BOOKMARK_BELOW)
@@ -1086,19 +1088,24 @@ void bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *care
  *
  * \param  *bm			The bookmark window concerned.
  * \param  *caret		A block detailing the current caret position.
+ * \return			0 if a line was inserted; else 1;
  */
 
-void bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direction)
+int bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direction)
 {
 	bookmark_node		*new;
-	int			line;
+	int			line, status = 1;
 
 	if (bm == NULL || node == NULL)
-		return;
+		return status;
 
-	for (line = 0; line < bm->lines && bm->redraw[line].node != node; line++);
-	if (line == 0 || bm->redraw[line].node != node)
-		return;
+	debug_printf("Inserting node 0x%x", node);
+
+	for (line = -1; line < bm->lines && bm->redraw[line].node != node; line++);
+	if (line == -1 || bm->redraw[line].node != node)
+		return status;
+
+	debug_printf("Node resides at line %d", line);
 
 	if (direction == BOOKMARK_ABOVE) {
 		new = insert_bookmark_node(bm, node);
@@ -1107,6 +1114,7 @@ void bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direc
 			rebuild_bookmark_data(bm);
 			force_bookmark_window_redraw(bm, line, -1);
 			set_bookmark_unsaved_state(bm, 1);
+			status = 0;
 		}
 	} else if (direction == BOOKMARK_BELOW) {
 		new = insert_bookmark_node(bm, ((line+1) < bm->lines) ? bm->redraw[line+1].node : NULL);
@@ -1115,8 +1123,11 @@ void bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direc
 			rebuild_bookmark_data(bm);
 			force_bookmark_window_redraw(bm, line + 1, -1);
 			set_bookmark_unsaved_state(bm, 1);
+			status = 0;
 		}
 	}
+
+	return status;
 }
 
 
@@ -1912,8 +1923,8 @@ void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selectio
 	case BOOKMARK_MENU_INSERT:
 		switch (selection->items[1]) {
 		case BOOKMARK_MENU_INSERT_ABOVE:
-			bookmark_insert_edit_row(bm, bm->redraw[bm->menu_row].node, BOOKMARK_ABOVE);
-			bm->menu_row++;
+			if (!bookmark_insert_edit_row(bm, bm->redraw[bm->menu_row].node, BOOKMARK_ABOVE))
+				bm->menu_row++;
 			break;
 		case BOOKMARK_MENU_INSERT_BELOW:
 			bookmark_insert_edit_row(bm, bm->redraw[bm->menu_row].node, BOOKMARK_BELOW);
