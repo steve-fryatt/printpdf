@@ -1960,12 +1960,10 @@ void prepare_file_info_window(bookmark_block *bm)
 	if (bm == NULL)
 		return;
 
-	strncpy(indirected_icon_text(windows.file_info, FILEINFO_ICON_NAME), bm->name,
-			indirected_icon_length(windows.file_info, FILEINFO_ICON_NAME));
+	icon_strncpy(windows.file_info, FILEINFO_ICON_NAME, bm->name);
 
 	if (strlen(bm->filename) > 0) {
-		strncpy(indirected_icon_text(windows.file_info, FILEINFO_ICON_LOCATION), bm->filename,
-				indirected_icon_length(windows.file_info, FILEINFO_ICON_LOCATION));
+		icon_strncpy(windows.file_info, FILEINFO_ICON_LOCATION, bm->filename);
 		territory_convert_standard_date_and_time (territory_CURRENT, (os_date_and_time const *) bm->datestamp,
 				indirected_icon_text(windows.file_info, FILEINFO_ICON_DATE),
 				indirected_icon_length(windows.file_info, FILEINFO_ICON_DATE));
