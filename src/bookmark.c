@@ -856,7 +856,7 @@ void bookmark_click_handler(wimp_pointer *pointer)
 	os_error		*error;
 
 	bm = (bookmark_block *) event_get_window_user_data(pointer->w);
-	if (bm == NULL)
+	if (bm == NULL || bm->window != pointer->w)
 		return;
 
 	state.w = pointer->w;
@@ -864,12 +864,11 @@ void bookmark_click_handler(wimp_pointer *pointer)
 	if (error != NULL)
 		return;
 
-
 	row = calculate_bookmark_window_click_row(bm, pointer, &state);
 	col = calculate_bookmark_window_click_column(bm, pointer, &state);
 
 	x = pointer->pos.x - state.visible.x0 + state.xscroll;
-	y = state.visible.y1 - pointer->pos.y + state.yscroll;
+	y = pointer->pos.y - state.visible.y1 + state.yscroll;
 
 	if (row != -1 && col != -1) {
 		node = bm->redraw[row].node;
@@ -1073,8 +1072,6 @@ void bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *care
 
 	node = bm->redraw[bm->caret_row].node;
 
-	debug_printf("Insert node 0x%x with action %d", node, direction);
-
 	bookmark_insert_edit_row(bm, node, direction);
 
 	if (direction == BOOKMARK_BELOW)
@@ -1099,13 +1096,9 @@ int bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direct
 	if (bm == NULL || node == NULL)
 		return status;
 
-	debug_printf("Inserting node 0x%x", node);
-
 	for (line = -1; line < bm->lines && bm->redraw[line].node != node; line++);
 	if (line == -1 || bm->redraw[line].node != node)
 		return status;
-
-	debug_printf("Node resides at line %d", line);
 
 	if (direction == BOOKMARK_ABOVE) {
 		new = insert_bookmark_node(bm, node);
@@ -1612,7 +1605,7 @@ int calculate_bookmark_window_click_row(bookmark_block *bm, wimp_pointer *pointe
 	if (bm == NULL || state == NULL)
 		return -1;
 
-	y = state->visible.y1 - pointer->pos.y + state->yscroll;
+	y = state->visible.y1 - pointer->pos.y - state->yscroll;
 
 	row = (y - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
 	row_y_pos = ((y - BOOKMARK_TOOLBAR_HEIGHT) % BOOKMARK_LINE_HEIGHT) - BOOKMARK_LINE_OFFSET;
