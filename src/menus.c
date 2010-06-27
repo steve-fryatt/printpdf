@@ -20,6 +20,7 @@
 #include "sflib/menus.h"
 #include "sflib/icons.h"
 #include "sflib/msgs.h"
+#include "sflib/event.h"
 #include "sflib/debug.h"
 #include "sflib/config.h"
 #include "sflib/windows.h"
@@ -76,6 +77,10 @@ void load_menu_definitions(char *menu_file)
 		menus.bookmarks_sub_level = menu_list[4];
 		menus.bookmarks_sub_insert = menu_list[5];
 	}
+
+	/* Register the current_menu pointer with eventlib. */
+
+	event_set_menu_pointer(&(menus.menu_up));
 }
 
 /* ================================================================================================================== */

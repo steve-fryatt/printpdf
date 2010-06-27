@@ -190,8 +190,6 @@ Help.BookmarkTB.Promote:\Sincrease the nesting level of the bookmark with the ca
 Help.BookmarkTB.Demote:\Sdecrease the nesting level of the bookmark with the caret.
 Help.BookmarkTB.PromoteG:\Sincrease the nesting level of the bookmark with the caret and those that follow it.
 Help.BookmarkTB.DemoteG:\Sdecrease the nesting level of the bookmark with the caret and those that follow it.
-Help.BookmarkTB.Expand:\Sexpand and show all the bookmark nodes.
-Help.BookmarkTB.Contract:\Scontract all the bookmark nodes, leaving only the top level ones visible.
 
 Help.FileInfo:\Tbookmark file information \w, which shows details about the current file.
 Help.FileInfo.Name:\Tname of the bookmarks in the file.
@@ -221,5 +219,14 @@ Help.BookmarkMenu.00:\Rperform operations on and see information about this file
 Help.BookmarkMenu.0000:\Rsee information about this file.
 Help.BookmarkMenu.0001:\Rsave this file.|M\Sdirectly save the file to its current location.
 Help.BookmarkMenu.01:\Ralter the current view.
-Help.BookmarkMenu.0100:\Sopen all of the nested groups to display all the nodes.
-Help.BookmarkMenu.0101:\Sclose all of the nested groups to only display the top-level nodes.
+Help.BookmarkMenu.0100/Help.BookmarkTB.Expand:\Sopen all of the nested groups and display all the bookmarks.
+Help.BookmarkMenu.0101/Help.BookmarkTB.Contract:\Sclose all of the nested groups and only display the top-level bookmarks.
+Help.BookmarkMenu.02:\Rchange the indentation of the highlighted bookmark.
+Help.BookmarkMenu.0200:\Sincrease the nesting level of the highlighted bookmark.
+Help.BookmarkMenu.0201:\Sdecrease the nesting level of the highlighted bookmark.
+Help.BookmarkMenu.0202:\Sincrease the nesting level of the highlighted bookmark and those that follow it.
+Help.BookmarkMenu.0203:\Sdecrease the nesting level of the highlighted bookmark and those that follow it.
+Help.BookmarkMenu.03:\Rinsert new bookmarks.
+Help.BookmarkMenu.0300:\Sinsert a new bookmark above the highlighted one.
+Help.BookmarkMenu.0301:\Sinsert a new bookmark below the highlighted one.
+Help.BookmarkMenu.04:\Sdelete the highlighted bookmark.

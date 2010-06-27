@@ -36,72 +36,65 @@
  * Global variables.
  */
 
-static ihelp_window *windows = NULL;
+static ihelp_window	*windows = NULL;
 
 /* ==================================================================================================================
  * Adding and removing windows
  */
 
-void add_ihelp_window (wimp_w window, char* name, void (*decode) (char *, wimp_w, wimp_i, os_coord, wimp_mouse_state))
+void add_ihelp_window(wimp_w window, char* name, void (*decode) (char *, wimp_w, wimp_i, os_coord, wimp_mouse_state))
 {
-  ihelp_window *new;
+	ihelp_window	*new;
 
-  if (find_ihelp_window (window) == NULL)
-  {
-    new = malloc (sizeof (ihelp_window));
+	if (find_ihelp_window(window) == NULL) {
+		new = malloc(sizeof(ihelp_window));
 
-    if (new != NULL)
-    {
-      new->window = window;
-      strcpy (new->name, name);
-      new->pointer_location = decode;
+		if (new != NULL) {
+			new->window = window;
+			strcpy (new->name, name);
+			new->pointer_location = decode;
 
-      new->next = windows;
-      windows = new;
-    }
-  }
+			new->next = windows;
+			windows = new;
+		}
+	}
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-void remove_ihelp_window (wimp_w window)
+void remove_ihelp_window(wimp_w window)
 {
-  ihelp_window **list, *del;
+	ihelp_window	**list, *del;
 
-  /* Delink the block and delete it. */
+	/* Delink the block and delete it. */
 
-  list = &windows;
+	list = &windows;
 
-  while (*list != NULL && (*list)->window != window)
-  {
-    list = &((*list)->next);
-  }
+	while (*list != NULL && (*list)->window != window)
+		list = &((*list)->next);
 
-  if (*list != NULL)
-  {
-    del = *list;
+	if (*list != NULL) {
+		del = *list;
 
-    *list = del->next;
-    free (del);
-  }
+		*list = del->next;
+		free(del);
+	}
 }
 
 /* ==================================================================================================================
  * Finding windows
  */
 
-ihelp_window *find_ihelp_window (wimp_w window)
+ihelp_window *find_ihelp_window(wimp_w window)
 {
-  ihelp_window *list;
+	ihelp_window		*list;
 
-  list = windows;
+	list = windows;
 
-  while (list != NULL && list->window != window)
-  {
-    list = list->next;
-  }
+	while (list != NULL && list->window != window)
+		list = list->next;
 
-  return (list);
+	return list;
 }
 
 /* ==================================================================================================================
