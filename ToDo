@@ -2,11 +2,9 @@ PrintPDF -- ToDo List
 ---------------------
 
 * Stagger the opening of new windows.
-* Interactive help for all new windows.
 * Set bookmark toolbar name field width.
-* Scrolling windows, and scroll edit line/other operations into view.
 * Window dimensions at opening.
-* Documentation.
+* Scrolling windows, and scroll edit line/other operations into view.
 
 
 * Fix the line margin calculations properly.

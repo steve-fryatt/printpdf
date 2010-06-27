@@ -1,6 +1,6 @@
 <document title="PrintPDF">
 <define name="version" value="0.80">
-<define name="date" value="8 June 2010" length=30 align="right">
+<define name="date" value="27 June 2010" length=30 align="right">
 
 
 
@@ -242,6 +242,29 @@ It is also possible to convert PostScript files which already exist on disc, by 
 
 <chapter title="Bookmark Editor" file="BMark">
 
+The bookmark editor is used to create sets of bookmarks, which can used when generating PDF files. Bookmarks are links to pages within a PDF document, and most PDF viewers can be made to display them and allow the user to follow them.
+
+<cite>PrintPDF</cite> allows files containing sets of bookmarks to be created and maintained: these can then be loaded when their associated document is printed to PDF, and used in the conversion. To create a new bookmarks file, click <mouse>select</mouse> on <cite>PrintPDF</cite>'s iconbar icon.
+
+A bookmarks file consists of a series of bookmark entries, each consisting of a title and a page number. A new file initially contains a single line, but more can be inserted using <menu>Insert - Before row</menu> and <menu>Insert - After row</menu> from the bookmarks menu, by pressing <key>tab</key> in the page number column, or by pressing <key>return</key>. Lines can be deleted by using <menu>Delete row</menu> from the menu, or by pressing <key>backspace</key> in an empty title cell (ie. deleting back out of the empty cell).
+
+A set of bookmarks is given a name using the <icon>name</icon> field in the toolbar: this is used to identify the bookmarks during PDF creation.
+
+
+<subhead title="Saving and loading bookmarks">
+
+Sets of bookmarks can be saved using the <icon>save</icon> button in the toolbar or by selecting <menu>File - Save</menu> from the menu. Once saved, files can be loaded back into the editor by double-clicking on them in the usual manner.
+
+In order to use a set of bookmarks in the PDF creation process, the bookmarks file must be open in the bookmarks editor.
+
+
+<subhead title="Nesting bookmarks">
+
+Although bookmarks can consist of a simple list of references, the PDF format allows them to be nested. This means that top-level bookmarks (chapter headings, if you like) can have children under them (sub headings) and these can in turn have their own children, and so on. In this chapter of the <cite>PrintPDF</cite> manual, for example, the top-level bookmark would be "Bookmark Editor", while it would have children of "Saving and loading bookmarks", "Nesting bookmarks", and so on.
+
+To create nested bookmark entries, create a normal bookmark entry and use <menu>Level - Promote</menu> from the menu or click on the <icon>promote</icon> toolbar button to indent it. The bookmark will gain a <icon>node</icon> to its left, showing that it now has a child: as such, the first bookmark in the list can never be indented. The process can be reversed using <menu>Level - Demote</menu> or the <icon>demote</icon> button in the toolbar. The <menu>Promote all</menu> and <menu>Demote all</menu> options are similar in action, but try to promote and demote logical groups of bookmarks following the selected one.
+
+Clicking on the <icon>node</icon> buttons to the left of the parent bookmarks allows their children to be hidden or revealed. These settings are saved in the file and carried across to the finished PDF. <menu>View - Expand all</menu> and <menu>View - Contract all</menu>, along with the associated toolbar buttons, will cause the bookmarks to become fully expanded or fully contracted.
 
 
 </chapter>
@@ -472,7 +495,7 @@ Update to seventh beta release.
 </list>
 
 
-<subhead title="0.80 (8 June 2010)">
+<subhead title="0.80 (27 June 2010)">
 
 Eighth beta release.
 
