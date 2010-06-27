@@ -179,6 +179,32 @@ Help.Choices.TaskMem:\Tamount of memory in kilobytes which is allocated to Ghost
 
 Help.PopUp:This \w is indicating a message from PrintPDF.
 
+Help.Bookmark/Help.BookmarkTB:\TPrintPDF bookmark editor.
+Help.Bookmark.Col0:\Stoggle this node between expanded and contracted.
+Help.Bookmark.Col1:\Tbookmark name column.|M\Splace the caret, or drag to move the row to another position.
+Help.Bookmark.Col2:\Tbookmark page number column.|M\Splace the caret, or drag to move the row to another position.
+
+Help.BookmarkTB.Name:\Tname of the bookmarks in the file, as used in the Create PDF \w.
+Help.BookmarkTB.Save:\Sto save the bookmarks via the file save \w.|M\Asave the file directly to its current location.
+Help.BookmarkTB.Promote:\Sincrease the nesting level of the bookmark with the caret.
+Help.BookmarkTB.Demote:\Sdecrease the nesting level of the bookmark with the caret.
+Help.BookmarkTB.PromoteG:\Sincrease the nesting level of the bookmark with the caret and those that follow it.
+Help.BookmarkTB.DemoteG:\Sdecrease the nesting level of the bookmark with the caret and those that follow it.
+Help.BookmarkTB.Expand:\Sexpand and show all the bookmark nodes.
+Help.BookmarkTB.Contract:\Scontract all the bookmark nodes, leaving only the top level ones visible.
+
+Help.FileInfo:\Tbookmark file information \w, which shows details about the current file.
+Help.FileInfo.Name:\Tname of the bookmarks in the file.
+Help.FileInfo.Location:\Tfull pathname of the file's location on disc.
+Help.FileInfo.Mod:This shows whether the file has been changed since it was last saved.
+Help.FileInfo.Date:\Tdate when the file was last saved.
+
+Help.SaveAs:\Tfile save \w.
+Help.SaveAs.Icon3:Drag this icon to the directory display where the file is to be saved, or direct to another application.
+Help.SaveAs.Name:Enter a new filename, or full pathname, for the file here.
+Help.SaveAs.Save:\Ssave the file if there is a full pathname above.
+Help.SaveAs.Cancel:\Scancel the save.
+
 # Interactive help for menus.
 #
 # Where duplicate menu entries exist, items may be grouped and numbering will not be contiguous.
@@ -190,3 +216,10 @@ Help.IconBarMenu.03:\Schange the PrintPDF options.
 Help.IconBarMenu.04:\Squit PrintPDF.
 
 Help.ParamsMenu.??:\Tlist of available options.|M\Schoose the one under the pointer.
+
+Help.BookmarkMenu.00:\Rperform operations on and see information about this file.
+Help.BookmarkMenu.0000:\Rsee information about this file.
+Help.BookmarkMenu.0001:\Rsave this file.|M\Sdirectly save the file to its current location.
+Help.BookmarkMenu.01:\Ralter the current view.
+Help.BookmarkMenu.0100:\Sopen all of the nested groups to display all the nodes.
+Help.BookmarkMenu.0101:\Sclose all of the nested groups to only display the top-level nodes.

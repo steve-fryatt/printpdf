@@ -110,7 +110,7 @@ ihelp_window *find_ihelp_window (wimp_w window)
 
 char *find_ihelp (char *buffer, wimp_w window, wimp_i icon, os_coord pos, wimp_mouse_state buttons)
 {
-  char           help_text[IHELP_LENGTH], token[128], icon_name[64];
+  char           help_text[IHELP_LENGTH], token[128], icon_name[IHELP_INAME_LEN];
   ihelp_window   *win_data;
   wimp_selection menu_selection;
   int            found, i;

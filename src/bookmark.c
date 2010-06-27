@@ -38,6 +38,7 @@
 
 #include "convert.h"
 #include "dataxfer.h"
+#include "ihelp.h"
 #include "menus.h"
 #include "pdfmark.h"
 #include "pmenu.h"
@@ -69,6 +70,7 @@ bookmark_block	*find_bookmark_block(bookmark_block *block);
 
 void		open_bookmark_window(bookmark_block *bm);
 void		close_bookmark_window(wimp_close *close);
+void		decode_bookmark_window_help(char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons);
 void		redraw_bookmark_window(wimp_draw *redraw);
 void		bookmark_click_handler(wimp_pointer *pointer);
 void		bookmark_key_handler(wimp_key *key);
@@ -89,8 +91,8 @@ void		force_bookmark_window_redraw(bookmark_block *bm, int from, int to);
 void		set_bookmark_window_extent(bookmark_block *bm);
 void		set_bookmark_window_columns(bookmark_block *bm);
 void		calculate_bookmark_window_row_start(bookmark_block *bm, int row);
-int		calculate_bookmark_window_click_row(bookmark_block *bm, wimp_pointer *pointer, wimp_window_state *state);
-int		calculate_bookmark_window_click_column(bookmark_block *bm, wimp_pointer *pointer, wimp_window_state *state);
+int		calculate_bookmark_window_click_row(bookmark_block *bm, os_coord *pos, wimp_window_state *state);
+int		calculate_bookmark_window_click_column(bookmark_block *bm, os_coord *pos, wimp_window_state *state);
 void		bookmark_line_drag(bookmark_block *bm, int line);
 void		bookmark_terminate_line_drag(wimp_dragged *drag, void *data);
 
@@ -721,6 +723,11 @@ void open_bookmark_window(bookmark_block *bm)
 				bookmark_menu_prepare, bookmark_menu_selection,
 				NULL, bookmark_menu_warning);
 
+		/* Register for interactive help. */
+
+		add_ihelp_window(bm->window, "Bookmark", decode_bookmark_window_help);
+		add_ihelp_window(bm->toolbar, "BookmarkTB", NULL);
+
 		/* Set up the toolbar. */
 
 		bookmark_toolbar_set_expansion_icons(bm, NULL, NULL);
@@ -757,6 +764,10 @@ void close_bookmark_window(wimp_close *close)
 		wimp_delete_window(bm->window);
 		wimp_delete_window(bm->toolbar);
 		event_delete_window(bm->window);
+		event_delete_window(bm->toolbar);
+
+		remove_ihelp_window(bm->window);
+		remove_ihelp_window(bm->toolbar);
 
 		if (bookmarks_edit == bm)
 			bookmarks_edit = NULL;
@@ -765,6 +776,39 @@ void close_bookmark_window(wimp_close *close)
 	}
 }
 
+
+/**
+ * Callback to decode interactive help in the bookmarks window.
+ *
+ * \param  *buffer			Buffer to take the help token.
+ * \param  w				The wimp window handle.
+ * \param  i				The wimp icon handle.
+ * \param  pos				The pointer coordinates.
+ * \param  buttons			The mouse button state.
+ */
+
+void decode_bookmark_window_help(char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons)
+{
+	int			col;
+	bookmark_block		*bm;
+	wimp_window_state	state;
+
+	/* This isn't an event-lib callback, but this should still be OK. */
+
+	bm = (bookmark_block *) event_get_window_user_data(w);
+
+	if (bm == NULL)
+		return;
+
+	state.w = w;
+	if (xwimp_get_window_state(&state) != NULL)
+		return;
+
+	col = calculate_bookmark_window_click_column(bm, &pos, &state);
+
+	if (col != -1)
+		snprintf(buffer, IHELP_INAME_LEN, "Col%d", col);
+}
 
 /**
  * Callback to handle redraw events on a bookmark window.
@@ -898,8 +942,8 @@ void bookmark_click_handler(wimp_pointer *pointer)
 	if (error != NULL)
 		return;
 
-	row = calculate_bookmark_window_click_row(bm, pointer, &state);
-	col = calculate_bookmark_window_click_column(bm, pointer, &state);
+	row = calculate_bookmark_window_click_row(bm, &(pointer->pos), &state);
+	col = calculate_bookmark_window_click_column(bm, &(pointer->pos), &state);
 
 	x = pointer->pos.x - state.visible.x0 + state.xscroll;
 	y = pointer->pos.y - state.visible.y1 + state.yscroll;
@@ -1706,14 +1750,14 @@ void calculate_bookmark_window_row_start(bookmark_block *bm, int row)
  * \return			The row (from 0) or -1 if none.
  */
 
-int calculate_bookmark_window_click_row(bookmark_block *bm, wimp_pointer *pointer, wimp_window_state *state)
+int calculate_bookmark_window_click_row(bookmark_block *bm, os_coord *pos, wimp_window_state *state)
 {
 	int			y, row, row_y_pos;
 
 	if (bm == NULL || state == NULL)
 		return -1;
 
-	y = state->visible.y1 - pointer->pos.y - state->yscroll;
+	y = state->visible.y1 - pos->y - state->yscroll;
 
 	row = (y - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
 	row_y_pos = ((y - BOOKMARK_TOOLBAR_HEIGHT) % BOOKMARK_LINE_HEIGHT) - BOOKMARK_LINE_OFFSET;
@@ -1736,19 +1780,19 @@ int calculate_bookmark_window_click_row(bookmark_block *bm, wimp_pointer *pointe
  * \return			The column (from 0) or -1 if none.
  */
 
-int calculate_bookmark_window_click_column(bookmark_block *bm, wimp_pointer *pointer, wimp_window_state *state)
+int calculate_bookmark_window_click_column(bookmark_block *bm, os_coord *pos, wimp_window_state *state)
 {
 	int			i, x, row, col;
 
 	if (bm == NULL || state == NULL)
 		return -1;
 
-	row = calculate_bookmark_window_click_row(bm, pointer, state);
+	row = calculate_bookmark_window_click_row(bm, pos, state);
 
 	if (row < 0 || row >= bm->lines)
 		return -1;
 
-	x = pointer->pos.x - state->visible.x0 + state->xscroll;
+	x = pos->x - state->visible.x0 + state->xscroll;
 
 	calculate_bookmark_window_row_start(bm, row);
 	col = -1;
@@ -1758,6 +1802,13 @@ int calculate_bookmark_window_click_column(bookmark_block *bm, wimp_pointer *poi
 			col = i;
 			break;
 		}
+
+	/* If there isn't an expansion icon on this row, set the column to -1
+	 * if we're over that area.
+	 */
+
+	if (col == BOOKMARK_ICON_EXPAND && bm->redraw[row].node->count == 0)
+		col = -1;
 
 	return col;
 }
@@ -2081,7 +2132,7 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 		state.w = pointer->w;
 		error = xwimp_get_window_state(&state);
 		if (error == NULL)
-			row = calculate_bookmark_window_click_row(bm, pointer, &state);
+			row = calculate_bookmark_window_click_row(bm, &(pointer->pos), &state);
 		else
 			row = -1;
 	}

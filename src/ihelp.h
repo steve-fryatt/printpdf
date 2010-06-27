@@ -11,6 +11,7 @@
  */
 
 #define IHELP_LENGTH 236
+#define IHELP_INAME_LEN 64
 
 /* ==================================================================================================================
  * Data structures
@@ -25,6 +26,14 @@ typedef struct ihelp_window
   struct ihelp_window *next;
 }
 ihelp_window;
+
+typedef struct ihelp_menu {
+	wimp_menu	*menu;
+	char		name[13];
+	void		(*pointer_location) (char *, wimp_w, wimp_i, os_coord, wimp_mouse_state);
+
+  struct ihelp_menu	*next;
+} ihelp_menu;
 
 /* ==================================================================================================================
  * Function prototypes.
