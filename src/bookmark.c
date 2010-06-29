@@ -1438,6 +1438,7 @@ void bookmark_tree_node_expansion(bookmark_block *bm, int expanded)
 
 int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 {
+	wimp_window_state		state;
 	size_t				buf_len;
 	wimp_icon_create		icon;
 	extern global_windows		windows;
@@ -1489,9 +1490,26 @@ int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 		bm->caret_col = col;
 	} else {
 		bm->edit_icon = wimp_ICON_WINDOW;
+		return 1;
 	}
 
-	return (bm->edit_icon == wimp_ICON_WINDOW) ? 1 : 0;
+	/* Scroll the icon into view, if necessary. */
+
+	state.w = bm->window;
+	if (xwimp_get_window_state(&state) != NULL)
+		return 0;
+
+	if (icon.icon.extent.y1 > (state.yscroll - BOOKMARK_TOOLBAR_HEIGHT)) {
+		/* The icon is off the top of the visible area. */
+		state.yscroll = icon.icon.extent.y1 + BOOKMARK_TOOLBAR_HEIGHT;
+		xwimp_open_window((wimp_open *) &state);
+	} else if (icon.icon.extent.y0 < (state.yscroll + (state.visible.y0-state.visible.y1))) {
+		/* The icon if off the bottom of the visible area. */
+		state.yscroll = icon.icon.extent.y0 - (state.visible.y0-state.visible.y1);
+		xwimp_open_window((wimp_open *) &state);
+	}
+
+	return 0;
 }
 
 
