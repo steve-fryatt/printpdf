@@ -959,7 +959,6 @@ void bookmark_click_handler(wimp_pointer *pointer)
 			rebuild_bookmark_data(bm);
 			force_bookmark_window_redraw(bm, row, -1);
 			set_bookmark_unsaved_state(bm, 1);
-			bookmark_toolbar_set_expansion_icons(bm, NULL, NULL);
 		} else if (col >= BOOKMARK_ICON_TITLE && pointer->buttons == wimp_CLICK_SELECT) {
 			if (!bookmark_place_edit_icon(bm, row, col))
 				wimp_set_caret_position(bm->window, bm->edit_icon, x, y, -1, -1);
@@ -1372,7 +1371,7 @@ void bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *
 	bookmark_node		*node;
 	int			e=0, c=0;
 
-	if (bm == NULL)
+	if (bm == NULL || bm->toolbar == NULL)
 		return;
 
 	for (node = bm->root; node != NULL; node = node->next) {
@@ -1422,7 +1421,6 @@ void bookmark_tree_node_expansion(bookmark_block *bm, int expanded)
 	rebuild_bookmark_data(bm);
 	set_bookmark_unsaved_state(bm, 1);
 	force_bookmark_window_redraw(bm, -1, -1);
-	bookmark_toolbar_set_expansion_icons(bm, NULL, NULL);
 }
 
 
@@ -1643,7 +1641,7 @@ void set_bookmark_window_extent(bookmark_block *bm)
 	wimp_window_info	info;
 	os_error		*error;
 
-	if (bm == NULL && bm->window != NULL)
+	if (bm == NULL || bm->window == NULL)
 		return;
 
 	info.w = bm->window;
@@ -2775,6 +2773,7 @@ void rebuild_bookmark_data(bookmark_block *bm)
 	}
 
 	set_bookmark_window_extent(bm);
+	bookmark_toolbar_set_expansion_icons(bm, NULL, NULL);
 
 	/* If there was an edit icon, find its new home and restore it. */
 
