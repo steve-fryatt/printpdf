@@ -24,6 +24,7 @@
 
 #include "sflib/config.h"
 #include "sflib/icons.h"
+#include "sflib/general.h"
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
 #include "sflib/string.h"
@@ -683,6 +684,10 @@ void create_new_bookmark_window(wimp_pointer *pointer)
 
 void open_bookmark_window(bookmark_block *bm)
 {
+	static int		open_x_offset = BOOKMARK_WINDOW_STANDOFF;
+
+	int			screen, visible;
+
 	extern global_windows	windows;
 	extern global_menus	menus;
 	extern osspriteop_area	*wimp_sprites;
@@ -692,6 +697,26 @@ void open_bookmark_window(bookmark_block *bm)
 		windows.bookmark_window_def->title_data.indirected_text.text = bm->window_title;
 		windows.bookmark_window_def->title_data.indirected_text.size = MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10;
 
+		/* Set the X position of the window. */
+
+		screen = mode_width();
+
+		visible = BOOKMARK_WINDOW_WIDTH;
+		if (visible > (screen - 2*BOOKMARK_WINDOW_STANDOFF - 4*BOOKMARK_WINDOW_OPENSTEP))
+			visible = (screen - 2*BOOKMARK_WINDOW_STANDOFF - 4*BOOKMARK_WINDOW_OPENSTEP);
+
+		windows.bookmark_window_def->visible.x0 = open_x_offset;
+
+		windows.bookmark_window_def->visible.x1 = open_x_offset + visible;
+
+		open_x_offset += BOOKMARK_WINDOW_OPENSTEP;
+		if ((open_x_offset + visible) > (screen - BOOKMARK_WINDOW_STANDOFF))
+			open_x_offset = BOOKMARK_WINDOW_STANDOFF;
+
+		windows.bookmark_window_def->extent.x0 = 0;
+		windows.bookmark_window_def->extent.x1 = BOOKMARK_WINDOW_WIDTH;
+
+		windows.bookmark_window_def->extent.y1 = 0;
 		windows.bookmark_window_def->extent.y0 = -((((bm->lines > BOOKMARK_MIN_LINES) ? bm->lines : BOOKMARK_MIN_LINES) * BOOKMARK_LINE_HEIGHT)
 				+ BOOKMARK_TOOLBAR_HEIGHT + (BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET)));
 
