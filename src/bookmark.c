@@ -700,6 +700,17 @@ void open_bookmark_window(bookmark_block *bm)
 		place_window_as_toolbar(windows.bookmark_window_def,
 				windows.bookmark_pane_def,
 				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
+
+		/* Set the name icon width.  Assuming that the window work area
+		 * is measured from 0,0, the x1 coordinate back in from the x1
+		 * work area extent by the same amount that the y1 coordinate
+		 * is down from the top.
+		 */
+
+		windows.bookmark_pane_def->icons[BOOKMARK_TB_NAME].extent.x1 =
+				windows.bookmark_pane_def->extent.x1 +
+				windows.bookmark_pane_def->icons[BOOKMARK_TB_NAME].extent.y1;
+
 		bm->window = wimp_create_window(windows.bookmark_window_def);
 		bm->toolbar = wimp_create_window(windows.bookmark_pane_def);
 
