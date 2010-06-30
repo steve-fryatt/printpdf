@@ -1,7 +1,7 @@
 =============================================================================
 PrintPDF - Easy PDF creation with GhostScript                    Version 0.80
 
-(c) Stephen Fryatt, 2005                                         27 June 2010
+(c) Stephen Fryatt, 2005                                         30 June 2010
 =============================================================================
 
 
@@ -744,7 +744,7 @@ Version History
   * Fix escaping of ( and ) in PDFDocEncoding strings.
 
 
-  0.80 (27 June 2010)
+  0.80 (30 June 2010)
   -------------------
 
   Eighth beta release.

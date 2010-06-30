@@ -1,6 +1,6 @@
 <document title="PrintPDF">
 <define name="version" value="0.80">
-<define name="date" value="27 June 2010" length=30 align="right">
+<define name="date" value="30 June 2010" length=30 align="right">
 
 
 
@@ -495,7 +495,7 @@ Update to seventh beta release.
 </list>
 
 
-<subhead title="0.80 (27 June 2010)">
+<subhead title="0.80 (30 June 2010)">
 
 Eighth beta release.
 
