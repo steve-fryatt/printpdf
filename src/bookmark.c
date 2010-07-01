@@ -2868,8 +2868,12 @@ void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params)
 				if (node->count > 0)
 					fprintf(pdfmark_file, " /Count %d", (node->expanded) ? node->count : -node->count);
 
-				fprintf(pdfmark_file, " /Page %d /View [/XYZ 0 %.4f null] /Title (%s) /OUT pdfmark\n",
-						node->page, ((double) node->yoffset / 1000),
+				fprintf(pdfmark_file, " /Page %d", node->page);
+
+//				if (0)
+//					fprintf(pdfmark_file, " /View [/XYZ 0 %.4f null]", ((double) node->yoffset / 1000));
+
+				fprintf(pdfmark_file, " /Title (%s) /OUT pdfmark\n",
 						convert_to_pdf_doc_encoding(buffer, node->title, MAX_BOOKMARK_LEN * 4));
 			}
 		}
