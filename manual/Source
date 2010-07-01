@@ -1,6 +1,6 @@
 <document title="PrintPDF">
-<define name="version" value="0.80">
-<define name="date" value="30 June 2010" length=30 align="right">
+<define name="version" value="0.81">
+<define name="date" value="1 July 2010" length=30 align="right">
 
 
 
@@ -501,6 +501,15 @@ Eighth beta release.
 
 <list>
 <li>Add bookmarks editor.
+</list>
+
+
+<subhead title="0.81 (1 July 2010)">
+
+Update to eighth beta release.
+
+<list>
+<li>Remove incorrect page-position data from bookmarks.
 </list>
 
 
