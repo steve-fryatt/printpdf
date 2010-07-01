@@ -2591,7 +2591,7 @@ void save_bookmark_file(bookmark_block *bm, char *filename)
 	while (node != NULL) {
 		fprintf(out, "@: %s\n", node->title);
 		fprintf(out, "Page: %d\n", node->page);
-		if (node->yoffset > 0)
+		if (node->yoffset >= 0)
 			fprintf(out, "YOffset: %d\n", node->yoffset);
 		if (node->level > 1)
 			fprintf(out, "Level: %d\n", node->level);
@@ -2682,7 +2682,7 @@ void load_bookmark_file(char *filename)
 					new->title[MAX_BOOKMARK_LEN - 1] = '\0';
 
 					new->page = 0;
-					new->yoffset = 0;
+					new->yoffset = -1;
 					new->expanded = 1;
 					new->level = 1;
 					new->count = 0;
@@ -2870,8 +2870,8 @@ void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params)
 
 				fprintf(pdfmark_file, " /Page %d", node->page);
 
-//				if (0)
-//					fprintf(pdfmark_file, " /View [/XYZ 0 %.4f null]", ((double) node->yoffset / 1000));
+				if (node->yoffset >= 0)
+					fprintf(pdfmark_file, " /View [/XYZ 0 %.4f null]", ((double) node->yoffset / 1000));
 
 				fprintf(pdfmark_file, " /Title (%s) /OUT pdfmark\n",
 						convert_to_pdf_doc_encoding(buffer, node->title, MAX_BOOKMARK_LEN * 4));

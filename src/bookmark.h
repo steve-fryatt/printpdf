@@ -98,7 +98,7 @@
 typedef struct bookmark_node {
 	char			title[MAX_BOOKMARK_LEN];
 	int			page;		/*< Destination page number.		*/
-	int			yoffset;	/*< Destination Y offset (pt from top).	*/
+	int			yoffset;	/*< Destination Y offset (millipt from top).	*/
 	int			level;
 	int			count;
 
