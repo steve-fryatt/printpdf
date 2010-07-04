@@ -5,4 +5,4 @@ PrintPDF -- ToDo List
 * Lines and toolbar adjust to window width.
 * Add in page position columns and position correction.
 * Add page number correction.
-* Line margin not taken into account on horizontal bounds of highlight box."
+* Line margin not taken into account on horizontal bounds of highlight box.
