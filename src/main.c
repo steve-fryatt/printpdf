@@ -171,6 +171,8 @@ int poll_loop (void)
 
 /* ==================================================================================================================
  * Mouse click handler
+ *
+ * NB: This only handles mouse events that are not processed by Event Lib callbacks!
  */
 
 void mouse_click_handler (wimp_pointer *pointer)
@@ -546,6 +548,8 @@ void mouse_click_handler (wimp_pointer *pointer)
 
 /* ==================================================================================================================
  * Keypress handler
+ *
+ * NB: This only handles key events that are not processed by Event Lib callbacks!
  */
 
 void key_press_handler (wimp_key *key)
