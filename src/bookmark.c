@@ -134,7 +134,7 @@ void		rebuild_bookmark_data(bookmark_block *bm);
 
 /* Line position calculations. */
 
-#define LINE_BASE(x) (-((x)+1) * BOOKMARK_LINE_HEIGHT - BOOKMARK_TOOLBAR_HEIGHT)
+#define LINE_BASE(x) (-((x)+1) * BOOKMARK_LINE_HEIGHT - BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_WINDOW_MARGIN)
 #define LINE_Y0(x) (LINE_BASE(x) + BOOKMARK_LINE_OFFSET)
 #define LINE_Y1(x) (LINE_BASE(x) + BOOKMARK_LINE_OFFSET + BOOKMARK_ICON_HEIGHT)
 
@@ -732,7 +732,7 @@ void open_bookmark_window(bookmark_block *bm)
 		windows.bookmark_window_def->extent.x0 = 0;
 		windows.bookmark_window_def->extent.x1 = BOOKMARK_WINDOW_WIDTH;
 
-		extent = LINE_BASE(bm->lines-1);
+		extent = LINE_BASE(bm->lines-1) - BOOKMARK_WINDOW_MARGIN;
 		if (extent > -(screen - 2*sf_WINDOW_GADGET_HEIGHT))
 			extent = -(screen - 2*sf_WINDOW_GADGET_HEIGHT);
 
@@ -1772,7 +1772,7 @@ void set_bookmark_window_extent(bookmark_block *bm)
 
 	screen_y = mode_height();
 
-	new_y = LINE_BASE(bm->lines-1);
+	new_y = LINE_BASE(bm->lines-1) - BOOKMARK_WINDOW_MARGIN;
 	if (new_y > -(screen_y - 2*sf_WINDOW_GADGET_HEIGHT))
 		new_y = -(screen_y - 2*sf_WINDOW_GADGET_HEIGHT);
 
@@ -1846,7 +1846,7 @@ void set_bookmark_window_columns(bookmark_block *bm)
 	 */
 
 	bm->column_pos[BOOKMARK_WINDOW_COLUMNS-1] = info.extent.x1 - (bm->column_width[BOOKMARK_WINDOW_COLUMNS-1] +
-			(BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET)));
+			(BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET)) + BOOKMARK_WINDOW_MARGIN);
 
 	/* Any remaining columns (if there are any) are calculated back from this. */
 
@@ -1875,8 +1875,8 @@ void calculate_bookmark_window_row_start(bookmark_block *bm, int row)
 
 	node = bm->redraw[row].node;
 
-	bm->column_pos[BOOKMARK_ICON_EXPAND] = (node->level - 1) * BOOKMARK_LINE_HEIGHT;
-	bm->column_pos[BOOKMARK_ICON_TITLE] = node->level * BOOKMARK_LINE_HEIGHT;
+	bm->column_pos[BOOKMARK_ICON_EXPAND] = BOOKMARK_WINDOW_MARGIN + (node->level - 1) * BOOKMARK_LINE_HEIGHT;
+	bm->column_pos[BOOKMARK_ICON_TITLE] = BOOKMARK_WINDOW_MARGIN + node->level * BOOKMARK_LINE_HEIGHT;
 	bm->column_width[BOOKMARK_ICON_TITLE] = bm->column_pos[BOOKMARK_ICON_PAGE] - bm->column_pos[BOOKMARK_ICON_TITLE] -
 			(BOOKMARK_LINE_HEIGHT-BOOKMARK_ICON_HEIGHT);
 }
@@ -1899,8 +1899,8 @@ int calculate_bookmark_window_click_row(bookmark_block *bm, os_coord *pos, wimp_
 
 	y = state->visible.y1 - pos->y - state->yscroll;
 
-	row = (y - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
-	row_y_pos = ((y - BOOKMARK_TOOLBAR_HEIGHT) % BOOKMARK_LINE_HEIGHT) - BOOKMARK_LINE_OFFSET;
+	row = (y - BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_WINDOW_MARGIN) / BOOKMARK_LINE_HEIGHT;
+	row_y_pos = ((y - BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_WINDOW_MARGIN) % BOOKMARK_LINE_HEIGHT) - BOOKMARK_LINE_OFFSET;
 
 	if (row >= bm->lines ||
 			row_y_pos < (BOOKMARK_LINE_HEIGHT - (BOOKMARK_LINE_OFFSET + BOOKMARK_ICON_HEIGHT)) ||
