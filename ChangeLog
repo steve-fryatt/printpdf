@@ -84,3 +84,16 @@
 ----
 * Correct escaping of PDFDoc encoding.
 
+0.80
+----
+* Support for PDFMark /OUT fields.
+* Start to convert Wimp_Poll loop to use Event Lib.
+
+0.81
+----
+* Fix /OUT entries in PDFMark so that they don't use /VIEW.
+
+0.82
+----
+* Move queue pane handlers into Event Lib.
+

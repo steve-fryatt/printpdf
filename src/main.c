@@ -122,9 +122,6 @@ int poll_loop (void)
 				poll_time += read_config_int ("PollDelay");
 				break;
 
-			case wimp_REDRAW_WINDOW_REQUEST:
-				redraw_queue_pane (&(blk.redraw));
-
 			case wimp_OPEN_WINDOW_REQUEST:
 				wimp_open_window (&(blk.open));
 				break;
@@ -470,13 +467,6 @@ void mouse_click_handler (wimp_pointer *pointer)
         start_held_conversion ();
         break;
     }
-  }
-
-  /* Queue pane. */
-
-  else if (pointer->w == windows.queue_pane)
-  {
-    queue_pane_click (pointer);
   }
 
   /* Choices Window. */

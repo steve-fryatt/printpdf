@@ -77,6 +77,7 @@ void		bookmark_click_handler(wimp_pointer *pointer);
 void		bookmark_key_handler(wimp_key *key);
 void		bookmark_lose_caret_handler(wimp_caret *caret);
 void		bookmark_gain_caret_handler(wimp_caret *caret);
+void		bookmark_scroll_handler(wimp_scroll *scroll);
 void		bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *caret);
 void		bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *caret);
 int		bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direction);
@@ -1147,6 +1148,17 @@ void bookmark_gain_caret_handler(wimp_caret *caret)
 			2, BOOKMARK_TB_DEMOTEG, BOOKMARK_TB_DEMOTE);
 	set_icons_shaded(bm->toolbar, node == NULL || parent == NULL || node->level > parent->level,
 			2, BOOKMARK_TB_PROMOTE, BOOKMARK_TB_PROMOTEG);
+}
+
+
+/**
+ * callback handler for Wimp Scroll events.
+ *
+ * \param  *scroll		The associated wimp event block.
+ */
+
+void bookmark_scroll_handler(wimp_scroll *scroll)
+{
 }
 
 

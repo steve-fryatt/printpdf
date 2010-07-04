@@ -28,6 +28,7 @@
 
 #include "sflib/config.h"
 #include "sflib/debug.h"
+#include "sflib/event.h"
 #include "sflib/string.h"
 #include "sflib/windows.h"
 #include "sflib/menus.h"
@@ -48,6 +49,9 @@
 #include "popup.h"
 #include "version.h"
 #include "windows.h"
+
+void			redraw_queue_pane(wimp_draw *redraw);
+void			queue_pane_click(wimp_pointer *pointer);
 
 /* ==================================================================================================================
  * Global variables.
@@ -92,6 +96,11 @@ void initialise_conversion(void)
 
 	extern global_windows	windows;
 
+
+	/* Set handlers for the queue window. */
+
+	event_add_window_redraw_event(windows.queue_pane, redraw_queue_pane);
+	event_add_window_mouse_event(windows.queue_pane, queue_pane_click);
 
 	/* Set up the queue directory */
 
