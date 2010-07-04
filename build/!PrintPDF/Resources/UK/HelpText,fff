@@ -1,7 +1,7 @@
 =============================================================================
-PrintPDF - Easy PDF creation with GhostScript                    Version 0.81
+PrintPDF - Easy PDF creation with GhostScript                    Version 0.82
 
-(c) Stephen Fryatt, 2005                                          1 July 2010
+(c) Stephen Fryatt, 2005                                          4 July 2010
 =============================================================================
 
 
@@ -753,6 +753,14 @@ Version History
   Update to eighth beta release.
 
   * Remove incorrect page-position data from bookmarks.
+
+
+  0.82 (4 July 2010)
+  ------------------
+
+  Update to eighth beta release.
+
+  * Internal improvements and restructuring of code.
 
 
 

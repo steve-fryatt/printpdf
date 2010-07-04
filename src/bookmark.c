@@ -916,13 +916,8 @@ void redraw_bookmark_window(wimp_draw *redraw)
 
 			if (y == bm->menu_row || y == bm->drag_row) {
 				wimp_set_colour (wimp_COLOUR_VERY_DARK_GREY);
-				os_plot(os_MOVE_TO, redraw->clip.x0,
-						oy + (-(y+1) * BOOKMARK_LINE_HEIGHT
-						- BOOKMARK_TOOLBAR_HEIGHT
-						+ BOOKMARK_LINE_HEIGHT - 2));
-				os_plot(os_PLOT_RECTANGLE + os_PLOT_TO, redraw->clip.x1,
-						oy + (-(y+1) * BOOKMARK_LINE_HEIGHT
-						- BOOKMARK_TOOLBAR_HEIGHT));
+				os_plot(os_MOVE_TO, redraw->clip.x0, oy + LINE_BASE(y) + BOOKMARK_LINE_HEIGHT - 2);
+				os_plot(os_PLOT_RECTANGLE + os_PLOT_TO, redraw->clip.x1, oy + LINE_BASE(y));
 			}
 
 			/* Set the icons up for plotting. */
@@ -1743,13 +1738,13 @@ void force_bookmark_window_redraw(bookmark_block *bm, int from, int to)
 	if (to < 0)
 		y0 = info.extent.y0;
 	else
-		y0 = -((BOOKMARK_LINE_HEIGHT * (to+1)) + BOOKMARK_TOOLBAR_HEIGHT);
+		y0 = LINE_BASE(to);
 
 	x1 = info.extent.x1;
 	if (--from < 0)
 		y1 = -BOOKMARK_TOOLBAR_HEIGHT;
 	else
-		y1 = -((BOOKMARK_LINE_HEIGHT * (from+1)) + BOOKMARK_TOOLBAR_HEIGHT);
+		y1 = LINE_BASE(from);
 
 	wimp_force_redraw(bm->window, x0, y0, x1, y1);
 }
