@@ -2009,7 +2009,7 @@ void bookmark_line_drag(bookmark_block *bm, int line)
 	/* Initialise the autoscroll. */
 
 	if (xos_swi_number_from_string("Wimp_AutoScroll", NULL) == NULL) {
-		auto_scroll.w = windows.queue_pane;
+		auto_scroll.w = bm->window;
 		auto_scroll.pause_zone_sizes.x0 = 0;
 		auto_scroll.pause_zone_sizes.y0 = AUTO_SCROLL_MARGIN;
 		auto_scroll.pause_zone_sizes.x1 = 0;
