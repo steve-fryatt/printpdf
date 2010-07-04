@@ -1852,7 +1852,7 @@ void set_bookmark_window_columns(bookmark_block *bm)
 
 	for (i=BOOKMARK_WINDOW_COLUMNS-2; i>=BOOKMARK_ICON_PAGE; i--)
 		bm->column_pos[i] = bm->column_pos[i+1] - (bm->column_width[i] +
-			(BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET)));
+			(BOOKMARK_LINE_HEIGHT-BOOKMARK_ICON_HEIGHT));
 
 	// \TODO -- Shift any writable icon, if it is in the wrong place.
 }
@@ -1878,7 +1878,7 @@ void calculate_bookmark_window_row_start(bookmark_block *bm, int row)
 	bm->column_pos[BOOKMARK_ICON_EXPAND] = (node->level - 1) * BOOKMARK_LINE_HEIGHT;
 	bm->column_pos[BOOKMARK_ICON_TITLE] = node->level * BOOKMARK_LINE_HEIGHT;
 	bm->column_width[BOOKMARK_ICON_TITLE] = bm->column_pos[BOOKMARK_ICON_PAGE] - bm->column_pos[BOOKMARK_ICON_TITLE] -
-			(BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET));
+			(BOOKMARK_LINE_HEIGHT-BOOKMARK_ICON_HEIGHT);
 }
 
 /**
