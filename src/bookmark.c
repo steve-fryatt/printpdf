@@ -1900,7 +1900,7 @@ int calculate_bookmark_window_click_row(bookmark_block *bm, os_coord *pos, wimp_
 	y = state->visible.y1 - pos->y - state->yscroll;
 
 	row = (y - BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_WINDOW_MARGIN) / BOOKMARK_LINE_HEIGHT;
-	row_y_pos = ((y - BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_WINDOW_MARGIN) % BOOKMARK_LINE_HEIGHT) - BOOKMARK_LINE_OFFSET;
+	row_y_pos = ((y - BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_WINDOW_MARGIN) % BOOKMARK_LINE_HEIGHT);
 
 	if (row >= bm->lines ||
 			row_y_pos < (BOOKMARK_LINE_HEIGHT - (BOOKMARK_LINE_OFFSET + BOOKMARK_ICON_HEIGHT)) ||

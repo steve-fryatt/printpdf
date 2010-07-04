@@ -1,6 +1,6 @@
 <document title="PrintPDF">
 <define name="version" value="0.82">
-<define name="date" value="4 July 2010" length=30 align="right">
+<define name="date" value="5 July 2010" length=30 align="right">
 
 
 
@@ -513,12 +513,13 @@ Update to eighth beta release.
 </list>
 
 
-<subhead title="0.82 (4 July 2010)">
+<subhead title="0.82 (5 July 2010)">
 
 Update to eighth beta release.
 
 <list>
 <li>Internal improvements and restructuring of code.
+<li>Autoscrolling bookmark editor window no longer opens queue pane.
 </list>
 
 

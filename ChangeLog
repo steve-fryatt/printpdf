@@ -97,3 +97,6 @@
 ----
 * Move queue pane handlers into Event Lib.
 * Scroll events handled by bookmark window code.
+* Tidy line position calculations.
+* Add BOOKMARK_WINDOW_MARGIN.
+* Fix Autoscroll on bookmark window.

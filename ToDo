@@ -1,8 +1,8 @@
 PrintPDF -- ToDo List
 ---------------------
 
-* Fix the line margin calculations properly.
 * Redraw promote and demote actions correctly, setting the lower redraw bound from the terminating node.
 * Lines and toolbar adjust to window width.
 * Add in page position columns and position correction.
 * Add page number correction.
+* Line margin not taken into account on horizontal bounds of highlight box."
