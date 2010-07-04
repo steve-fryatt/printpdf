@@ -761,6 +761,7 @@ void open_bookmark_window(bookmark_block *bm)
 		event_add_window_redraw_event(bm->window, redraw_bookmark_window);
 		event_add_window_mouse_event(bm->window, bookmark_click_handler);
 		event_add_window_key_event(bm->window, bookmark_key_handler);
+		event_add_window_scroll_event(bm->window, bookmark_scroll_handler);
 		event_add_window_lose_caret_event(bm->window, bookmark_lose_caret_handler);
 		event_add_window_gain_caret_event(bm->window, bookmark_gain_caret_handler);
 		event_add_window_user_data(bm->window, bm);
@@ -1159,6 +1160,65 @@ void bookmark_gain_caret_handler(wimp_caret *caret)
 
 void bookmark_scroll_handler(wimp_scroll *scroll)
 {
+	int		width, height, error;
+
+	/* Add in the X scroll offset. */
+
+	width = scroll->visible.x1 - scroll->visible.x0;
+
+	switch (scroll->xmin) {
+	case wimp_SCROLL_COLUMN_LEFT:
+		scroll->xscroll -= BOOKMARK_HORIZONTAL_SCROLL;
+		break;
+
+	case wimp_SCROLL_COLUMN_RIGHT:
+		scroll->xscroll += BOOKMARK_HORIZONTAL_SCROLL;
+		break;
+
+	case wimp_SCROLL_PAGE_LEFT:
+		scroll->xscroll -= width;
+		break;
+
+	case wimp_SCROLL_PAGE_RIGHT:
+		scroll->xscroll += width;
+		break;
+	}
+
+	/* Add in the Y scroll offset. */
+
+	height = (scroll->visible.y1 - scroll->visible.y0) - BOOKMARK_TOOLBAR_HEIGHT;
+
+	switch (scroll->ymin) {
+	case wimp_SCROLL_LINE_UP:
+		scroll->yscroll += BOOKMARK_LINE_HEIGHT;
+		if ((error = ((scroll->yscroll) % BOOKMARK_LINE_HEIGHT)))
+			scroll->yscroll -= BOOKMARK_LINE_HEIGHT + error;
+		break;
+
+	case wimp_SCROLL_LINE_DOWN:
+		scroll->yscroll -= BOOKMARK_LINE_HEIGHT;
+		if ((error = ((scroll->yscroll - height) % BOOKMARK_LINE_HEIGHT)))
+			scroll->yscroll -= error;
+		break;
+
+	case wimp_SCROLL_PAGE_UP:
+		scroll->yscroll += height;
+		if ((error = ((scroll->yscroll) % BOOKMARK_LINE_HEIGHT)))
+			scroll->yscroll -= BOOKMARK_LINE_HEIGHT + error;
+		break;
+
+	case wimp_SCROLL_PAGE_DOWN:
+		scroll->yscroll -= height;
+		if ((error = ((scroll->yscroll - height) % BOOKMARK_LINE_HEIGHT)))
+			scroll->yscroll -= error;
+		break;
+	}
+
+	/* Re-open the window; it is assumed that the wimp will deal with
+	 * out-of-bounds offsets for us.
+	 */
+
+	wimp_open_window ((wimp_open *) scroll);
 }
 
 

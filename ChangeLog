@@ -96,4 +96,4 @@
 0.82
 ----
 * Move queue pane handlers into Event Lib.
-
+* Scroll events handled by bookmark window code.
