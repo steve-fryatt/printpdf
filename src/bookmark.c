@@ -132,8 +132,11 @@ void		rebuild_bookmark_data(bookmark_block *bm);
  * Macros
  * ****************************************************************************/
 
-#define LINE_Y0(x) (-((x)+1) * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET - BOOKMARK_TOOLBAR_HEIGHT)
-#define LINE_Y1(x) (-((x)+1) * BOOKMARK_LINE_HEIGHT + BOOKMARK_LINE_OFFSET - BOOKMARK_TOOLBAR_HEIGHT + BOOKMARK_ICON_HEIGHT)
+/* Line position calculations. */
+
+#define LINE_BASE(x) (-((x)+1) * BOOKMARK_LINE_HEIGHT - BOOKMARK_TOOLBAR_HEIGHT)
+#define LINE_Y0(x) (LINE_BASE(x) + BOOKMARK_LINE_OFFSET)
+#define LINE_Y1(x) (LINE_BASE(x) + BOOKMARK_LINE_OFFSET + BOOKMARK_ICON_HEIGHT)
 
 /* ****************************************************************************
  * Global variables
@@ -729,7 +732,7 @@ void open_bookmark_window(bookmark_block *bm)
 		windows.bookmark_window_def->extent.x0 = 0;
 		windows.bookmark_window_def->extent.x1 = BOOKMARK_WINDOW_WIDTH;
 
-		extent = LINE_Y0(bm->lines-1) - (BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET));
+		extent = LINE_BASE(bm->lines-1);
 		if (extent > -(screen - 2*sf_WINDOW_GADGET_HEIGHT))
 			extent = -(screen - 2*sf_WINDOW_GADGET_HEIGHT);
 
@@ -1774,7 +1777,7 @@ void set_bookmark_window_extent(bookmark_block *bm)
 
 	screen_y = mode_height();
 
-	new_y = LINE_Y0(bm->lines-1) - (BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET));
+	new_y = LINE_BASE(bm->lines-1);
 	if (new_y > -(screen_y - 2*sf_WINDOW_GADGET_HEIGHT))
 		new_y = -(screen_y - 2*sf_WINDOW_GADGET_HEIGHT);
 
