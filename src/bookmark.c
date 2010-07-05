@@ -813,23 +813,73 @@ void open_bookmark_window(bookmark_block *bm)
 void close_bookmark_window(wimp_close *close)
 {
 	bookmark_block		*bm;
+	int			button, shift, len;
+	char			*path, *buffer;
+	wimp_pointer		pointer;
+	extern global_windows	windows;
 
 	bm = find_bookmark_window(close->w);
 
-	if (bm != NULL) {
-		wimp_delete_window(bm->window);
-		wimp_delete_window(bm->toolbar);
-		event_delete_window(bm->window);
-		event_delete_window(bm->toolbar);
+	if (bm == NULL)
+		return;
 
-		remove_ihelp_window(bm->window);
-		remove_ihelp_window(bm->toolbar);
+	/* Get the pointer and keyboard state. */
 
-		if (bookmarks_edit == bm)
-			bookmarks_edit = NULL;
+	shift = (osbyte1(osbyte_IN_KEY, 0xfc, 0xff) == 0xff || osbyte1(osbyte_IN_KEY, 0xf9, 0xff) == 0xff);
+	if (xwimp_get_pointer_info(&pointer) != NULL)
+		pointer.buttons = 0;
 
-		delete_bookmark_block(bm);
+	/* If the file is unsaved, prompt the user. */
+
+	if (bm->unsaved && !(pointer.buttons == wimp_CLICK_ADJUST && shift) &&
+			(button = wimp_msgtrans_question_report("FileNotSaved", "FileNotSavedB")) >= 2) {
+		if (button == 3) {
+			prepare_bookmark_save_window(bm);
+			create_standard_menu((wimp_menu *) windows.save_as, &pointer);
+		}
+
+		return;
 	}
+
+	/* Adjust clicks on the close icon open the parent directory. */
+
+	if (pointer.buttons == wimp_CLICK_ADJUST && (len = strlen(bm->filename)) > 0) {
+		path = (char *) malloc(len+1);
+		buffer = (char *) malloc(len+16);
+
+		if (path != NULL && buffer != NULL) {
+			strncpy(path, bm->filename, len+1);
+
+			snprintf(buffer, len+16, "%%Filer_OpenDir %s", find_pathname(path));
+			xos_cli(buffer);
+		}
+
+		if (path != NULL)
+			free(path);
+		if (buffer != NULL)
+			free(buffer);
+	}
+
+	/* If it was an Adjust click with Shift held down, don't close the file. */
+
+	if (shift && pointer.buttons == wimp_CLICK_ADJUST)
+		return;
+
+	/* Delete the window and data structures. */
+
+	wimp_delete_window(bm->window);
+	wimp_delete_window(bm->toolbar);
+	event_delete_window(bm->window);
+	event_delete_window(bm->toolbar);
+
+	remove_ihelp_window(bm->window);
+	remove_ihelp_window(bm->toolbar);
+
+	if (bookmarks_edit == bm)
+		bookmarks_edit = NULL;
+
+	delete_bookmark_block(bm);
+
 }
 
 

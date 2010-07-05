@@ -44,6 +44,11 @@ FOpenFailed:The PDF file could not be created: does it already exist?
 UnknownFileData:The file contained unrecognised tokens: some data may have been discarded.
 UnknownFileFormat:The file format version wasn't known: some data may have been lost.
 
+FileNotSaved:This bookmark file is not saved: do you wish to close it anyway?
+FileNotSavedB:Discard,Cancel,Save
+FilesNotSaved:There are unsaved bookmarks files: do you want to quit anyway?
+FilesNotSavedB:Discard,Cancel
+
 # ps2pdf command-line option lists.
 
 VersionMenu:Version,1.2 (Acrobat 3),1.3 (Acrobat 4),1.4 (Acrobat 5)
