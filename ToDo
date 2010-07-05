@@ -1,6 +1,7 @@
 PrintPDF -- ToDo List
 ---------------------
 
+* Warn on unsaved with Message_PreQuit -- need to add message dispatch to Event Lib?
 * Redraw promote and demote actions correctly, setting the lower redraw bound from the terminating node.
 * Lines and toolbar adjust to window width.
 * Add in page position columns and position correction.

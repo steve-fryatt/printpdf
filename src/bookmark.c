@@ -834,8 +834,10 @@ void close_bookmark_window(wimp_close *close)
 	if (bm->unsaved && !(pointer.buttons == wimp_CLICK_ADJUST && shift) &&
 			(button = wimp_msgtrans_question_report("FileNotSaved", "FileNotSavedB")) >= 2) {
 		if (button == 3) {
-			prepare_bookmark_save_window(bm);
-			create_standard_menu((wimp_menu *) windows.save_as, &pointer);
+			if (xwimp_get_pointer_info(&pointer) == NULL) {
+				prepare_bookmark_save_window(bm);
+				create_standard_menu((wimp_menu *) windows.save_as, &pointer);
+			}
 		}
 
 		return;
