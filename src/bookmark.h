@@ -140,6 +140,8 @@ typedef struct bookmark_block {
 	bookmark_node		*root;
 	int			nodes;
 
+	osbool			drag_complete;
+
 	struct bookmark_block	*next;
 } bookmark_block;
 

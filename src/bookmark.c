@@ -154,7 +154,6 @@ static wimp_menu	*bookmarks_menu = NULL;
 static bookmark_block	**bookmarks_menu_links = NULL;
 static int		bookmarks_menu_size = 0;
 
-
 /* ****************************************************************************
  * Bookmarks System Initialisation and Termination
  * ****************************************************************************/
@@ -435,6 +434,7 @@ bookmark_block *create_bookmark_block(void)
 		new->edit_icon = wimp_ICON_WINDOW;
 		new->menu_row = -1;
 		new->drag_row = -1;
+		new->drag_complete = FALSE;
 
 		update_bookmark_window_title(new);
 
@@ -1011,8 +1011,12 @@ void bookmark_click_handler(wimp_pointer *pointer)
 			force_bookmark_window_redraw(bm, row, -1);
 			set_bookmark_unsaved_state(bm, 1);
 		} else if (col >= BOOKMARK_ICON_TITLE && pointer->buttons == wimp_CLICK_SELECT) {
-			if (!bookmark_place_edit_icon(bm, row, col))
-				wimp_set_caret_position(bm->window, bm->edit_icon, x, y, -1, -1);
+			if (bm->drag_complete) {
+				bm->drag_complete = FALSE;
+			} else {
+				if (!bookmark_place_edit_icon(bm, row, col))
+					wimp_set_caret_position(bm->window, bm->edit_icon, x, y, -1, -1);
+			}
 		} else if (col >= BOOKMARK_ICON_TITLE && pointer->buttons == wimp_DRAG_SELECT) {
 			bookmark_line_drag(bm, row);
 		}
@@ -2139,6 +2143,7 @@ void bookmark_terminate_line_drag(wimp_dragged *drag, void *data)
 	}
 
 	bm->drag_row = -1;
+	bm->drag_complete = TRUE;
 }
 
 
