@@ -100,3 +100,10 @@
 * Tidy line position calculations.
 * Add BOOKMARK_WINDOW_MARGIN.
 * Fix Autoscroll on bookmark window.
+
+0.83
+----
+* Fix click/drag issue in bookmark editor.
+* Adjust-close of bookmarks windows now works correctly.
+* Warn of unsaved bookmarks.
+* Warn of pending print jobs.
