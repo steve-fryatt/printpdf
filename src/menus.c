@@ -162,7 +162,7 @@ void decode_iconbar_menu (wimp_selection *selection, wimp_pointer *pointer)
   }
   else if (selection->items[0] == ICONBAR_MENU_QUIT) /* Quit */
   {
-    if (!bookmark_files_unsaved())
+    if (!bookmark_files_unsaved() && !pending_files_in_queue())
       quit_flag = TRUE;
   }
 

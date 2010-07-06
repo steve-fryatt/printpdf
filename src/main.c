@@ -738,7 +738,7 @@ void user_message_handler (wimp_message *message)
 		break;
 
 	case message_PRE_QUIT:
-		if (bookmark_files_unsaved()) {
+		if (bookmark_files_unsaved() || pending_files_in_queue()) {
 			message->your_ref = message->my_ref;
 			wimp_send_message(wimp_USER_MESSAGE_ACKNOWLEDGE, message, message->sender);
 		}

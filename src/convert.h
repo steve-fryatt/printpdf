@@ -151,6 +151,7 @@ void remove_all_remaining_conversions (void);
 /* External interfaces */
 
 int pdf_conversion_in_progress (void);
+int pending_files_in_queue(void);
 
 /* Defer queue manipulation. */
 

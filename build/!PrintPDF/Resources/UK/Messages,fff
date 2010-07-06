@@ -48,6 +48,8 @@ FileNotSaved:This bookmark file is not saved: do you wish to close it anyway?
 FileNotSavedB:Discard,Cancel,Save
 FilesNotSaved:There are unsaved bookmarks files: do you want to quit anyway?
 FilesNotSavedB:Discard,Cancel
+PendingJobs:There are print jobs queued: do you want to quit anyway?
+PendingJobsB:Discard,Cancel
 
 # ps2pdf command-line option lists.
 

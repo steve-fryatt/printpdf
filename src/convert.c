@@ -1041,6 +1041,22 @@ int pdf_conversion_in_progress (void)
   return (conversion_in_progress);
 }
 
+/**
+ * Test for queued files and ask the user if they need to be saved.
+ *
+ * \return			1 if there are files to be saved; else 0.
+ */
+
+int pending_files_in_queue(void)
+{
+	int		button = -1;
+
+	if (queue != NULL)
+		button = wimp_msgtrans_question_report("PendingJobs", "PendingJobsB");
+
+	return (button == 2);
+}
+
 /* ==================================================================================================================
  * Defer queue manipulation
  */
