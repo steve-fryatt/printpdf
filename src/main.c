@@ -729,60 +729,63 @@ void menu_selection_handler (wimp_selection *selection)
 
 void user_message_handler (wimp_message *message)
 {
-  extern int          quit_flag;
-  extern wimp_t       task_handle;
+	extern int		quit_flag;
+	extern wimp_t		task_handle;
 
-  switch (message->action)
-  {
-    case message_QUIT:
-      quit_flag=TRUE;
-      break;
+	switch (message->action) {
+	case message_QUIT:
+		quit_flag=TRUE;
+		break;
 
-    case message_URI_RETURN_RESULT:
-      url_bounce (message);
-      break;
+	case message_PRE_QUIT:
+		if (bookmark_files_unsaved()) {
+			message->your_ref = message->my_ref;
+			wimp_send_message(wimp_USER_MESSAGE_ACKNOWLEDGE, message, message->sender);
+		}
+		break;
 
-    case message_DATA_SAVE:
-      if (message->sender != task_handle) /* We don't want to respond to our own save requests. */
-      {
-        message_data_save_reply (message);
-      }
-      break;
+	case message_URI_RETURN_RESULT:
+		url_bounce (message);
+		break;
 
-    case message_DATA_SAVE_ACK:
-      send_reply_data_save_ack (message);
-      break;
+	case message_DATA_SAVE:
+		if (message->sender != task_handle) /* We don't want to respond to our own save requests. */
+			message_data_save_reply (message);
+		break;
 
-    case message_DATA_LOAD:
-      message_data_load_reply (message);
-      break;
+	case message_DATA_SAVE_ACK:
+		send_reply_data_save_ack (message);
+		break;
 
-    case message_DATA_OPEN:
-      start_data_open_load(message);
-      break;
+	case message_DATA_LOAD:
+		message_data_load_reply (message);
+		break;
 
-    case message_HELP_REQUEST:
-      send_reply_help_request (message);
-      break;
+	case message_DATA_OPEN:
+		start_data_open_load(message);
+		break;
 
-    case message_TASK_INITIALISE:
-      check_new_task (message);
-      break;
+	case message_HELP_REQUEST:
+		send_reply_help_request (message);
+		break;
 
-    case message_TASK_CLOSE_DOWN:
-      check_for_conversion_end (message->sender);
-      break;
-  }
+	case message_TASK_INITIALISE:
+		check_new_task (message);
+		break;
+
+	case message_TASK_CLOSE_DOWN:
+		check_for_conversion_end (message->sender);
+		break;
+	}
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 void bounced_message_handler (wimp_message *message)
 {
-  switch (message->action)
-  {
-    case message_ANT_OPEN_URL:
-      url_bounce (message);
-      break;
-  }
+	switch (message->action) {
+	case message_ANT_OPEN_URL:
+		url_bounce (message);
+		break;
+	}
 }

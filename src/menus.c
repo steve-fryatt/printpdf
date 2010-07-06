@@ -30,6 +30,7 @@
 
 #include "menus.h"
 
+#include "bookmark.h"
 #include "windows.h"
 #include "choices.h"
 #include "convert.h"
@@ -161,7 +162,8 @@ void decode_iconbar_menu (wimp_selection *selection, wimp_pointer *pointer)
   }
   else if (selection->items[0] == ICONBAR_MENU_QUIT) /* Quit */
   {
-    quit_flag = TRUE;
+    if (!bookmark_files_unsaved())
+      quit_flag = TRUE;
   }
 
   set_iconbar_menu ();

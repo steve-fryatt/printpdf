@@ -168,6 +168,10 @@ void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params);
 int bookmark_data_available(bookmark_params *params);
 int bookmark_validate_params(bookmark_params *params);
 
+/* Bookmark Block Management */
+
+int bookmark_files_unsaved(void);
+
 /* Bookmark Window Handling */
 
 void create_new_bookmark_window(wimp_pointer *pointer);

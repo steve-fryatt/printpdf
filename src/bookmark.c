@@ -658,6 +658,26 @@ bookmark_block *find_bookmark_block(bookmark_block *block)
 }
 
 
+/**
+ * Check for any unsaved bookmark files and prompt the user if found.
+ *
+ * \return			1 if there are unsaved files to rescue; else 0.
+ */
+
+int bookmark_files_unsaved(void)
+{
+	int			button = -1;
+	bookmark_block		*bm = bookmarks_list;
+
+	while ((bm != NULL) && !(bm->unsaved))
+		bm = bm->next;
+
+	if (bm != NULL)
+		button = wimp_msgtrans_question_report("FilesNotSaved", "FilesNotSavedB");
+
+	return (button == 2);
+}
+
 /* ****************************************************************************
  * Bookmark Window Handling
  * ****************************************************************************/

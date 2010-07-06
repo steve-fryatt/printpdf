@@ -56,7 +56,7 @@ int initialise (void)
   extern int                        quit_flag;
   extern osspriteop_area            *wimp_sprites;
 
-  wimp_MESSAGE_LIST(12)             message_list;
+  wimp_MESSAGE_LIST(13)             message_list;
   wimp_version_no                   wimp_version;
 
 
@@ -86,8 +86,9 @@ int initialise (void)
   message_list.messages[7]=message_MENUS_DELETED;
   message_list.messages[8]=message_HELP_REQUEST;
   message_list.messages[9]=message_TASK_INITIALISE;
-  message_list.messages[0]=message_TASK_CLOSE_DOWN;
-  message_list.messages[11]=message_QUIT;
+  message_list.messages[10]=message_TASK_CLOSE_DOWN;
+  message_list.messages[11]=message_PRE_QUIT;
+  message_list.messages[12]=message_QUIT;
   msgs_lookup ("TaskName", task_name, sizeof (task_name));
   task_handle = wimp_initialise (wimp_VERSION_RO3, task_name, (wimp_message_list *) &message_list, &wimp_version);
 
