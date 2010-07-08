@@ -92,6 +92,8 @@ In addition to this manual, interactive help is fully supported.
 
 To install <cite>PrintPDF</cite>, drag the <file>!PrintPDF</file> application directory from the archive to a suitable location on your hard disc; the directory containing your other printing utilities may be a good place.
 
+Once the application has been copied, it should be set to be seen by the filer when the machine starts: the easiest way to achieve this is to add it to the list of applications in <cite>Configure</cite>. Start <cite>Configure</cite> by double-clicking on <file>!Boot</file>, then select <icon>Boot</icon> and finally <icon>Look at</icon>. Drag the <file>!PrintPDF</file> application from your hard disc into the list of applications.
+
 <cite>PrintPDF</cite> is 32-bit neutral, and requires the 32-bit Shared C Library from Castle to be installed.  If you do not have this, it can be obtained from <link ref="#url http://www.iyonix.com/32bit/system.shtml">http://www.iyonix.com/32bit/system.shtml</link> with full installation instructions.
 
 If you are already using R-Comp's <cite>PDFsuite</cite>, then this is all the installation that is required.  Running <cite>PrintPDF</cite> instead of <cite>PDFmaker</cite> will result in PDF generation being controlled by <cite>PrintPDF</cite>; now read the section on <link ref="Use">Using PrintPDF</link>.
@@ -107,7 +109,7 @@ If you do not already have a copy of <cite>GhostScript</cite> version 8.5, it ca
 
 <cite>GhostScript</cite> must be installed on a filing system that supports long file names and unlimited files per directory.  If you are not using an E+ or F+ format hard disc (the new formats supplied with RISC OS 4 and 5), you will either need to upgrade or investigate Richard Atterer's <cite>raFS</cite> (from <link ref="#url http://www.atterer.net/">http://www.atterer.net/</link>) or Andy Armstrong's <cite>X-Files</cite> (from <link ref="#url http://wonderworks.geekgang.com/free/">http://wonderworks.geekgang.com/free/</link>).
 
-Once installed, <cite>GhostScript</cite> must have been seen by the filer before <cite>PrintPDF</cite> can carry out PDF conversions.  The easiest way to achieve this is to add it to the list of applications which are booted when the machine starts.  Start <cite>Configure</cite> by double-clicking on <file>!Boot</file>, then select <icon>Boot</icon> and finally <icon>Look at</icon>. Drag the <file>!GhostScr</file> application from your hard disc into the list of applications to boot at startup.
+Once installed, <cite>GhostScript</cite> must also have been seen by the filer before <cite>PrintPDF</cite> can carry out PDF conversions; again the easiest way to do this is via <cite>Configure</cite>.  Go back to the list of applications to be looked at on startup (start <cite>Configure</cite> by double-clicking on <file>!Boot</file>, then select <icon>Boot</icon> and finally <icon>Look at</icon>), then drag the <file>!GhostScr</file> application from your hard disc into it.
 
 
 <subhead title="Setting up Printers">
@@ -117,41 +119,33 @@ Although <cite>PrintPDF</cite> can be used without changing the configuration of
 There are several alternative ways to set things up, and two or more can be used in parallel (allowing, for example, PS2 and PS3 icons so that PDF output can be generated via whichever is currently selected):
 
 <list spacing="1">
-<li>Use the standard PoScript2 driver; while this works fine, it means that the icon used to indicate the "PDF printer" is fairly nondescript. This uses PostScript2 to send data to the printer
+<li>Use the standard PoScript2 driver; while this works fine, it means that the icon used to indicate the "PDF printer" is fairly nondescript. This uses PostScript2 to send data to the printer.
 
-<li>Use a slightly modified version of the driver (supplied in the <file>Printers</file> folder of the <cite>PrintPDF</cite> archive), which allows a different icon to be displayed but is otherwise identical.
+<li>Use a slightly modified version of the driver (supplied in the <file>Printers</file> folder of the <cite>PrintPDF</cite> archive), which allows a different &quot;PDF&quot; icon to be displayed but is otherwise identical and also results in PS2 data being used.
 
 <li>Use the <file>PDF3</file> driver supplied in the <file>PrintDefs.PrintPDF</file> folder of the PS3 Driver download from Martin Wuerthner and John Tytgat (this is commercial software - see <link ref="#url http://www.mw-software.com/software/ps3/ps3.html">http://www.mw-software.com/software/ps3/ps3.html</link>). This allows PrintPDF to send PostScript3 data to GhostScript.
 </list>
 
-To set up by either method, first load <cite>PrintPDF</cite> so that its icon is on the iconbar.  If it has been configured to run without an icon, see the <link ref="Choices">Setting Choices</link> section for details on how to change this.
+To set up by either method, first load <cite>PrintPDF</cite> so that its icon is on the iconbar.  If it has been configured to run without an icon, see the <link ref="Choices">Setting Choices</link> section for details on how to change this. Next load <cite>Printers</cite> and select <menu>Printer control...</menu> from the iconbar menu, to open the <window>Printer control</window> window.
 
-To use the PoScript2 driver, next load <cite>Printers</cite> and select <menu>Printer control...</menu> from the iconbar menu, to open the <window>Printer control</window> window. Locate the printer definition files supplied with your machine, and drag the <file>PoScript2</file> file from the <file>Postscript</file> directory to the window.  This should add a new printer, with the name "PoScript2".
+Locate the printer definition file to be used, and drag it into the <window>Printer control</window> window.  This will be one of three:
 
-Click <mouse>menu</mouse> over the new printer's line, and select <menu>Connection...</menu> to open the <window>Connections</window> dialogue. Select <icon>File</icon> at the bottom of the list, click on the pop-up menu icon to the right of the field, and drag the file from the save dialogue to the <cite>PrintPDF</cite> icon on the iconbar; this should update the filename shown by <cite>Printers</cite>. Make sure that <icon>Append to file</icon> is not ticked, then click on <icon>Set</icon> to update the details.
+<list spacing="1">
+<li>For the standard PostScript2 driver, locate the printer definitions supplied with your machine, and drag the <file>PoScript2</file> file from the <file>Postscript</file> directory to the window.  This should add a new printer, with the name &quot;PoScript2&quot;.
 
-Click <mouse>menu</mouse> over the name again, and select <menu>Configure...</menu> from the menu to open the <window>PostScript printer configuration</window> dialogue. In the <icon>Name</icon> field, enter <entry>PDF</entry> to allow the new printer definition to be identified.  Ensure that <icon>Colour</icon> is ticked, then click on <icon>OK</icon> to set the changes.
+<li>For the &quot;PDF printer&quot; using PS2, find the <file>PDF</file> definition from the <file>Printers</file> folder of the <cite>PrintPDF</cite> archive and drag it to the window: this should add a new printer with the name &quot;PDF&quot;.
 
-On the iconbar, select the printer which you wish to use as your default, then select <menu>Save choices</menu> from the iconbar menu to save the changes for future use.
-
-To use the alternative printer definition, which allows the use of a "PDF printer" icon, users of RISC OS 3 or 4 who do not have <cite>Taborca</cite> installed must first merge some extra sprites into those inside !Printers (RISC OS 5 already contains suitable sprites, as does a machine with <cite>Taborca</cite>).  Start by taking a backup copy of <file>!Printers</file>, and putting it somewhere safe.
-
-<key>Shift</key>-double-click on the original <file>!Printers</file> to open the application directory.  Open the <file>ps</file> directory, then <file>Resources</file>; inside this should be three <file>!Sprites</file> files.  For each one, use <cite>Paint</cite> to merge in the corresponding file from within the <file>Printers.Sprites</file> directory of the <cite>PrintPDF</cite> download.
-
-Now load <cite>Printers</cite>, and select <menu>Printer control...</menu> from the iconbar menu to open the <window>Printer control</window> window. Drag either the <file>PDF300</file> or <file>PDF600</file> printer definition file from the <file>Printers</file> directory of the <cite>PrintPDF</cite> download to the window.  This should add a new printer, with the name "PDF".  <file>PDF300</file> operates at 300dpi, while <file>PDF600</file> operates at 600dpi; otherwise, the two files are identical.
+<li>For the PostScript3 driver, find the <file>PDF3</file> definition from the <file>PrintDefs/PrintPDF</file> folder of the <cite>PS3</cite> archive from Martin Wuerthner and John Tytgat, and drag it to the window: this should add a new printer with the name &quot;PDF3&quot;.
+</list>
 
 Click <mouse>menu</mouse> over the new printer's line, and select <menu>Connection...</menu> to open the <window>Connections</window> dialogue. Select <icon>File</icon> at the bottom of the list, click on the pop-up menu icon to the right of the field, and drag the file from the save dialogue to the <cite>PrintPDF</cite> icon on the iconbar; this should update the filename shown by <cite>Printers</cite>. Make sure that <icon>Append to file</icon> is not ticked, then click on <icon>Set</icon> to update the details.
 
-Click <mouse>menu</mouse> over the name again, and select <menu>Configure...</menu> from the menu to open the <window>PostScript printer configuration</window> dialogue. Ensure that <icon>Colour</icon> is ticked, then click on <icon>OK</icon> to set the changes.
+Click <mouse>menu</mouse> over the name again, and select <menu>Configure...</menu> from the menu to open the <window>PostScript printer configuration</window> dialogue. If using the standare PoScript2 driver, then enter <entry>PDF</entry> in the <icon>Name</icon> field to allow the new printer definition to be identified.  Ensure that <icon>Colour</icon> is ticked, then click on <icon>OK</icon> to set the changes.
 
 On the iconbar, select the printer which you wish to use as your default, then select <menu>Save choices</menu> from the iconbar menu to save the changes for future use.
 
 </chapter>
 
-
-
-
-Alternatively, a slightly modified version of the <file>PoScript2</file> file, which provides a "PDF printer" icon on the iconbar, is supplied in the <file>Printers</file> directory of the <cite>PrintPDF</cite> download.  This adds a new printer with the name "PDF", and should be used <em>instead of</em> the <file>PoScript2</file> definition.
 
 
 

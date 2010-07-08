@@ -23,4 +23,11 @@ If "<Alias$@RunType_1D8>" = "" Then Set Alias$@RunType_1D8 Run <PrintPDF$Dir>.!R
 
 | Set the application sprites.
 
-If "<Boot$OSVersion>" >= "500" Then IconSprites <PrintPDF$Dir>.5Sprites Else IconSprites <PrintPDF$Dir>.!Sprites
+Set PrintPDF$Sprites <PrintPDF$Dir>.!Sprites
+If "<Boot$OSVersion>" >= "400" Then Set PrintPDF$Sprites <PrintPDF$Dir>.4Sprites
+If "<Boot$OSVersion>" >= "500" Then Set PrintPDF$Sprites <PrintPDF$Dir>.5Sprites
+If "<Boot$OSVersion>" >= "600" Then Set PrintPDF$Sprites <PrintPDF$Dir>.4Sprites
+
+IconSprites <PrintPDF$Sprites>
+
+Unset PrintPDF$Sprites
