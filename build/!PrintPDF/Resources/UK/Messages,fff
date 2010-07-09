@@ -6,7 +6,7 @@
 # General application details
 
 TaskName:PrintPDF
-Version:0.83 (%0)
+Version:0.84 (%0)
 
 ChildTaskName:PrintPDF Child
 
@@ -67,7 +67,7 @@ AutoPageRotateList:/None,/All,/PageByPage
 #
 # Window icon data (particularly toolbar items) may be in menu data when duplicates exist.
 
-Help.IconBar:\TPrintPDF application.|M\Sset the conversion options.|MDrag a PostScript file here to create a PDF.
+Help.IconBar:\TPrintPDF application.|M\Sopen a new bookmark file in the bookmark editor.|MDrag a PostScript file here to create a PDF.
 
 Help.ProgInfo:\TPrintPDF information \w.
 Help.ProgInfo.Website:\Svisit the PrintPDF website, if you have Internet access.
