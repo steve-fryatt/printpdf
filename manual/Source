@@ -1,6 +1,6 @@
 <document title="PrintPDF">
-<define name="version" value="0.83">
-<define name="date" value="6 July 2010" length=30 align="right">
+<define name="version" value="0.84">
+<define name="date" value="9 July 2010" length=30 align="right">
 
 
 
@@ -44,6 +44,32 @@ A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$Hel
 
 
 
+
+<literal mode="HTML">
+<html>
+<head>
+<title>PrintPDF</title>
+<style type="text/css">
+ DIV.container {
+   background-color: silver;
+   margin: 0;
+ }
+
+ DIV.chapter {
+   color: black;
+   background-color: white;
+   margin: 2em;
+   padding: 1em;
+ }
+</style>
+</head>
+
+<body>
+<div class="container">
+<div class="chapter">
+<h1>PrintPDF</h1>
+</div>
+</literal>
 
 
 
@@ -109,7 +135,7 @@ If you do not already have a copy of <cite>GhostScript</cite> version 8.5, it ca
 
 <cite>GhostScript</cite> must be installed on a filing system that supports long file names and unlimited files per directory.  If you are not using an E+ or F+ format hard disc (the new formats supplied with RISC OS 4 and 5), you will either need to upgrade or investigate Richard Atterer's <cite>raFS</cite> (from <link ref="#url http://www.atterer.net/">http://www.atterer.net/</link>) or Andy Armstrong's <cite>X-Files</cite> (from <link ref="#url http://wonderworks.geekgang.com/free/">http://wonderworks.geekgang.com/free/</link>).
 
-Once installed, <cite>GhostScript</cite> must also have been seen by the filer before <cite>PrintPDF</cite> can carry out PDF conversions; again the easiest way to do this is via <cite>Configure</cite>.  Go back to the list of applications to be looked at on startup (start <cite>Configure</cite> by double-clicking on <file>!Boot</file>, then select <icon>Boot</icon> and finally <icon>Look at</icon>), then drag the <file>!GhostScr</file> application from your hard disc into it.
+Once installed, <cite>GhostScript</cite> must also have been seen by the filer before <cite>PrintPDF</cite> can carry out PDF conversions; again the easiest way to do this is via <cite>Configure</cite>.  Go back to the list of applications to be looked at on startup (start <cite>Configure</cite> by double-clicking on <file>!Boot</file>, then select <icon>Boot</icon> and finally <icon>Look at</icon>); drag the <file>!GhostScr</file> application from your hard disc into it.
 
 
 <subhead title="Setting up Printers">
@@ -121,12 +147,14 @@ There are several alternative ways to set things up, and two or more can be used
 <list spacing="1">
 <li>Use the standard PoScript2 driver; while this works fine, it means that the icon used to indicate the "PDF printer" is fairly nondescript. This uses PostScript2 to send data to the printer.
 
-<li>Use a slightly modified version of the driver (supplied in the <file>Printers</file> folder of the <cite>PrintPDF</cite> archive), which allows a different &quot;PDF&quot; icon to be displayed but is otherwise identical and also results in PS2 data being used.
+<li>Use a slightly modified version of the PoScript2 driver (supplied in the <file>Printers</file> folder of the <cite>PrintPDF</cite> archive), which allows a different &quot;PDF&quot; icon to be displayed but is otherwise identical and also results in PS2 data being used.
 
 <li>Use the <file>PDF3</file> driver supplied in the <file>PrintDefs.PrintPDF</file> folder of the PS3 Driver download from Martin Wuerthner and John Tytgat (this is commercial software - see <link ref="#url http://www.mw-software.com/software/ps3/ps3.html">http://www.mw-software.com/software/ps3/ps3.html</link>). This allows PrintPDF to send PostScript3 data to GhostScript.
 </list>
 
-To set up by either method, first load <cite>PrintPDF</cite> so that its icon is on the iconbar.  If it has been configured to run without an icon, see the <link ref="Choices">Setting Choices</link> section for details on how to change this. Next load <cite>Printers</cite> and select <menu>Printer control...</menu> from the iconbar menu, to open the <window>Printer control</window> window.
+On most systems, the second and third options are preferred depending on whether the PS2 or PS3 drivers are to be used.
+
+To set up by any of these methods, first load <cite>PrintPDF</cite> so that its icon is on the iconbar.  If it has been configured to run without an icon, see the <link ref="Choices">Setting Choices</link> section for details on how to change this. Next load <cite>Printers</cite> and select <menu>Printer control...</menu> from the iconbar menu, to open the <window>Printer control</window> window.
 
 Locate the printer definition file to be used, and drag it into the <window>Printer control</window> window.  This will be one of three:
 
@@ -140,7 +168,7 @@ Locate the printer definition file to be used, and drag it into the <window>Prin
 
 Click <mouse>menu</mouse> over the new printer's line, and select <menu>Connection...</menu> to open the <window>Connections</window> dialogue. Select <icon>File</icon> at the bottom of the list, click on the pop-up menu icon to the right of the field, and drag the file from the save dialogue to the <cite>PrintPDF</cite> icon on the iconbar; this should update the filename shown by <cite>Printers</cite>. Make sure that <icon>Append to file</icon> is not ticked, then click on <icon>Set</icon> to update the details.
 
-Click <mouse>menu</mouse> over the name again, and select <menu>Configure...</menu> from the menu to open the <window>PostScript printer configuration</window> dialogue. If using the standare PoScript2 driver, then enter <entry>PDF</entry> in the <icon>Name</icon> field to allow the new printer definition to be identified.  Ensure that <icon>Colour</icon> is ticked, then click on <icon>OK</icon> to set the changes.
+Click <mouse>menu</mouse> over the name again, and select <menu>Configure...</menu> from the menu to open the <window>PostScript printer configuration</window> dialogue. If using the standard PoScript2 driver, then enter <entry>PDF</entry> in the <icon>Name</icon> field to allow the new printer definition to be identified.  Ensure that <icon>Colour</icon> is ticked, then click on <icon>OK</icon> to set the changes.
 
 On the iconbar, select the printer which you wish to use as your default, then select <menu>Save choices</menu> from the iconbar menu to save the changes for future use.
 
@@ -200,7 +228,7 @@ In addition to the custom settings, a number of preset configurations are provid
 
 The <icon>Information</icon> field allows the PDF document information to be set up: document title, subject, author and content keywords. When the field shows 'None' then the default values set by the printing system will be used. Clicking on the pop-up menu to the right of the field gives access to these entries, allowing them to be changed. Most PDF readers show the document title in the titlebar of the display window, while the other fields appear with the document properties or document information.
 
-The <icon>Bookmarks</icon> field can be used to attach a bookmarks file to the conversion: these can be used to identify chapter and section headings or other key locations in a document and enable readers to navigate through it easily. The pop-up menu to the right allows a bookmarks file to be selected from those currently open; when it shows 'None', no bookmarks will be used. Details of how to use the bookmarks editor to create or load sets of bookmarks are given in the <link ref="BMark">Bookmark Editor</link> section.
+The <icon>Bookmarks</icon> field can be used to attach a bookmarks file to the conversion: these can be used to identify chapter and section headings or other key locations in a document and enable readers to navigate through it easily. The pop-up menu to the right allows a bookmarks file to be selected from those currently open in the bookmark editor; when it shows 'None', no bookmarks will be used. Details of how to use the bookmarks editor to create or load sets of bookmarks are given in the <link ref="BMark">Bookmark Editor</link> section.
 
 The <icon>Encryption</icon> field allows access to the document encryption, password protection and access limitation features, if <cite>GhostScript</cite> 8.5 or better is being used.  When the field shows 'Unprotected', no encryption is applied; clicking on the pop-up menu icon opens a transient dialogue box to allow the various settings to be changed.
 
@@ -236,30 +264,35 @@ It is also possible to convert PostScript files which already exist on disc, by 
 
 <chapter title="Bookmark Editor" file="BMark">
 
-The bookmark editor is used to create sets of bookmarks, which can used when generating PDF files. Bookmarks are links to pages within a PDF document, and most PDF viewers can be made to display them and allow the user to follow them.
+The bookmark editor is used to create sets of bookmarks, which can be attached to PDF files when they are created. Bookmarks are links to pages within a PDF document, and most PDF viewers can be made to display them and allow the user to follow them. The popular <cite>!PDF</cite> viewer on RISC OS refers to bookmarks as the &quot;document outline&quot;, and displays them through the left-hand icon on its toolbar.
 
-<cite>PrintPDF</cite> allows files containing sets of bookmarks to be created and maintained: these can then be loaded when their associated document is printed to PDF, and used in the conversion. To create a new bookmarks file, click <mouse>select</mouse> on <cite>PrintPDF</cite>'s iconbar icon.
+To enable PDFs to be generated with bookmarks in them, <cite>PrintPDF</cite> allows files containing sets of bookmarks to be created and maintained: these can then be loaded back into the bookmark editor when their associated document is printed to PDF, and used in the conversion. To create a new bookmarks file, click <mouse>select</mouse> on <cite>PrintPDF</cite>'s iconbar icon.
 
-A bookmarks file consists of a series of bookmark entries, each consisting of a title and a page number. A new file initially contains a single line, but more can be inserted using <menu>Insert - Before row</menu> and <menu>Insert - After row</menu> from the bookmarks menu, by pressing <key>tab</key> in the page number column, or by pressing <key>return</key>. Lines can be deleted by using <menu>Delete row</menu> from the menu, or by pressing <key>backspace</key> in an empty title cell (ie. deleting back out of the empty cell).
+A bookmarks file contains of a series of bookmark entries, each consisting of a title in the left-hand column and a page number in the right. Page numbers always count from 1, and refer to pages in the finished PDF document. If a document consists of several files joined together via <cite>PrintPDF</cite>'s <link ref="Queue">queue</link>, then the numbers continue in sequence through each of the source documents in turn. Page numbering as understood by software such as <cite>Impression</cite> or <cite>Ovation Pro</cite> is not seen by <cite>PrintPDF</cite>, and so can not be used.
 
-A set of bookmarks is given a name using the <icon>name</icon> field in the toolbar: this is used to identify the bookmarks during PDF creation.
+A new file initially contains a single line, but more can be inserted using <menu>Insert - Before row</menu> and <menu>Insert - After row</menu> from the bookmarks menu, by pressing <key>tab</key> in the page number column, or by pressing <key>return</key>. Lines can be deleted by using <menu>Delete row</menu> from the menu, or by pressing <key>backspace</key> in an empty title cell (ie. deleting back out of the empty cell).
+
+A set of bookmarks is given a name using the <icon>name</icon> field at the right-hand side of the toolbar: this is used to identify the bookmarks during PDF creation.
 
 
 <subhead title="Saving and loading bookmarks">
 
 Sets of bookmarks can be saved using the <icon>save</icon> button in the toolbar or by selecting <menu>File - Save</menu> from the menu. Once saved, files can be loaded back into the editor by double-clicking on them in the usual manner.
 
-In order to use a set of bookmarks in the PDF creation process, the bookmarks file must be open in the bookmarks editor.
+An asterisk to the right of the <window>bookmark editor</window> window's titlebar indicates that there are unsaved changes within it.
+
+In order to use a set of bookmarks in the PDF creation process, the bookmarks file must be open in the bookmarks editor.  It does not have to have been saved, however.
 
 
 <subhead title="Nesting bookmarks">
 
-Although bookmarks can consist of a simple list of references, the PDF format allows them to be nested. This means that top-level bookmarks (chapter headings, if you like) can have children under them (sub headings) and these can in turn have their own children, and so on. In this chapter of the <cite>PrintPDF</cite> manual, for example, the top-level bookmark would be "Bookmark Editor", while it would have children of "Saving and loading bookmarks", "Nesting bookmarks", and so on.
+Although bookmarks can consist of a simple list of references, the PDF format allows them to be nested. This means that top-level bookmarks (chapter headings, for example) can have children under them (sub headings, perhaps) and these can in turn have their own children, and so on. In this chapter of the <cite>PrintPDF</cite> manual, for example, the top-level bookmark would be &quot;Bookmark Editor&quot;, while it would have children of &quot;Saving and loading bookmarks&quot; and &quot;Nesting bookmarks&quot;.
 
-To create nested bookmark entries, create a normal bookmark entry and use <menu>Level - Promote</menu> from the menu or click on the <icon>promote</icon> toolbar button to indent it. The bookmark will gain a <icon>node</icon> to its left, showing that it now has a child: as such, the first bookmark in the list can never be indented. The process can be reversed using <menu>Level - Demote</menu> or the <icon>demote</icon> button in the toolbar. The <menu>Promote all</menu> and <menu>Demote all</menu> options are similar in action, but try to promote and demote logical groups of bookmarks following the selected one.
+To produce nested bookmark entries, create a normal bookmark entry and use <menu>Level - Promote</menu> from the menu or click on the <icon>promote</icon> toolbar button to indent it. The bookmark above will gain a <icon>node</icon> to its left, showing that it now has a child: as such, the first bookmark in the list can never be indented. The process can be reversed using <menu>Level - Demote</menu> or the <icon>demote</icon> button in the toolbar.
 
-Clicking on the <icon>node</icon> buttons to the left of the parent bookmarks allows their children to be hidden or revealed. These settings are saved in the file and carried across to the finished PDF. <menu>View - Expand all</menu> and <menu>View - Contract all</menu>, along with the associated toolbar buttons, will cause the bookmarks to become fully expanded or fully contracted.
+The <menu>Promote all</menu> and <menu>Demote all</menu> options are similar in action, but try to promote and demote logical groups of bookmarks following the selected one. In general, they will promote or demote all of the nodes following the selected one at the same level, and any of their children. When demoting, it may sometimes be necessary to demote additional nodes so as to avoid breaking the bookmark structure: this will happen regardless of whether or not &quot;all&quot; is used.
 
+Clicking on the <icon>node</icon> buttons to the left of the parent bookmarks allows their children to be hidden or revealed. These settings are saved in the file and carried across to the finished PDF, so toggling these affects the unsaved status of the bookmarks file. <menu>View - Expand all</menu> and <menu>View - Contract all</menu>, along with the associated toolbar buttons, can be used to fully expand or fully contract the set of bookmarks.
 
 </chapter>
 
@@ -528,6 +561,18 @@ Update to eighth beta release.
 </list>
 
 
+<subhead title="0.84 (9 July 2010)">
+
+Update to eighth beta release.
+
+<list>
+<li>Merge printer sprites into application IconSprites and amend installation procedure.
+<li>Fix sprite selection on RISC OS 6.
+<li>Improve manual and interactive help.
+<li>Remove ineffectual PDF600 printer definition file.
+</list>
+
+
 </chapter>
 
 
@@ -597,6 +642,16 @@ fStd
 
 #End
 </literal>
+
+
+
+
+<literal mode="HTML">
+</div>
+</body>
+</html>
+</literal>
+
 
 
 
