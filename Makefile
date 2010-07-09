@@ -72,6 +72,7 @@ RUNIMAGE := !RunImage,ff8
 MENUS := Menus,ffd
 TEXTHELP := HelpText,fff
 SHHELP := PrintPDF,3d6
+HTMLHELP := manual.html
 README := ReadMe,fff
 LICENSE := License,fff
 PRINTERS := Printers
@@ -127,7 +128,7 @@ $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS): $(MENUDIR)/$(MENUSRC)
 
 # Build the documentation
 
-documentation: $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP) $(OUTDIR)/$(README)
+documentation: $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP) $(OUTDIR)/$(README) $(OUTDIR)/$(HTMLHELP)
 
 $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP): $(MANUAL)/$(MANSRC)
 	$(TEXTMAN) $(MANUAL)/$(MANSRC) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP)
@@ -140,6 +141,9 @@ $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP): $(MANUAL)/$(MANSRC) $(MANUAL)/$(MANSPR)
 
 $(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR)
 	$(TEXTMERGE) $(OUTDIR)/$(README) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR) 5
+
+$(OUTDIR)/$(HTMLHELP): $(MANUAL)/$(MANSRC)
+	$(HTMLMAN) $(MANUAL)/$(MANSRC) $(OUTDIR)/$(HTMLHELP)
 
 
 # Build the release Zip file.
