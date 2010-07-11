@@ -160,7 +160,6 @@ void close_queue_window (void);
 void rebuild_queue_index (void);
 void reorder_queue_from_index (void);
 void start_queue_entry_drag (int line);
-void terminate_queue_entry_drag (wimp_dragged *drag);
 void decode_queue_pane_help (char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons);
 
 void traverse_queue (void);

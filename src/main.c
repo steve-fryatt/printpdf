@@ -147,10 +147,6 @@ int poll_loop (void)
 				case DRAG_SAVE:
 					terminate_user_drag (&(blk.dragged));
 					break;
-
-				case DRAG_QUEUE:
-					terminate_queue_entry_drag (&(blk.dragged));
-					break;
 				}
 				break;
 

@@ -50,8 +50,15 @@
 #include "version.h"
 #include "windows.h"
 
+/* ****************************************************************************
+ * Function Prototypes
+ * ****************************************************************************/
+
+/* Defer queue manipulation. */
+
 void			redraw_queue_pane(wimp_draw *redraw);
 void			queue_pane_click(wimp_pointer *pointer);
+void			terminate_queue_entry_drag(wimp_dragged *drag, void *data);
 
 /* ==================================================================================================================
  * Global variables.
@@ -1343,7 +1350,7 @@ void queue_pane_click (wimp_pointer *pointer)
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-void start_queue_entry_drag (int line)
+void start_queue_entry_drag(int line)
 {
   wimp_window_state     window;
   wimp_auto_scroll_info auto_scroll;
@@ -1351,7 +1358,6 @@ void start_queue_entry_drag (int line)
   int                   ox, oy;
 
   extern global_windows windows;
-  extern int            global_drag_type;
 
 
   if (1)
@@ -1410,73 +1416,62 @@ void start_queue_entry_drag (int line)
       wimp_auto_scroll (wimp_AUTO_SCROLL_ENABLE_VERTICAL, &auto_scroll);
     }
 
-    global_drag_type = DRAG_QUEUE;
     dragging_start_line = line;
+    event_set_drag_handler(terminate_queue_entry_drag, NULL, NULL);
   }
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+/**
+ * Callback handler for queue window drag termination.
+ *
+ * \param  *drag		The Wimp poll block from termination.
+ * \param  *data		NULL (unused).
+ */
 
-void terminate_queue_entry_drag (wimp_dragged *drag)
+void terminate_queue_entry_drag(wimp_dragged *drag, void *data)
 {
-  wimp_pointer      pointer;
-  wimp_window_state window;
-  int               line, i;
-  queued_file       *moved;
+	wimp_pointer		pointer;
+	wimp_window_state	window;
+	int			line, i;
+	queued_file		*moved;
 
-  extern global_windows windows;
+	extern global_windows	windows;
 
 
-  /* Terminate the drag and end the autoscroll. */
+	/* Terminate the drag and end the autoscroll. */
 
-  if (xos_swi_number_from_string ("Wimp_AutoScroll", NULL) == NULL)
-  {
-    wimp_auto_scroll (0, NULL);
-  }
+	if (xos_swi_number_from_string ("Wimp_AutoScroll", NULL) == NULL)
+		wimp_auto_scroll (0, NULL);
 
-  if (dragging_sprite)
-  {
-    dragasprite_stop ();
-  }
+	if (dragging_sprite)
+		dragasprite_stop ();
 
-  /* Get the line at which the drag ended. */
+	/* Get the line at which the drag ended. */
 
-  wimp_get_pointer_info (&pointer);
+	wimp_get_pointer_info (&pointer);
 
-  window.w = windows.queue_pane;
-  wimp_get_window_state (&window);
+	window.w = windows.queue_pane;
+	wimp_get_window_state (&window);
 
-  line = ((window.visible.y1 - pointer.pos.y) - window.yscroll) / QUEUE_ICON_HEIGHT;
+	line = ((window.visible.y1 - pointer.pos.y) - window.yscroll) / QUEUE_ICON_HEIGHT;
 
-  if (line < 0)
-  {
-    line = 0;
-  }
-  if (line >= queue_redraw_lines)
-  {
-    line = queue_redraw_lines - 1;
-  }
+	if (line < 0)
+		line = 0;
+	if (line >= queue_redraw_lines)
+		line = queue_redraw_lines - 1;
 
-  moved = queue_redraw_list[dragging_start_line];
+	moved = queue_redraw_list[dragging_start_line];
 
-  if (dragging_start_line < line)
-  {
-    for (i=dragging_start_line; i<line; i++)
-    {
-      queue_redraw_list[i] = queue_redraw_list[i+1];
-    }
-  }
-  else if (dragging_start_line > line)
-  {
-    for (i=dragging_start_line; i>line; i--)
-    {
-      queue_redraw_list[i] = queue_redraw_list[i-1];
-    }
-  }
+	if (dragging_start_line < line)
+		for (i=dragging_start_line; i<line; i++)
+			queue_redraw_list[i] = queue_redraw_list[i+1];
+	else if (dragging_start_line > line)
+		for (i=dragging_start_line; i>line; i--)
+			queue_redraw_list[i] = queue_redraw_list[i-1];
 
-  queue_redraw_list[line] = moved;
+	queue_redraw_list[line] = moved;
 
-  force_visible_window_redraw (windows.queue_pane);
+	force_visible_window_redraw (windows.queue_pane);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

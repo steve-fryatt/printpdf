@@ -2107,6 +2107,7 @@ void bookmark_line_drag(bookmark_block *bm, int line)
  * Callback handler for bookmark window drag termination.
  *
  * \param  *drag		The Wimp poll block from termination.
+ * \param  *data		The bookmark block associated with the drag.
  */
 
 void bookmark_terminate_line_drag(wimp_dragged *drag, void *data)
