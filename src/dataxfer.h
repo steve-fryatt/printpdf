@@ -29,7 +29,6 @@
 /* Save box drag handling */
 
 void start_save_window_drag(int type);
-void terminate_user_drag (wimp_dragged *drag);
 
 /* Save Box direct save. */
 

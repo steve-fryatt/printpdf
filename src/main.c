@@ -54,7 +54,6 @@
 
 /* Declare the global variables that are used. */
 
-int			global_drag_type;
 int			global_encryption_dialogue_location;
 int			global_optimization_dialogue_location;
 int			global_pdfmark_dialogue_location;
@@ -140,14 +139,6 @@ int poll_loop (void)
 
 			case wimp_MENU_SELECTION:
 				menu_selection_handler (&(blk.selection));
-				break;
-
-			case wimp_USER_DRAG_BOX:
-				switch (global_drag_type) {
-				case DRAG_SAVE:
-					terminate_user_drag (&(blk.dragged));
-					break;
-				}
 				break;
 
 			case wimp_USER_MESSAGE:

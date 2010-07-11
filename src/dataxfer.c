@@ -25,6 +25,7 @@
 #include "sflib/transfer.h"
 #include "sflib/debug.h"
 #include "sflib/errors.h"
+#include "sflib/event.h"
 #include "sflib/general.h"
 #include "sflib/config.h"
 
@@ -37,6 +38,14 @@
 #include "convert.h"
 #include "main.h"
 #include "windows.h"
+
+/* ****************************************************************************
+ * Function Prototypes
+ * ****************************************************************************/
+
+/* Save box drag handling */
+
+void terminate_user_drag(wimp_dragged *drag, void *data);
 
 /* ==================================================================================================================
  * Global variables.
@@ -76,7 +85,6 @@ void start_save_window_drag(int type)
 	int			ox, oy;
 
 	extern global_windows	windows;
-	extern int		global_drag_type;
 
 
 	/* Get the basic information about the window and icon. */
@@ -134,17 +142,22 @@ void start_save_window_drag(int type)
 	else
 		wimp_drag_box (&drag);
 
-	global_drag_type = DRAG_SAVE;
 	drag_type = type;
+	event_set_drag_handler(terminate_user_drag, NULL, NULL);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-/* Called from Wimp_Poll when a save drag has terminated.  Start a data-save dialogue with the application at the
- * other end.
+/**
+ * Callback handler for queue window drag termination.
+ *
+ * Start a data-save dialogue with the application at the other end.
+ *
+ * \param  *drag		The Wimp poll block from termination.
+ * \param  *data		NULL (unused).
  */
 
-void terminate_user_drag(wimp_dragged *drag)
+void terminate_user_drag(wimp_dragged *drag, void *data)
 {
 	wimp_pointer		pointer;
 	char			*leafname;
