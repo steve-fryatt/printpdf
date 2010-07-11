@@ -338,6 +338,27 @@ wimp_menu *build_bookmark_menu(bookmark_params *params)
 
 
 /**
+ * Load a bookmark file and set it as the current conversion file.
+ *
+ * \param  *params		The bookmark parameters.
+ * \param  *filename		The file to load.
+ * \return			0 if the file loaded OK; else 1.
+ */
+
+int load_and_select_bookmark_file(bookmark_params *params, char *filename)
+{
+	bookmark_block		*bm;
+
+	bm = load_bookmark_file(filename);
+
+	if (bm != NULL)
+		params->bookmarks = bm;
+
+	return (bm == NULL);
+}
+
+
+/**
  * Fill the Bookmark info field based on the supplied parameters.
  *
  * \param  window		The window the field is in.
@@ -2770,9 +2791,10 @@ void save_bookmark_file(bookmark_block *bm, char *filename)
  * bookmark_block structure.
  *
  * \param  *filename	The file to load.
+ * \return		The bookmark block containing the file; else NULL.
  */
 
-void load_bookmark_file(char *filename)
+bookmark_block *load_bookmark_file(char *filename)
 {
 	FILE			*in;
 	bookmark_block		*block;
@@ -2786,7 +2808,7 @@ void load_bookmark_file(char *filename)
 
 	if (block == NULL) {
 		// \TODO -- Add an error report here.
-		return;
+		return NULL;
 	}
 
 	osfile_read_stamped(filename, &load, &exec, NULL, NULL, NULL);
@@ -2801,7 +2823,7 @@ void load_bookmark_file(char *filename)
 	if (in == NULL) {
 		// \TODO -- Add an error report here.
 		delete_bookmark_block(block);
-		return;
+		return NULL;
 	}
 
 	hourglass_on();
@@ -2882,6 +2904,8 @@ void load_bookmark_file(char *filename)
 
 	rebuild_bookmark_data(block);
 	open_bookmark_window(block);
+
+	return block;
 }
 
 

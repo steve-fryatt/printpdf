@@ -1,6 +1,6 @@
 <document title="PrintPDF">
-<define name="version" value="0.84">
-<define name="date" value="9 July 2010" length=30 align="right">
+<define name="version" value="0.85">
+<define name="date" value="11 July 2010" length=30 align="right">
 
 
 
@@ -228,7 +228,7 @@ In addition to the custom settings, a number of preset configurations are provid
 
 The <icon>Information</icon> field allows the PDF document information to be set up: document title, subject, author and content keywords. When the field shows 'None' then the default values set by the printing system will be used. Clicking on the pop-up menu to the right of the field gives access to these entries, allowing them to be changed. Most PDF readers show the document title in the titlebar of the display window, while the other fields appear with the document properties or document information.
 
-The <icon>Bookmarks</icon> field can be used to attach a bookmarks file to the conversion: these can be used to identify chapter and section headings or other key locations in a document and enable readers to navigate through it easily. The pop-up menu to the right allows a bookmarks file to be selected from those currently open in the bookmark editor; when it shows 'None', no bookmarks will be used. Details of how to use the bookmarks editor to create or load sets of bookmarks are given in the <link ref="BMark">Bookmark Editor</link> section.
+The <icon>Bookmarks</icon> field can be used to attach a bookmarks file to the conversion: these can be used to identify chapter and section headings or other key locations in a document and enable readers to navigate through it easily. The pop-up menu to the right allows a bookmarks file to be selected from those currently open in the bookmark editor; when it shows 'None', no bookmarks will be used. Dragging a bookmarks file to the <window>Create PDF</window> window will load it into the editor and set it as the current file in the field. Details of how to use the bookmarks editor to create or load sets of bookmarks are given in the <link ref="BMark">Bookmark Editor</link> section.
 
 The <icon>Encryption</icon> field allows access to the document encryption, password protection and access limitation features, if <cite>GhostScript</cite> 8.5 or better is being used.  When the field shows 'Unprotected', no encryption is applied; clicking on the pop-up menu icon opens a transient dialogue box to allow the various settings to be changed.
 
@@ -570,6 +570,16 @@ Update to eighth beta release.
 <li>Fix sprite selection on RISC OS 6.
 <li>Improve manual and interactive help.
 <li>Remove ineffectual PDF600 printer definition file.
+</list>
+
+
+<subhead title="0.85 (11 July 2010)">
+
+Update to eighth beta release.
+
+<list>
+<li>Dragging bookmark files to the <window>Create PDF</window> window loads it and sets it as the current bookmarks for the conversion.
+<li>Internal improvements and restructuring of code.
 </list>
 
 

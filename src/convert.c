@@ -49,6 +49,7 @@
 #include "popup.h"
 #include "version.h"
 #include "windows.h"
+#include "dataxfer.h"
 
 /* ****************************************************************************
  * Function Prototypes
@@ -482,45 +483,49 @@ void conversion_dialogue_queue (void)
   conversion_in_progress = FALSE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void handle_save_icon_drop (wimp_full_message_data_xfer *dataload)
+/**
+ * Process files being saved into the Create PDF window.
+ *
+ * \param  *dataload		The full dataload message block.
+ */
+
+void handle_save_icon_drop(wimp_full_message_data_xfer *dataload)
 {
-  char *extension, *leaf, path[256];
+	char			*extension, *leaf, path[256];
 
-  extern global_windows windows;
+	extern global_windows	windows;
 
 
-  if (dataload != NULL && dataload->w == windows.save_pdf)
-  {
-    switch (dataload->i)
-    {
-    case SAVE_PDF_ICON_NAME:
-      strcpy (path, dataload->file_name);
+	if (dataload != NULL && dataload->w == windows.save_pdf && dataload->file_type == PRINTPDF_FILE_TYPE) {
+		if (!load_and_select_bookmark_file(&bookmark, dataload->file_name))
+			fill_bookmark_field(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
+	} else if (dataload != NULL && dataload->w == windows.save_pdf) {
+		switch (dataload->i) {
+		case SAVE_PDF_ICON_NAME:
+			strcpy(path, dataload->file_name);
 
-      extension = find_extension (path);
-      leaf = lose_extension (path);
-      find_pathname (path);
+			extension = find_extension(path);
+			leaf = lose_extension(path);
+			find_pathname(path);
 
-      if (strcmp_no_case (extension, "pdf") != 0)
-      {
-        snprintf (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), 256, "%s.%s/pdf", path, leaf);
+			if (strcmp_no_case(extension, "pdf") != 0) {
+				snprintf(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), 256, "%s.%s/pdf", path, leaf);
 
-        replace_caret_in_window (dataload->w);
-        wimp_set_icon_state (dataload->w, dataload->i, 0, 0);
-      }
-      break;
+				replace_caret_in_window (dataload->w);
+				wimp_set_icon_state (dataload->w, dataload->i, 0, 0);
+			}
+			break;
 
-    case SAVE_PDF_ICON_USERFILE:
-      if (dataload->file_type == 0xfff)
-      {
-        strcpy (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE), dataload->file_name);
-        replace_caret_in_window (dataload->w);
-        wimp_set_icon_state (dataload->w, dataload->i, 0, 0);
-      }
-      break;
-    }
-  }
+		case SAVE_PDF_ICON_USERFILE:
+			if (dataload->file_type == 0xfff) {
+				strcpy(indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_USERFILE), dataload->file_name);
+				replace_caret_in_window(dataload->w);
+				wimp_set_icon_state(dataload->w, dataload->i, 0, 0);
+			}
+			break;
+		}
+	}
 }
 
 /* ==================================================================================================================

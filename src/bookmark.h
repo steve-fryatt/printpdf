@@ -164,6 +164,7 @@ void terminate_bookmarks(void);
 void initialise_bookmark_settings(bookmark_params *params);
 void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon);
 void process_bookmark_menu(bookmark_params *params, wimp_selection *selection);
+int load_and_select_bookmark_file(bookmark_params *params, char *filename);
 void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params);
 int bookmark_data_available(bookmark_params *params);
 int bookmark_validate_params(bookmark_params *params);
@@ -183,7 +184,7 @@ int drag_end_save_saveas(char *filename);
 /* Bookmark Data Processing */
 
 void save_bookmark_file(bookmark_block *bm, char *filename);
-void load_bookmark_file(char *filename);
+bookmark_block *load_bookmark_file(char *filename);
 void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params);
 
 #endif

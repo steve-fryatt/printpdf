@@ -146,7 +146,6 @@ void start_save_window_drag(int type)
 	event_set_drag_handler(terminate_user_drag, NULL, NULL);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
 /**
  * Callback handler for queue window drag termination.
