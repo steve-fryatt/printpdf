@@ -223,6 +223,10 @@ Help.IconBarMenu.04:\Squit PrintPDF.
 
 Help.ParamsMenu.??:\Tlist of available options.|M\Schoose the one under the pointer.
 
+Help.BookmarkListMenu.00:\Screate and edit a new set of bookmarks for this conversion.
+Help.BookmarkListMenu.01:\Suse no bookmarks in this conversion.
+Help.BookmarkListMenu.??:\Suse the set of bookmarks under the pointer for this conversion.
+
 Help.BookmarkMenu.00:\Rperform operations on and see information about this file.
 Help.BookmarkMenu.0000:\Rsee information about this file.
 Help.BookmarkMenu.0001:\Rsave this file.|M\Sdirectly save the file to its current location.

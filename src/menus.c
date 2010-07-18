@@ -106,7 +106,7 @@ char *get_current_menu_name(char *buffer)
 	else if (menus.menu_up == menus.bookmarks)
 		strcpy(buffer, "BookmarkMenu");
 	else if (menus.menu_up == menus.bookmarks_list)
-		strcpy(buffer, "BookmarksListMenu");
+		strcpy(buffer, "BookmarkListMenu");
 
 	return (buffer);
 }
