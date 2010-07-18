@@ -175,7 +175,7 @@ int bookmark_files_unsaved(void);
 
 /* Bookmark Window Handling */
 
-void create_new_bookmark_window(wimp_pointer *pointer);
+bookmark_block *create_new_bookmark_window(void);
 
 /* SaveAs Dialogue Handling */
 

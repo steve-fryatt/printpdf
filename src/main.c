@@ -174,7 +174,7 @@ void mouse_click_handler (wimp_pointer *pointer)
     switch ((int) pointer->buttons)
     {
       case wimp_CLICK_SELECT:
-        create_new_bookmark_window(pointer);
+        create_new_bookmark_window();
         break;
 
       case wimp_CLICK_MENU:
@@ -692,6 +692,7 @@ void key_press_handler (wimp_key *key)
 void menu_selection_handler (wimp_selection *selection)
 {
 	wimp_pointer		pointer;
+	wimp_menu		*old_menu;
 
 	extern global_menus	menus;
 
@@ -699,6 +700,7 @@ void menu_selection_handler (wimp_selection *selection)
 	/* Store the mouse status before decoding the menu. */
 
 	wimp_get_pointer_info (&pointer);
+	old_menu = menus.menu_up;
 
 	/* Decode the individual menus. */
 
@@ -709,9 +711,12 @@ void menu_selection_handler (wimp_selection *selection)
 	else if (menus.menu_up == menus.bookmarks_list)
 		process_convert_bookmark_menu(selection);
 
-	/* If Adjust was used, reopen the menu. */
+	/* If Adjust was used, reopen the menu.  If the menu block has moved,
+	 * the menu is just closed -- this might be because the block has
+	 * had to be grown in malloc().
+	 */
 
-	if (pointer.buttons == wimp_CLICK_ADJUST)
+	if (pointer.buttons == wimp_CLICK_ADJUST && old_menu == menus.menu_up)
 		wimp_create_menu (menus.menu_up, 0, 0);
 }
 
