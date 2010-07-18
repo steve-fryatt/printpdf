@@ -67,7 +67,7 @@ AutoPageRotateList:/None,/All,/PageByPage
 #
 # Window icon data (particularly toolbar items) may be in menu data when duplicates exist.
 
-Help.IconBar:\TPrintPDF application.|M\Sopen a new bookmark file in the bookmark editor.|MDrag a PostScript file here to create a PDF.
+Help.IconBar:\TPrintPDF application.|M\Sopen a new bookmark file in the bookmark editor.|M\Aopen the queue \w.|MDrag a PostScript file here to create a PDF.
 
 Help.ProgInfo:\TPrintPDF information \w.
 Help.ProgInfo.Website:\Svisit the PrintPDF website, if you have Internet access.

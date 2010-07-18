@@ -180,6 +180,11 @@ void mouse_click_handler (wimp_pointer *pointer)
       case wimp_CLICK_MENU:
         open_iconbar_menu (pointer);
         break;
+
+      case wimp_CLICK_ADJUST:
+        open_queue_window (pointer); /* Call this first so that the pane is sized before we try and set its extent. */
+        rebuild_queue_index ();
+	break;
     }
   }
 
