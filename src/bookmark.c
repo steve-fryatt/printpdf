@@ -561,7 +561,7 @@ bookmark_node *insert_bookmark_node(bookmark_block *bm, bookmark_node *before)
 	strncpy(new->title, "", MAX_BOOKMARK_LEN);
 
 	new->page = 0;
-	new->yoffset = 0;
+	new->yoffset = -1;
 	new->expanded = 1;
 	new->level = 1;
 	new->count = 0;
