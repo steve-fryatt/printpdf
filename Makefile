@@ -18,6 +18,7 @@ BUILD_DATE := $(shell date "+%d %b %Y")
 ifeq ($(VERSION),)
   RELEASE := $(shell svnversion --no-newline)
   VERSION := r$(RELEASE)
+  RELEASE := $(subst :,-,$(RELEASE))
 else
   RELEASE := $(subst .,,$(VERSION))
 endif
