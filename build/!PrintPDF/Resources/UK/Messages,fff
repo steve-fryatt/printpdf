@@ -6,7 +6,7 @@
 # General application details
 
 TaskName:PrintPDF
-Version:0.86 (%0)
+Version:%0 (%1)
 
 ChildTaskName:PrintPDF Child
 

@@ -5,20 +5,30 @@
 # This file really needs to be run by GNUMake.
 # It is intended for cross-compilation under the GCCSDK.
 
+# Set VERSION to build using a version number and not an SVN revision.
+
 .PHONY: all clean application documentation release backup
-
-
-# The archive to assemble the release files in.  If $(RELEASE) is set, then the file can be given
-# a standard version number suffix.
-
-ZIPFILE := printpdf$(RELEASE).zip
-BUZIPFILE := printpdf$(shell date "+%Y%m%d").zip
-
 
 # The build date.
 
 BUILD_DATE := $(shell date "+%d %b %Y")
 
+# Construct version or revision information.
+
+ifeq ($(VERSION),)
+  RELEASE := $(shell svnversion --no-newline)
+  VERSION := r$(RELEASE)
+else
+  RELEASE := $(subst .,,$(VERSION))
+endif
+
+$(info Building with version $(VERSION) ($(RELEASE)) on date $(BUILD_DATE))
+
+# The archive to assemble the release files in.  If $(RELEASE) is set, then the file can be given
+# a standard version number suffix.
+
+ZIPFILE := printpdf$($(RELEASE).zip
+BUZIPFILE := printpdf$(shell date "+%Y%m%d").zip
 
 # Build Tools
 
@@ -42,7 +52,7 @@ MENUGEN := $(SFBIN)/menugen
 
 # Build Flags
 
-CCFLAGS := -mlibscl -mhard-float -static -mthrowback -Wall -O2 -D'BUILD_DATE="$(BUILD_DATE)"' -fno-strict-aliasing -mpoke-function-name
+CCFLAGS := -mlibscl -mhard-float -static -mthrowback -Wall -O2 -D'BUILD_VERSION="$(VERSION)"' -D'BUILD_DATE="$(BUILD_DATE)"' -fno-strict-aliasing -mpoke-function-name
 ZIPFLAGS := -x "*/.svn/*" -r -, -9
 BUZIPFLAGS := -x "*/.svn/*" -r -9
 BINDHELPFLAGS := -f -r -v
