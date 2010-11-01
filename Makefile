@@ -12,6 +12,7 @@
 # The build date.
 
 BUILD_DATE := $(shell date "+%d %b %Y")
+HELP_DATE := $(shell date "+%-d %B %Y")
 
 # Construct version or revision information.
 
@@ -19,8 +20,10 @@ ifeq ($(VERSION),)
   RELEASE := $(shell svnversion --no-newline)
   VERSION := r$(RELEASE)
   RELEASE := $(subst :,-,$(RELEASE))
+  HELP_VERSION := ----
 else
   RELEASE := $(subst .,,$(VERSION))
+  HELP_VERSION := $(VERSION)
 endif
 
 $(info Building with version $(VERSION) ($(RELEASE)) on date $(BUILD_DATE))
@@ -142,10 +145,10 @@ $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS): $(MENUDIR)/$(MENUSRC)
 documentation: $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP) $(OUTDIR)/$(README) $(OUTDIR)/$(HTMLHELP)
 
 $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP): $(MANUAL)/$(MANSRC)
-	$(TEXTMAN) $(MANUAL)/$(MANSRC) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP)
+	$(TEXTMAN) -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 
 $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP): $(MANUAL)/$(MANSRC) $(MANUAL)/$(MANSPR)
-	$(STRONGMAN) $(MANUAL)/$(MANSRC) SHTemp
+	$(STRONGMAN) -I$(MANUAL)/$(MANSRC) -OSHTemp -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 	$(CP) $(MANUAL)/$(MANSPR) SHTemp/Sprites,ff9
 	$(BINDHELP) SHTemp $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP) $(BINDHELPFLAGS)
 	$(RM) SHTemp
@@ -154,7 +157,7 @@ $(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR
 	$(TEXTMERGE) $(OUTDIR)/$(README) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR) 5
 
 $(OUTDIR)/$(HTMLHELP): $(MANUAL)/$(MANSRC)
-	$(HTMLMAN) $(MANUAL)/$(MANSRC) $(OUTDIR)/$(HTMLHELP)
+	$(HTMLMAN) -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(HTMLHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 
 
 # Build the release Zip file.

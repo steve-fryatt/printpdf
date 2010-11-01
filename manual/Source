@@ -1,6 +1,6 @@
 <document title="PrintPDF">
-<define name="version" value="0.86">
-<define name="date" value="18 July 2010" length=30 align="right">
+<define name="version" value="">
+<define name="date" value="" length=30 align="right">
 
 
 
