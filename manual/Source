@@ -590,6 +590,7 @@ Update to eighth beta release.
 <list>
 <li><mouse>Adjust</mouse>-clicks on iconbar open the <link ref="Queue">queue window</link>.
 <li>New <link ref="BMark">bookmarks</link> can be created from the pop-up menu in the <window>Create PDF</window> window.
+<li>Correctly set bookmark page positions, and ignore broken YOffset values in offending bookmark file format.
 </list>
 
 

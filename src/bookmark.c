@@ -2824,7 +2824,7 @@ bookmark_block *load_bookmark_file(char *filename)
 	FILE			*in;
 	bookmark_block		*block;
 	bookmark_node		*current, *new;
-	int			result, bookmarks = 0, unknown_data = 0, unknown_format = 0;
+	int			result, bookmarks = 0, unknown_data = 0, unknown_format = 0, version = 100;
 	char			section[BOOKMARK_FILE_LINE_LEN], token[BOOKMARK_FILE_LINE_LEN], value[BOOKMARK_FILE_LINE_LEN];
 	bits			load, exec;
 
@@ -2896,7 +2896,7 @@ bookmark_block *load_bookmark_file(char *filename)
 				if (current != NULL)
 					current->page = atoi(value);
 			} else if (strcmp_no_case(token, "YOffset") == 0) {
-				if (current != NULL)
+				if (current != NULL && version > 100) /* Version 1.00 files probably have buggy YOffets that we can't use anyway. */
 					current->yoffset = atoi(value);
 			} else if (strcmp_no_case(token, "Level") == 0) {
 				if (current != NULL)
@@ -2909,7 +2909,8 @@ bookmark_block *load_bookmark_file(char *filename)
 			}
 		} else {
 			if (strcmp_no_case(token, "Format") == 0) {
-				if (strcmp(value, "1.00") != 0)
+				version = string_convert_version_number(value);
+				if (version != 100)
 					unknown_format = 1;
 			} else {
 				unknown_data = 1;
