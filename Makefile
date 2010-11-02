@@ -31,7 +31,7 @@ $(info Building with version $(VERSION) ($(RELEASE)) on date $(BUILD_DATE))
 # The archive to assemble the release files in.  If $(RELEASE) is set, then the file can be given
 # a standard version number suffix.
 
-ZIPFILE := printpdf$($(RELEASE).zip
+ZIPFILE := printpdf$(RELEASE).zip
 BUZIPFILE := printpdf$(shell date "+%Y%m%d").zip
 
 # Build Tools
