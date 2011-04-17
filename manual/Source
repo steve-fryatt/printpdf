@@ -594,6 +594,14 @@ Update to eighth beta release.
 </list>
 
 
+<subhead title="0.87 (TBA)">
+
+Update to eighth beta release.
+
+<list>
+<li>Correct buffer length calculations and text truncation in PDF Doc Encoding conversions.
+</list>
+
 </chapter>
 
 
