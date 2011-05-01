@@ -43,8 +43,4 @@ typedef struct {
 
 void load_window_templates (char *template_file, osspriteop_area *sprites);
 
-/* Handle the iconbar icon. */
-
-void set_iconbar_icon (int new_state);
-
 #endif

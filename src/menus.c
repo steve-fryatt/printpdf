@@ -112,64 +112,6 @@ char *get_current_menu_name(char *buffer)
 }
 
 /* ==================================================================================================================
- * Iconbar menu
- */
-
-/* Set and open the icon bar menu. */
-
-void set_iconbar_menu (void)
-{
-  extern global_menus   menus;
-
-
-  shade_menu_item (menus.icon_bar, ICONBAR_MENU_CHOICES, pdf_conversion_in_progress ());
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void open_iconbar_menu (wimp_pointer *pointer)
-{
-  extern global_menus   menus;
-
-
-  set_iconbar_menu ();
-
-  menus.menu_up = create_iconbar_menu (menus.icon_bar, pointer, 5, 2);
-}
-
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-/* Decode the menu selections. */
-
-void decode_iconbar_menu (wimp_selection *selection, wimp_pointer *pointer)
-{
-  extern int            quit_flag;
-
-
-  if (selection->items[0] == ICONBAR_MENU_HELP) /* Help */
-  {
-    os_cli ("%Filer_Run <PrintPDF$Dir>.!Help");
-  }
-  if (selection->items[0] == ICONBAR_MENU_QUEUE) /* Queue... */
-  {
-    open_queue_window (pointer); /* Call this first so that the pane is sized before we try and set its extent. */
-    rebuild_queue_index ();
-  }
-  if (selection->items[0] == ICONBAR_MENU_CHOICES) /* Choices... */
-  {
-    open_choices_window (pointer);
-  }
-  else if (selection->items[0] == ICONBAR_MENU_QUIT) /* Quit */
-  {
-    if (!bookmark_files_unsaved() && !pending_files_in_queue())
-      quit_flag = TRUE;
-  }
-
-  set_iconbar_menu ();
-}
-
-/* ==================================================================================================================
  * Parameter menus
  */
 

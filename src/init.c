@@ -40,6 +40,7 @@
 
 #include "bookmark.h"
 #include "convert.h"
+#include "iconbar.h"
 #include "menus.h"
 #include "pmenu.h"
 #include "taskman.h"
@@ -162,28 +163,29 @@ int initialise (void)
 
   /* Load the window templates. */
 
-  sprites = load_user_sprite_area ("<PrintPDF$Dir>.Sprites");
+  sprites = load_user_sprite_area("<PrintPDF$Dir>.Sprites");
 
   wimp_sprites = sprites;
 
-  sprintf (res_temp, "%s.Templates", resources);
-  load_window_templates (res_temp, sprites);
+  sprintf(res_temp, "%s.Templates", resources);
+  load_window_templates(res_temp, sprites);
 
   /* Load the menu structure. */
 
-  sprintf (res_temp, "%s.Menus", resources);
-  load_menu_definitions (res_temp);
-
-  /* Create an icon-bar icon. */
-
-  set_iconbar_icon (read_config_opt ("IconBarIcon") && (quit_flag == FALSE));
+  sprintf(res_temp, "%s.Menus", resources);
+  load_menu_definitions(res_temp);
 
   /* Initialise the postscript file queue and save box. */
 
-  initialise_conversion ();
+  initialise_iconbar();
+  initialise_conversion();
   initialise_bookmarks();
 
-  hourglass_off ();
+  /* Create an icon-bar icon. */
+
+  set_iconbar_icon(read_config_opt("IconBarIcon") && (quit_flag == FALSE));
+
+  hourglass_off();
 
   return (0);
 }

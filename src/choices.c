@@ -28,6 +28,7 @@
 #include "choices.h"
 
 #include "encrypt.h"
+#include "iconbar.h"
 #include "optimize.h"
 #include "pdfmark.h"
 #include "pmenu.h"

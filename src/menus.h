@@ -6,18 +6,6 @@
 #ifndef _PRINTPDF_MENUS
 #define _PRINTPDF_MENUS
 
-/* ------------------------------------------------------------------------------------------------------------------
- * Static constants
- */
-
-/* Iconbar menu */
-
-#define ICONBAR_MENU_INFO 0
-#define ICONBAR_MENU_HELP 1
-#define ICONBAR_MENU_QUEUE 2
-#define ICONBAR_MENU_CHOICES 3
-#define ICONBAR_MENU_QUIT 4
-
 /* ==================================================================================================================
  * Type definitions
  */
@@ -40,13 +28,6 @@ typedef struct {
 
 void load_menu_definitions (char *menu_file);
 char *get_current_menu_name (char *buffer);
-
-/* Iconbar menu */
-
-void set_iconbar_menu (void);
-void open_iconbar_menu (wimp_pointer *pointer);
-
-void decode_iconbar_menu (wimp_selection *selection, wimp_pointer *pointer);
 
 /* Popup parameter menus */
 

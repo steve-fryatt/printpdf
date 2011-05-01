@@ -167,30 +167,9 @@ void mouse_click_handler (wimp_pointer *pointer)
   extern global_windows windows;
 
 
-  /* Iconbar icon. */
-
-  if (pointer->w == wimp_ICON_BAR)
-  {
-    switch ((int) pointer->buttons)
-    {
-      case wimp_CLICK_SELECT:
-        create_new_bookmark_window();
-        break;
-
-      case wimp_CLICK_MENU:
-        open_iconbar_menu (pointer);
-        break;
-
-      case wimp_CLICK_ADJUST:
-        open_queue_window (pointer); /* Call this first so that the pane is sized before we try and set its extent. */
-        rebuild_queue_index ();
-	break;
-    }
-  }
-
   /* Program information window. */
 
-  else if (pointer->w == windows.prog_info)
+  if (pointer->w == windows.prog_info)
   {
     char temp_buf[256];
 
@@ -699,15 +678,13 @@ void menu_selection_handler (wimp_selection *selection)
 
 	/* Store the mouse status before decoding the menu. */
 
-	wimp_get_pointer_info (&pointer);
+	wimp_get_pointer_info(&pointer);
 	old_menu = menus.menu_up;
 
 	/* Decode the individual menus. */
 
-	if (menus.menu_up == menus.icon_bar)
-		decode_iconbar_menu (selection, &pointer);
-	else if (menus.menu_up == menus.params)
-		decode_param_menu (selection, &pointer);
+	if (menus.menu_up == menus.params)
+		decode_param_menu(selection, &pointer);
 	else if (menus.menu_up == menus.bookmarks_list)
 		process_convert_bookmark_menu(selection);
 
@@ -717,7 +694,7 @@ void menu_selection_handler (wimp_selection *selection)
 	 */
 
 	if (pointer.buttons == wimp_CLICK_ADJUST && old_menu == menus.menu_up)
-		wimp_create_menu (menus.menu_up, 0, 0);
+		wimp_create_menu(menus.menu_up, 0, 0);
 }
 
 /* ==================================================================================================================

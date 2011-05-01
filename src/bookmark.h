@@ -6,6 +6,8 @@
 #ifndef _PRINTPDF_BOOKMARK
 #define _PRINTPDF_BOOKARK
 
+#include <stdio.h>
+
 /* ==================================================================================================================
  * Static constants
  */
