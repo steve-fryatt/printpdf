@@ -2382,7 +2382,7 @@ void bookmark_resync_toolbar_name_with_file(bookmark_block *bm)
 
 void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 {
-	int			row, expand, contract;
+	int			row = -1, expand, contract;
 	bookmark_block		*bm;
 	bookmark_node		*node, *parent;
 	wimp_window_state	state;
@@ -2395,7 +2395,7 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 
 	if (bm->menu_row != -1) {
 		row = bm->menu_row;
-	} else {
+	} else if (pointer != NULL) {
 		state.w = pointer->w;
 		error = xwimp_get_window_state(&state);
 		if (error == NULL)
