@@ -3,8 +3,8 @@
  * (c) Stephen Fryatt, 2005
  */
 
-#ifndef _PRINTPDF_
-#define _PRINTPDF_
+#ifndef _PRINTPDF_ICONBAR
+#define _PRINTPDF_ICONBAR
 
 /* ==================================================================================================================
  * Static constants
