@@ -112,7 +112,7 @@ int poll_loop (void)
 		 * inline handlers shown here.
 		 */
 
-		if (event_process_event(reason, &blk, 0)) {
+		if (!event_process_event(reason, &blk, 0)) {
 			switch (reason) {
 			case wimp_NULL_REASON_CODE:
 				test_and_close_popup (poll_time);
