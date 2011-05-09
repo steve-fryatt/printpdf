@@ -181,6 +181,8 @@ int initialise (void)
   initialise_conversion();
   initialise_bookmarks();
 
+  url_initialise();
+
   /* Create an icon-bar icon. */
 
   set_iconbar_icon(read_config_opt("IconBarIcon") && (quit_flag == FALSE));

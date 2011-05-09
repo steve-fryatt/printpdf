@@ -145,10 +145,6 @@ int poll_loop (void)
 			case wimp_USER_MESSAGE_RECORDED:
 				user_message_handler (&(blk.message));
 				break;
-
-			case wimp_USER_MESSAGE_ACKNOWLEDGE:
-				bounced_message_handler (&(blk.message));
-				break;
 			}
 		}
 	}
@@ -718,10 +714,6 @@ void user_message_handler (wimp_message *message)
 		}
 		break;
 
-	case message_URI_RETURN_RESULT:
-		url_bounce (message);
-		break;
-
 	case message_DATA_SAVE:
 		if (message->sender != task_handle) /* We don't want to respond to our own save requests. */
 			message_data_save_reply (message);
@@ -753,13 +745,3 @@ void user_message_handler (wimp_message *message)
 	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void bounced_message_handler (wimp_message *message)
-{
-	switch (message->action) {
-	case message_ANT_OPEN_URL:
-		url_bounce (message);
-		break;
-	}
-}
