@@ -1,6 +1,6 @@
 /* PrintPDF - main.c
  *
- * (C) Stephen Fryatt, 2007
+ * (c) Stephen Fryatt, 2007-2011
  */
 
 /* ANSI C header files */
@@ -66,21 +66,27 @@ static void	main_poll_loop(void);
 static void	main_initialise(void);
 static void	main_parse_command_line(int argc, char *argv[]);
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+static void	mouse_click_handler(wimp_pointer *);
+static void	key_press_handler(wimp_key *key);
+static void	menu_selection_handler(wimp_selection *);
+static void	user_message_handler(wimp_message *);
 
 
-/* Declare the global variables that are used. */
+/*
+ *Declare the global variables that are used.
+ */
 
 int			global_encryption_dialogue_location;
 int			global_optimization_dialogue_location;
 int			global_pdfmark_dialogue_location;
 int			global_bookmark_dialogue_location;
 
-/* Cross file global variables */
+/*
+ * Cross file global variables
+ */
 
 wimp_t			task_handle;
 int			quit_flag = FALSE;
-
 osspriteop_area		*wimp_sprites;
 
 
@@ -101,7 +107,7 @@ int main(int argc, char *argv[])
 
 	terminate_bookmarks();
 	msgs_close_file();
-	wimp_close_down (task_handle);
+	wimp_close_down(task_handle);
 	remove_all_remaining_conversions();
 
 	return 0;
@@ -350,7 +356,7 @@ static void main_parse_command_line(int argc, char *argv[])
  * NB: This only handles mouse events that are not processed by Event Lib callbacks!
  */
 
-void mouse_click_handler (wimp_pointer *pointer)
+static void mouse_click_handler (wimp_pointer *pointer)
 {
   extern global_windows windows;
 
@@ -711,7 +717,7 @@ void mouse_click_handler (wimp_pointer *pointer)
  * NB: This only handles key events that are not processed by Event Lib callbacks!
  */
 
-void key_press_handler (wimp_key *key)
+static void key_press_handler (wimp_key *key)
 {
   extern global_windows windows;
 
@@ -856,7 +862,7 @@ void key_press_handler (wimp_key *key)
  * Menu selection handler
  */
 
-void menu_selection_handler (wimp_selection *selection)
+static void menu_selection_handler (wimp_selection *selection)
 {
 	wimp_pointer		pointer;
 	wimp_menu		*old_menu;
@@ -889,11 +895,8 @@ void menu_selection_handler (wimp_selection *selection)
  * User message handlers
  */
 
-void user_message_handler (wimp_message *message)
+static void user_message_handler (wimp_message *message)
 {
-	extern int		quit_flag;
-	extern wimp_t		task_handle;
-
 	switch (message->action) {
 	case message_QUIT:
 		quit_flag=TRUE;

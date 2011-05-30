@@ -1,6 +1,6 @@
 /* PrintPDF - ihelp.c
  *
- * (C) Stephen Fryatt, 2005
+ * (c) Stephen Fryatt, 2005-2011
  */
 
 /* ANSI C header files */

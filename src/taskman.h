@@ -1,29 +1,18 @@
 /* PrintPDF - taskman.h
  *
- * (c) Stephen Fryatt, 2005
+ * (c) Stephen Fryatt, 2005-2011
  */
 
 #ifndef PRINTPDF_TASKMAN
 #define PRINTPDF_TASKMAN
 
-/* ==================================================================================================================
- * Static constants
- */
-
-
-/* ==================================================================================================================
- * Data structures
- */
-
-/* ==================================================================================================================
- * Function prototypes.
- */
 
 /**
  * Initialise the Task Manager module.
  */
 
 void taskman_initialise(void);
+
 
 /**
  * Check if a named task is running.
@@ -36,3 +25,4 @@ void taskman_initialise(void);
 osbool taskman_task_is_running(char *task_name, wimp_t ignore_task);
 
 #endif
+

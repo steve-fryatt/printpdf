@@ -1,21 +1,14 @@
 /* PrintPDF - ihelp.h
  *
- * (c) Stephen Fryatt, 2005
+ * (c) Stephen Fryatt, 2005-2011
  */
 
 #ifndef PRINTPDF_IHELP
 #define PRINTPDF_IHELP
 
-/* ==================================================================================================================
- * Static constants
- */
 
 #define IHELP_LENGTH 236
 #define IHELP_INAME_LEN 64
-
-/* ==================================================================================================================
- * Function prototypes.
- */
 
 
 /**
