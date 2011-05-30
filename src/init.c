@@ -41,6 +41,7 @@
 #include "bookmark.h"
 #include "convert.h"
 #include "iconbar.h"
+#include "ihelp.h"
 #include "menus.h"
 #include "pmenu.h"
 #include "taskman.h"
@@ -177,6 +178,7 @@ int initialise (void)
 
   /* Initialise the postscript file queue and save box. */
 
+  ihelp_initialise();
   initialise_iconbar();
   initialise_conversion();
   initialise_bookmarks();

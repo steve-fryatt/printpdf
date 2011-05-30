@@ -849,8 +849,8 @@ void open_bookmark_window(bookmark_block *bm)
 
 		/* Register for interactive help. */
 
-		add_ihelp_window(bm->window, "Bookmark", decode_bookmark_window_help);
-		add_ihelp_window(bm->toolbar, "BookmarkTB", NULL);
+		ihelp_add_window(bm->window, "Bookmark", decode_bookmark_window_help);
+		ihelp_add_window(bm->toolbar, "BookmarkTB", NULL);
 
 		/* Set up the toolbar. */
 
@@ -942,8 +942,8 @@ void close_bookmark_window(wimp_close *close)
 	event_delete_window(bm->window);
 	event_delete_window(bm->toolbar);
 
-	remove_ihelp_window(bm->window);
-	remove_ihelp_window(bm->toolbar);
+	ihelp_remove_window(bm->window);
+	ihelp_remove_window(bm->toolbar);
 
 	if (bookmarks_edit == bm)
 		bookmarks_edit = NULL;

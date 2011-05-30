@@ -731,10 +731,6 @@ void user_message_handler (wimp_message *message)
 		start_data_open_load(message);
 		break;
 
-	case message_HELP_REQUEST:
-		send_reply_help_request (message);
-		break;
-
 	case message_TASK_INITIALISE:
 		check_new_task (message);
 		break;

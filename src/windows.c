@@ -59,7 +59,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   if (window_def != NULL)
   {
     windows.prog_info = wimp_create_window (window_def);
-    add_ihelp_window (windows.prog_info, "ProgInfo", NULL);
+    ihelp_add_window (windows.prog_info, "ProgInfo", NULL);
     msgs_param_lookup ("Version",
                        window_def->icons[6].data.indirected_text.text, window_def->icons[6].data.indirected_text.size,
                        BUILD_VERSION, BUILD_DATE, NULL, NULL);
@@ -79,7 +79,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   if (window_def != NULL)
   {
     windows.file_info = wimp_create_window (window_def);
-    add_ihelp_window (windows.file_info, "FileInfo", NULL);
+    ihelp_add_window (windows.file_info, "FileInfo", NULL);
     free (window_def);
   }
   else
@@ -96,7 +96,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   if (window_def != NULL)
   {
     windows.save_pdf = wimp_create_window (window_def);
-    add_ihelp_window (windows.save_pdf, "SavePDF", NULL);
+    ihelp_add_window (windows.save_pdf, "SavePDF", NULL);
     free (window_def);
   }
   else
@@ -113,7 +113,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   if (window_def != NULL)
   {
     windows.save_as = wimp_create_window (window_def);
-    add_ihelp_window (windows.save_as, "SaveAs", NULL);
+    ihelp_add_window (windows.save_as, "SaveAs", NULL);
     free (window_def);
   }
   else
@@ -130,7 +130,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   if (window_def != NULL)
   {
     windows.security2 = wimp_create_window (window_def);
-    add_ihelp_window (windows.security2, "Security2", NULL);
+    ihelp_add_window (windows.security2, "Security2", NULL);
     free (window_def);
   }
   else
@@ -147,7 +147,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   if (window_def != NULL)
   {
     windows.security3 = wimp_create_window (window_def);
-    add_ihelp_window (windows.security3, "Security3", NULL);
+    ihelp_add_window (windows.security3, "Security3", NULL);
     free (window_def);
   }
   else
@@ -164,7 +164,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   if (window_def != NULL)
   {
     windows.optimization = wimp_create_window (window_def);
-    add_ihelp_window (windows.optimization, "Optimize", NULL);
+    ihelp_add_window (windows.optimization, "Optimize", NULL);
     free (window_def);
   }
   else
@@ -181,7 +181,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   if (window_def != NULL)
   {
     windows.pdfmark = wimp_create_window (window_def);
-    add_ihelp_window (windows.pdfmark, "PDFMark", NULL);
+    ihelp_add_window (windows.pdfmark, "PDFMark", NULL);
     free (window_def);
   }
   else
@@ -198,7 +198,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   if (window_def != NULL)
   {
     windows.queue = wimp_create_window (window_def);
-    add_ihelp_window (windows.queue, "Queue", NULL);
+    ihelp_add_window (windows.queue, "Queue", NULL);
     free (window_def);
   }
   else
@@ -216,7 +216,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   {
     window_def->icon_count = 0;
     windows.queue_pane = wimp_create_window (window_def);
-    add_ihelp_window (windows.queue_pane, "QueuePane", decode_queue_pane_help);
+    ihelp_add_window (windows.queue_pane, "QueuePane", decode_queue_pane_help);
 
     windows.queue_pane_def = window_def;
   }
@@ -234,7 +234,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   if (window_def != NULL)
   {
     windows.choices = wimp_create_window (window_def);
-    add_ihelp_window (windows.choices, "Choices", NULL);
+    ihelp_add_window (windows.choices, "Choices", NULL);
     free (window_def);
   }
   else
@@ -251,7 +251,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   if (window_def != NULL)
   {
     windows.popup = wimp_create_window (window_def);
-    add_ihelp_window (windows.popup, "PopUp", NULL);
+    ihelp_add_window (windows.popup, "PopUp", NULL);
     free (window_def);
   }
   else

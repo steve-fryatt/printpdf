@@ -3,8 +3,8 @@
  * (c) Stephen Fryatt, 2005
  */
 
-#ifndef _PRINTPDF_IHELP
-#define _PRINTPDF_IHELP
+#ifndef PRINTPDF_IHELP
+#define PRINTPDF_IHELP
 
 /* ==================================================================================================================
  * Static constants
@@ -14,38 +14,34 @@
 #define IHELP_INAME_LEN 64
 
 /* ==================================================================================================================
- * Data structures
- */
-
-typedef struct ihelp_window
-{
-  wimp_w window;
-  char   name[13];
-  void   (*pointer_location) (char *, wimp_w, wimp_i, os_coord, wimp_mouse_state);
-
-  struct ihelp_window *next;
-}
-ihelp_window;
-
-/* ==================================================================================================================
  * Function prototypes.
  */
 
-/* Adding and removing windows */
 
-void add_ihelp_window (wimp_w window, char* name, void (*decode) (char *, wimp_w, wimp_i, os_coord, wimp_mouse_state));
-void remove_ihelp_window (wimp_w window);
+/**
+ * Initialise the interactive help system.
+ */
 
-/* Finding windows */
+void ihelp_initialise(void);
 
-ihelp_window *find_ihelp_window (wimp_w window);
 
-/* Token generation */
+/**
+ * Add a new interactive help window definition.
+ *
+ * \param window		The window handle to attach help to.
+ * \param *name			The token name to associate with the window.
+ * \param *decode		A function to use to help decode clicks in the window.
+ */
 
-char *find_ihelp (char *buffer, wimp_w window, wimp_i icon, os_coord pos, wimp_mouse_state buttons);
+void ihelp_add_window(wimp_w window, char* name, void (*decode) (char *, wimp_w, wimp_i, os_coord, wimp_mouse_state));
 
-/* Help request handling. */
+/**
+ * Remove an interactive help definition from the window list.
+ *
+ * \param window		The window handle to remove from the list.
+ */
 
-int send_reply_help_request (wimp_message *message);
+void ihelp_remove_window(wimp_w window);
 
 #endif
+
