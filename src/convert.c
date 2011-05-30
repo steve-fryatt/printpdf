@@ -61,6 +61,8 @@ void			redraw_queue_pane(wimp_draw *redraw);
 void			queue_pane_click(wimp_pointer *pointer);
 void			terminate_queue_entry_drag(wimp_dragged *drag, void *data);
 
+static osbool		check_for_conversion_end(wimp_message *message);
+
 /* ==================================================================================================================
  * Global variables.
  */
@@ -132,6 +134,10 @@ void initialise_conversion(void)
 	initialise_version_settings(&version);
 	initialise_pdfmark_settings(&pdfmark);
 	initialise_bookmark_settings(&bookmark);
+
+	/* Register event handlers. */
+
+	event_add_message_handler(message_TASK_CLOSE_DOWN, EVENT_MESSAGE_INCOMING, check_for_conversion_end);
 }
 
 /* ==================================================================================================================
@@ -790,24 +796,26 @@ int launch_ps2pdf (char *file_out, char *user_pdfmark_file)
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-/* Called from Message_TaskCloseDown, to see if the task that ended had the same task handle as the current
+/**
+ * Process Message_TaskCloseDown, to see if the task that ended had the same task handle as the current
  * conversion task.  If it did, establish what kind of conversion was underway:
  *
  * - If it was *ps2ps, take the intermediate file and pass it on to *ps2pdf.
  * - If it was *ps2pdf, reset the flags and take the original queued object from the queue head.
+ *
+ * \param *message		The message data block.
+ * \return			FALSE to allow other claimants to see the message.
  */
 
-void check_for_conversion_end (wimp_t ending_task)
+static osbool check_for_conversion_end(wimp_message *message)
 {
-  if (ending_task == conversion_task)
-  {
-    if (!conversion_progress (NULL))
-    {
-      conversion_task = 0;
-      conversion_in_progress = CONVERSION_STOPPED;
-      remove_current_conversion ();
-    }
-  }
+	if (message != NULL && message->sender == conversion_task && !conversion_progress(NULL)) {
+		conversion_task = 0;
+		conversion_in_progress = CONVERSION_STOPPED;
+		remove_current_conversion ();
+	}
+
+	return FALSE;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

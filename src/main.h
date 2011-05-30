@@ -3,8 +3,8 @@
  * (c) Stephen Fryatt, 2007
  */
 
-#ifndef _PRINTPDF_MAIN
-#define _PRINTPDF_MAIN
+#ifndef PRINTPDF_MAIN
+#define PRINTPDF_MAIN
 
 /* ==================================================================================================================
  * Static constants
@@ -28,7 +28,6 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 int main (int argc, char *argv[]);
-int poll_loop (void);
 void mouse_click_handler (wimp_pointer *);
 void key_press_handler (wimp_key *key);
 void menu_selection_handler (wimp_selection *);
@@ -36,3 +35,4 @@ void user_message_handler (wimp_message *);
 void bounced_message_handler (wimp_message *);
 
 #endif
+

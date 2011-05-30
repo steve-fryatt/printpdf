@@ -117,7 +117,6 @@ void handle_save_icon_drop (wimp_full_message_data_xfer *dataload);
 int conversion_progress (conversion_params *params);
 int launch_ps2ps (char *file_out);
 int launch_ps2pdf (char *file_out, char *pdfmark_file);
-void check_for_conversion_end (wimp_t task_handle);
 void cancel_conversion (void);
 
 /* Handling parameters. */
