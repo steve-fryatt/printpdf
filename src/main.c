@@ -50,7 +50,6 @@
 #include "dataxfer.h"
 #include "encrypt.h"
 #include "iconbar.h"
-#include "init.h"
 #include "ihelp.h"
 #include "menus.h"
 #include "optimize.h"
@@ -134,35 +133,35 @@ static void main_poll_loop(void)
 		if (!event_process_event(reason, &blk, 0)) {
 			switch (reason) {
 			case wimp_NULL_REASON_CODE:
-				test_and_close_popup (poll_time);
-				check_for_ps_file ();
-				check_for_pending_files ();
-				poll_time += read_config_int ("PollDelay");
+				test_and_close_popup(poll_time);
+				check_for_ps_file();
+				check_for_pending_files();
+				poll_time += read_config_int("PollDelay");
 				break;
 
 			case wimp_OPEN_WINDOW_REQUEST:
-				wimp_open_window (&(blk.open));
+				wimp_open_window(&(blk.open));
 				break;
 
 			case wimp_CLOSE_WINDOW_REQUEST:
-				wimp_close_window (blk.close.w);
+				wimp_close_window(blk.close.w);
 				break;
 
 			case wimp_MOUSE_CLICK:
-				mouse_click_handler (&(blk.pointer));
+				mouse_click_handler(&(blk.pointer));
 				break;
 
 			case wimp_KEY_PRESSED:
-				key_press_handler (&(blk.key));
+				key_press_handler(&(blk.key));
 				break;
 
 			case wimp_MENU_SELECTION:
-				menu_selection_handler (&(blk.selection));
+				menu_selection_handler(&(blk.selection));
 				break;
 
 			case wimp_USER_MESSAGE:
 			case wimp_USER_MESSAGE_RECORDED:
-				user_message_handler (&(blk.message));
+				user_message_handler(&(blk.message));
 				break;
 			}
 		}
@@ -219,7 +218,7 @@ static void main_initialise(void)
 
 	/* Test to see if any other copies of PrintPDF are running, and set to quit if they are. */
 
-	if (task_is_running (task_name, task_handle))
+	if (taskman_task_is_running(task_name, task_handle))
 		quit_flag = TRUE;
 
 	/* Initialise the configuration. */
@@ -297,6 +296,7 @@ static void main_initialise(void)
 	/* Initialise the postscript file queue and save box. */
 
 	ihelp_initialise();
+	taskman_initialise();
 	initialise_iconbar();
 	initialise_conversion();
 	initialise_bookmarks();
@@ -921,10 +921,6 @@ void user_message_handler (wimp_message *message)
 
 	case message_DATA_OPEN:
 		start_data_open_load(message);
-		break;
-
-	case message_TASK_INITIALISE:
-		check_new_task (message);
 		break;
 	}
 }

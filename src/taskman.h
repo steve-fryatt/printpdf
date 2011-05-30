@@ -3,8 +3,8 @@
  * (c) Stephen Fryatt, 2005
  */
 
-#ifndef _PRINTPDF_TASKMAN
-#define _PRINTPDF_TASKMAN
+#ifndef PRINTPDF_TASKMAN
+#define PRINTPDF_TASKMAN
 
 /* ==================================================================================================================
  * Static constants
@@ -19,12 +19,20 @@
  * Function prototypes.
  */
 
-/* Test new tasks to see if they are copies of PrintPDF. */
+/**
+ * Initialise the Task Manager module.
+ */
 
-void check_new_task (wimp_message *message);
+void taskman_initialise(void);
 
-/* Check if a named task is running. */
+/**
+ * Check if a named task is running.
+ *
+ * \param *task_name		The name to test against.
+ * \param ignore_task		A task handle to ignore, even if the name matches.
+ * \return			TRUE if a match was found; else FALSE.
+ */
 
-int task_is_running (char *task_name, wimp_t ignore_task);
+osbool taskman_task_is_running(char *task_name, wimp_t ignore_task);
 
 #endif
