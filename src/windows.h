@@ -12,6 +12,11 @@
 
 #define IND_DATA_SIZE 8000
 
+/* Program Info Window */
+
+#define ICON_PROGINFO_VERSION 6
+#define ICON_PROGINFO_WEBSITE 8
+
 /* ==================================================================================================================
  * Data structures
  */

@@ -17,10 +17,12 @@
 /* SF-Lib header files. */
 
 #include "sflib/errors.h"
+#include "sflib/event.h"
 #include "sflib/windows.h"
 #include "sflib/msgs.h"
 #include "sflib/debug.h"
-
+#include "sflib/url.h"
+#
 /* Application header files */
 
 #include "windows.h"
@@ -33,6 +35,8 @@
  */
 
 global_windows windows;
+
+static osbool	windows_proginfo_web_click(wimp_pointer *pointer);
 
 /* ==================================================================================================================
  * Load window template definitions.
@@ -61,8 +65,11 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
     windows.prog_info = wimp_create_window (window_def);
     ihelp_add_window (windows.prog_info, "ProgInfo", NULL);
     msgs_param_lookup ("Version",
-                       window_def->icons[6].data.indirected_text.text, window_def->icons[6].data.indirected_text.size,
+                       window_def->icons[ICON_PROGINFO_VERSION].data.indirected_text.text,
+                       window_def->icons[ICON_PROGINFO_VERSION].data.indirected_text.size,
                        BUILD_VERSION, BUILD_DATE, NULL, NULL);
+    event_add_window_icon_click(windows.prog_info, ICON_PROGINFO_WEBSITE, windows_proginfo_web_click);
+
     free (window_def);
   }
   else
@@ -292,3 +299,27 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
 
   wimp_close_template ();
 }
+
+
+
+
+/**
+ * Handle clicks on the Website action button in the program info window.
+ *
+ * \param *pointer	The Wimp Event message block for the click.
+ * \return		TRUE if we handle the click; else FALSE.
+ */
+
+static osbool windows_proginfo_web_click(wimp_pointer *pointer)
+{
+	char		temp_buf[256];
+
+	msgs_lookup("SupportURL:http://www.stevefryatt.org.uk/software/", temp_buf, sizeof(temp_buf));
+	launch_url(temp_buf);
+
+	if (pointer->buttons == wimp_CLICK_SELECT)
+		wimp_create_menu((wimp_menu *) -1, 0, 0);
+
+	return TRUE;
+}
+

@@ -65,6 +65,8 @@
 static void	main_poll_loop(void);
 static void	main_initialise(void);
 static void	main_parse_command_line(int argc, char *argv[]);
+static osbool	main_message_quit(wimp_message *message);
+static osbool	main_message_prequit(wimp_message *message);
 
 static void	mouse_click_handler(wimp_pointer *);
 static void	key_press_handler(wimp_key *key);
@@ -223,6 +225,9 @@ static void main_initialise(void)
 	if (taskman_task_is_running(task_name, main_task_handle))
 		main_quit_flag = TRUE;
 
+	event_add_message_handler(message_QUIT, EVENT_MESSAGE_INCOMING, main_message_quit);
+	event_add_message_handler(message_PRE_QUIT, EVENT_MESSAGE_INCOMING, main_message_prequit);
+
 	/* Initialise the configuration. */
 
 	initialise_configuration(task_name, "PrintPDF", "<PrintPDF$Dir>");
@@ -331,12 +336,32 @@ static void main_parse_command_line(int argc, char *argv[])
 }
 
 
+/**
+ * Handle incoming Message_Quit.
+ */
+
+static osbool main_message_quit(wimp_message *message)
+{
+	main_quit_flag = TRUE;
+
+	return TRUE;
+}
 
 
+/**
+ * Handle incoming Message_PreQuit.
+ */
 
+static osbool main_message_prequit(wimp_message *message)
+{
+	if (!bookmark_files_unsaved() && !pending_files_in_queue())
+		return TRUE;
 
+	message->your_ref = message->my_ref;
+	wimp_send_message(wimp_USER_MESSAGE_ACKNOWLEDGE, message, message->sender);
 
-
+	return TRUE;
+}
 
 
 
@@ -357,29 +382,9 @@ static void mouse_click_handler (wimp_pointer *pointer)
 {
   extern global_windows windows;
 
-
-  /* Program information window. */
-
-  if (pointer->w == windows.prog_info)
-  {
-    char temp_buf[256];
-
-    switch ((int) pointer->i)
-    {
-      case 8: /* Website. */
-        msgs_lookup ("SupportURL:http://www.stevefryatt.org.uk/software/", temp_buf, sizeof (temp_buf));
-        launch_url (temp_buf);
-        if (pointer->buttons == wimp_CLICK_SELECT)
-        {
-          wimp_create_menu ((wimp_menu *) -1, 0, 0);
-        }
-        break;
-    }
-  }
-
   /* Save PDF Window. */
 
-  else if (pointer->w == windows.save_pdf)
+  if (pointer->w == windows.save_pdf)
   {
     switch ((int) pointer->i)
     {
@@ -885,17 +890,6 @@ static void menu_selection_handler (wimp_selection *selection)
 static void user_message_handler (wimp_message *message)
 {
 	switch (message->action) {
-	case message_QUIT:
-		main_quit_flag=TRUE;
-		break;
-
-	case message_PRE_QUIT:
-		if (bookmark_files_unsaved() || pending_files_in_queue()) {
-			message->your_ref = message->my_ref;
-			wimp_send_message(wimp_USER_MESSAGE_ACKNOWLEDGE, message, message->sender);
-		}
-		break;
-
 	case message_DATA_SAVE:
 		if (message->sender != main_task_handle) /* We don't want to respond to our own save requests. */
 			message_data_save_reply (message);
