@@ -135,7 +135,7 @@ static void main_poll_loop(void)
 		if (!event_process_event(reason, &blk, 0)) {
 			switch (reason) {
 			case wimp_NULL_REASON_CODE:
-				test_and_close_popup(poll_time);
+				popup_test_and_close(poll_time);
 				check_for_ps_file();
 				check_for_pending_files();
 				poll_time += read_config_int("PollDelay");
@@ -299,6 +299,7 @@ static void main_initialise(void)
 
 	ihelp_initialise();
 	taskman_initialise();
+	popup_initialise();
 	initialise_iconbar();
 	initialise_conversion();
 	initialise_bookmarks();
@@ -693,16 +694,6 @@ static void mouse_click_handler (wimp_pointer *pointer)
         global_pdfmark_dialogue_location = PDFMARK_CHOICE;
         open_choices_pdfmark_dialogue (pointer);
         break;
-    }
-  }
-
-  /* PopUp Info Window */
-
-  else if (pointer->w == windows.popup)
-  {
-    if (pointer->buttons == wimp_CLICK_SELECT)
-    {
-      close_popup ();
     }
   }
 }

@@ -35,6 +35,9 @@ typedef struct {
 	wimp_window	*bookmark_pane_def;
 } global_windows;
 
+
+extern global_windows	windows;
+
 /* ==================================================================================================================
  * Function prototypes.
  */

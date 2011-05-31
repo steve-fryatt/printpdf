@@ -637,7 +637,7 @@ int conversion_progress (conversion_params *params)
 
       if (read_config_opt ("PopUpAfter"))
       {
-        open_popup (read_config_int("PopUpTime"));
+        popup_open(read_config_int("PopUpTime"));
       }
       conversion_state = CONVERSION_STOPPED;
       break;

@@ -1,27 +1,35 @@
 /* PrintPDF - popup.h
  *
- * (c) Stephen Fryatt, 2005
+ * (c) Stephen Fryatt, 2005-2011
  */
 
-#ifndef _PRINTPDF_POPUP
-#define _PRINTPDF_POPUP
+#ifndef PRINTPDF_POPUP
+#define PRINTPDF_POPUP
 
-/* ==================================================================================================================
- * Static constants
+/**
+ * Initialise the popup window module.
  */
 
+void popup_initialise(void);
 
-/* ==================================================================================================================
- * Data structures
+
+/**
+ * Test the time given against the time to close the popup, and if that time has passed, close the window.
+ *
+ * \param current		The current OS Monotonic Time.
  */
 
-/* ==================================================================================================================
- * Function prototypes.
+void popup_test_and_close(os_t current);
+
+
+/**
+ * Open the popup for a minimum of the given time (this may be longer, as checks are only made at the externally
+ * selected poll interval).
+ *
+ * \param open_time	The time to open the window for.
  */
 
-void test_and_close_popup (os_t current);
-void close_popup (void);
-
-void open_popup (int open_time);
+void popup_open(int open_time);
 
 #endif
+

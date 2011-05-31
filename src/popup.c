@@ -1,6 +1,6 @@
 /* PrintPDF - popup.c
  *
- * (C) Stephen Fryatt, 2005
+ * (C) Stephen Fryatt, 2005-2011
  */
 
 /* ANSI C header files */
@@ -14,6 +14,7 @@
 
 /* SF-Lib header files. */
 
+#include "sflib/event.h"
 #include "sflib/windows.h"
 
 /* Application header files */
@@ -22,68 +23,80 @@
 
 #include "windows.h"
 
-/* ==================================================================================================================
- * Global variables.
+static int	popup_is_open = FALSE;
+static os_t	popup_close_time = 0;
+
+
+static void	popup_click_handler(wimp_pointer *pointer);
+static void	popup_close(void);
+
+
+/**
+ * Initialise the popup window module.
  */
 
-static int  popup_open = FALSE;
-static os_t popup_close_time = 0;
+void popup_initialise(void)
+{
+	event_add_window_mouse_event(windows.popup, popup_click_handler);
+}
 
-/* ==================================================================================================================
+
+/**
+ * Process clicks in the popup window.
+ *
+ * \param *pointer		The relevant wimp pointer event block.
+ */
+
+static void popup_click_handler(wimp_pointer *pointer)
+{
+	if (pointer!= NULL && pointer->buttons == wimp_CLICK_SELECT)
+		popup_close();
+}
+
+
+/**
+ * Test the time given against the time to close the popup, and if that time has passed, close the window.
+ *
+ * \param current		The current OS Monotonic Time.
+ */
+
+void popup_test_and_close(os_t current)
+{
+	if (popup_is_open == FALSE)
+		return;
+
+	if (current >= popup_close_time)
+		popup_close();
+}
+
+
+/**
  * Close the popup window.
  */
 
-/* Test the time given against the time to close the popup, and if that time has passed, close the window.
- */
-
-void test_and_close_popup (os_t current)
+static void popup_close(void)
 {
-  extern global_windows windows;
+	if (popup_is_open == FALSE)
+		return;
 
+	wimp_close_window(windows.popup);
 
-  if (popup_open == TRUE)
-  {
-    if (current >= popup_close_time)
-    {
-      wimp_close_window (windows.popup);
-
-      popup_close_time = 0;
-      popup_open = FALSE;
-    }
-  }
+	popup_close_time = 0;
+	popup_is_open = FALSE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void close_popup (void)
-{
-  extern global_windows windows;
-
-
-  if (popup_open == TRUE)
-  {
-    wimp_close_window (windows.popup);
-
-    popup_close_time = 0;
-    popup_open = FALSE;
-  }
-}
-
-/* ==================================================================================================================
- * Open the popup window.
- */
-
-/* Open the popup for a minimum of the given time (this may be longer, as checks are only made at the externally
+/**
+ * Open the popup for a minimum of the given time (this may be longer, as checks are only made at the externally
  * selected poll interval).
+ *
+ * \param open_time	The time to open the window for.
  */
 
-void open_popup (int open_time)
+void popup_open(int open_time)
 {
-  extern global_windows windows;
+	popup_is_open = TRUE;
+	popup_close_time = os_read_monotonic_time() + open_time;
 
-
-  popup_open = TRUE;
-  popup_close_time = os_read_monotonic_time () + open_time;
-
-  open_window_centred_on_screen (windows.popup);
+	open_window_centred_on_screen(windows.popup);
 }
