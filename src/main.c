@@ -71,7 +71,6 @@ static osbool	main_message_prequit(wimp_message *message);
 static void	mouse_click_handler(wimp_pointer *);
 static void	key_press_handler(wimp_key *key);
 static void	menu_selection_handler(wimp_selection *);
-static void	user_message_handler(wimp_message *);
 
 
 /*
@@ -161,11 +160,6 @@ static void main_poll_loop(void)
 
 			case wimp_MENU_SELECTION:
 				menu_selection_handler(&(blk.selection));
-				break;
-
-			case wimp_USER_MESSAGE:
-			case wimp_USER_MESSAGE_RECORDED:
-				user_message_handler(&(blk.message));
 				break;
 			}
 		}
@@ -305,6 +299,7 @@ static void main_initialise(void)
 	ihelp_initialise();
 	taskman_initialise();
 	popup_initialise();
+	dataxfer_initialise();
 	initialise_iconbar();
 	initialise_conversion();
 	initialise_bookmarks();
@@ -881,31 +876,5 @@ static void menu_selection_handler (wimp_selection *selection)
 
 	if (pointer.buttons == wimp_CLICK_ADJUST && old_menu == menus.menu_up)
 		wimp_create_menu(menus.menu_up, 0, 0);
-}
-
-/* ==================================================================================================================
- * User message handlers
- */
-
-static void user_message_handler (wimp_message *message)
-{
-	switch (message->action) {
-	case message_DATA_SAVE:
-		if (message->sender != main_task_handle) /* We don't want to respond to our own save requests. */
-			message_data_save_reply (message);
-		break;
-
-	case message_DATA_SAVE_ACK:
-		send_reply_data_save_ack (message);
-		break;
-
-	case message_DATA_LOAD:
-		message_data_load_reply (message);
-		break;
-
-	case message_DATA_OPEN:
-		start_data_open_load(message);
-		break;
-	}
 }
 

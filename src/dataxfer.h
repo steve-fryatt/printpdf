@@ -1,10 +1,10 @@
 /* PrintPDF - dataxfer.h
  *
- * (c) Stephen Fryatt, 2005
+ * (c) Stephen Fryatt, 2005-2011
  */
 
-#ifndef _PRINTPDF_DATAXFER
-#define _PRINTPDF_DATAXFER
+#ifndef PRINTPDF_DATAXFER
+#define PRINTPDF_DATAXFER
 
 /* ==================================================================================================================
  * Static constants
@@ -18,27 +18,30 @@
 #define DRAG_SAVE_PDF    1
 #define DRAG_SAVE_SAVEAS 2
 
-/* ==================================================================================================================
- * Data structures
+
+/**
+ * Initialise the data transfer system.
  */
 
-/* ==================================================================================================================
- * Function prototypes.
- */
+void dataxfer_initialise(void);
 
-/* Save box drag handling */
+
+/**
+ * Start dragging the icon from the save dialogue.  Called in response to an attempt to drag the icon.
+ *
+ * \param type		The drag type to start.
+ */
 
 void start_save_window_drag(int type);
 
-/* Save Box direct save. */
 
-int immediate_window_save (void);
+/**
+ * Try to save in response to a click on 'OK' in the Save dialogue.
+ *
+ * \return 		0 if the process completed OK.
+ */
 
-/* 'File load' handling. */
-
-void message_data_save_reply (wimp_message *message);
-void message_data_load_reply (wimp_message *message);
-
-int start_data_open_load(wimp_message *message);
+int immediate_window_save(void);
 
 #endif
+

@@ -1,6 +1,6 @@
 /* PrintPDF - dataxfer.c
  *
- * (C) Stephen Fryatt, 2005
+ * (C) Stephen Fryatt, 2005-2011
  */
 
 /* ANSI C header files */
@@ -39,14 +39,6 @@
 #include "main.h"
 #include "windows.h"
 
-/* ****************************************************************************
- * Function Prototypes
- * ****************************************************************************/
-
-/* Save box drag handling */
-
-void terminate_user_drag(wimp_dragged *drag, void *data);
-
 /* ==================================================================================================================
  * Global variables.
  */
@@ -67,14 +59,31 @@ static int	drag_type = 0;
  * Function prototypes.
  */
 
-int		drag_end_save_pdf(char *filename);
+static int		drag_end_save_pdf(char *filename);
+static void		terminate_user_drag(wimp_dragged *drag, void *data);
+static osbool		message_data_save_reply(wimp_message *message);
+static osbool		message_data_save_ack_reply(wimp_message *message);
+static osbool		message_data_load_reply(wimp_message *message);
+static osbool		start_data_open_load(wimp_message *message);
 
 
-/* ==================================================================================================================
- * Save box drag handling.
+/**
+ * Initialise the data transfer system.
  */
 
-/* Start dragging the icon from the save dialogue.  Called in response to an attempt to drag the icon.
+void dataxfer_initialise(void)
+{
+	event_add_message_handler(message_DATA_SAVE, EVENT_MESSAGE_INCOMING, message_data_save_reply);
+	event_add_message_handler(message_DATA_SAVE_ACK, EVENT_MESSAGE_INCOMING, message_data_save_ack_reply);
+	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, message_data_load_reply);
+	event_add_message_handler(message_DATA_OPEN, EVENT_MESSAGE_INCOMING, start_data_open_load);
+}
+
+
+/**
+ * Start dragging the icon from the save dialogue.  Called in response to an attempt to drag the icon.
+ *
+ * \param type		The drag type to start.
  */
 
 void start_save_window_drag(int type)
@@ -156,7 +165,7 @@ void start_save_window_drag(int type)
  * \param  *data		NULL (unused).
  */
 
-void terminate_user_drag(wimp_dragged *drag, void *data)
+static void terminate_user_drag(wimp_dragged *drag, void *data)
 {
 	wimp_pointer		pointer;
 	char			*leafname;
@@ -180,12 +189,17 @@ void terminate_user_drag(wimp_dragged *drag, void *data)
 	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-/* After the DataSave exchange has completed, start the conversion using the filename returned.
+
+/**
+ * Callback handler for DataSave completion on PDF save drags: start the
+ * conversion using the filename returned.
+ *
+ * \param *filename		The filename returned by the DataSave protocol.
+ * \return			0 if the save was started OK.
  */
 
-int drag_end_save_pdf(char *filename)
+static int drag_end_save_pdf(char *filename)
 {
 	extern global_windows		windows;
 
@@ -195,48 +209,52 @@ int drag_end_save_pdf(char *filename)
 	return 0;
 }
 
-/* ==================================================================================================================
- * Save Box direct save
+
+/**
+ * Try to save in response to a click on 'OK' in the Save dialogue.
+ *
+ * \return 		0 if the process completed OK.
  */
 
-/* Try to save in response to a click on 'OK' in the Save dialogue.
- */
-
-int immediate_window_save (void)
+int immediate_window_save(void)
 {
-  char *filename;
+	char			*filename;
+	extern global_windows	windows;
 
-  extern global_windows windows;
+	filename = indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_NAME);
 
-  filename = indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME);
+	/* Test if the filename is valid. */
 
-  /* Test if the filename is valid. */
+	if (strchr (filename, '.') == NULL) {
+		wimp_msgtrans_info_report("DragSave");
+		return 1;
+	}
 
-  if (strchr (filename, '.') == NULL)
-  {
-    wimp_msgtrans_info_report ("DragSave");
-    return (1);
-  }
+	conversion_dialogue_end(filename);
 
-  conversion_dialogue_end (filename);
+	wimp_close_window(windows.save_pdf);
 
-  wimp_close_window (windows.save_pdf);
-
-  return (0);
+	return 0;
 }
 
-/* ==================================================================================================================
- * 'File load' handling.
+
+/**
+ * Handle the receipt of a Message_DataSaveAck, usually in response to another
+ * application trying to save a file to our icon.  Supply the location of the
+ * queue head file, which allows postscript printer drivers to be set up by
+ * dragging their save icon to our iconbar.
+ *
+ * \param *message		The associated Wimp message block.
+ * \return			TRUE to show that the message was handled.
  */
 
-/* Called in response to another application trying to save a file to our icon.  Supply the location of the
- * queue head file, which allows postscript printer drivers to be set up by dragging their save icon to our iconbar.
- */
-
-void message_data_save_reply (wimp_message *message)
+static osbool message_data_save_reply(wimp_message *message)
 {
 	wimp_full_message_data_xfer	*datasave = (wimp_full_message_data_xfer *) message;
 	os_error			*error;
+
+	if (message->sender == main_task_handle) /* We don't want to respond to our own save requests. */
+		return TRUE;
 
 
 	if (datasave->w == wimp_ICON_BAR &&
@@ -260,21 +278,35 @@ void message_data_save_reply (wimp_message *message)
 		if (error != NULL)
 			wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
 	}
+
+	return TRUE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-/* Called if a file is dragged from the Filer to our iconbar icon.  Try and queue the file.
+/**
+ * Handle the receipt of a Message_DataSaveAck.
+ *
+ * \param *message		The associated Wimp message block.
+ * \return			TRUE to show that the message was handled.
  */
+
+static osbool message_data_save_ack_reply(wimp_message *message)
+{
+	send_reply_data_save_ack(message);
+
+	return TRUE;
+}
+
 
 /**
  * Handle the receipt of a Message_DataLoad, generally as a result of a file
  * being dragged from the Filer to one of our windows or icons.
  *
- * Param:  *message		The associated Wimp message block.
+ * \param *message		The associated Wimp message block.
+ * \return			TRUE to show the message was handled.
  */
 
-void message_data_load_reply (wimp_message *message)
+static osbool message_data_load_reply(wimp_message *message)
 {
 	wimp_full_message_data_xfer	*dataload = (wimp_full_message_data_xfer *) message;
 	os_error			*error;
@@ -313,16 +345,19 @@ void message_data_load_reply (wimp_message *message)
 	} else if (dataload->w == windows.save_pdf) {
 		handle_save_icon_drop(dataload);
 	}
+
+	return TRUE;
 }
+
 
 /**
  * Handle the receipt of a Message_DataOpen.
  *
  * Param:  *message		The associated Wimp message block.
- * Return:			1 if the message failed to handle; else 0.
+ * Return:			FALSE if the message failed to handle; else TRUE.
  */
 
-int start_data_open_load(wimp_message *message)
+static osbool start_data_open_load(wimp_message *message)
 {
 	wimp_full_message_data_xfer	*xfer = (wimp_full_message_data_xfer *) message;
 	os_error			*error;
@@ -336,12 +371,12 @@ int start_data_open_load(wimp_message *message)
 		error = xwimp_send_message(wimp_USER_MESSAGE, (wimp_message *) xfer, xfer->sender);
 		if (error != NULL) {
 			wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
-			return 1;
+			return FALSE;
 		}
 
 		load_bookmark_file(xfer->file_name);
 		break;
 	}
 
-	return 0;
+	return TRUE;
 }
