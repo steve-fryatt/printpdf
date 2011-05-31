@@ -27,6 +27,7 @@
 #include "bookmark.h"
 #include "choices.h"
 #include "convert.h"
+#include "main.h"
 #include "menus.h"
 
 /* *****************************************************************************
@@ -149,7 +150,6 @@ static void iconbar_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 static void iconbar_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection)
 {
 	wimp_pointer		pointer;
-	extern int		quit_flag;
 
 	wimp_get_pointer_info(&pointer);
 
@@ -169,7 +169,7 @@ static void iconbar_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 
  	case ICONBAR_MENU_QUIT:
 		if (!bookmark_files_unsaved() && !pending_files_in_queue())
-			quit_flag = TRUE;
+			main_quit_flag = TRUE;
 		break;
 	}
 }

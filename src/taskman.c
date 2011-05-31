@@ -25,6 +25,7 @@
 #include "taskman.h"
 
 #include "choices.h"
+#include "main.h"
 
 
 static osbool taskman_check_new_task(wimp_message *message);
@@ -54,11 +55,9 @@ static osbool taskman_check_new_task(wimp_message *message)
 	wimp_pointer                      pointer;
 	char                              task_name[256];
 
-	extern wimp_t                     task_handle;
-
 
 	msgs_lookup("TaskName", task_name, sizeof(task_name));
-	if (task_init->sender != task_handle && strcmp(task_name, task_init->task_name) == 0) {
+	if (task_init->sender != main_task_handle && strcmp(task_name, task_init->task_name) == 0) {
 		wimp_get_pointer_info(&pointer);
 		open_choices_window(&pointer);
 	}

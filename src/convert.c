@@ -1236,7 +1236,6 @@ void redraw_queue_pane (wimp_draw *redraw)
   wimp_icon          *icon;
 
   extern global_windows windows;
-  extern osspriteop_area *wimp_sprites;
 
 
   /* Perform the redraw if a window was found. */
@@ -1280,7 +1279,7 @@ void redraw_queue_pane (wimp_draw *redraw)
         icon[QUEUE_PANE_DELETE].extent.y0 = icon[QUEUE_PANE_DELETE].extent.y1 - QUEUE_ICON_HEIGHT;
         icon[QUEUE_PANE_DELETE].data.indirected_sprite.id =
                   (osspriteop_id) (((queue_redraw_list[y])->object_type == DELETED) ? "del1" : "del0");
-        icon[QUEUE_PANE_DELETE].data.indirected_sprite.area = wimp_sprites;
+        icon[QUEUE_PANE_DELETE].data.indirected_sprite.area = main_wimp_sprites;
         icon[QUEUE_PANE_DELETE].data.indirected_sprite.size = 12;
 
         wimp_plot_icon (&(icon[QUEUE_PANE_DELETE]));

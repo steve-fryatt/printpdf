@@ -85,9 +85,9 @@ int			global_bookmark_dialogue_location;
  * Cross file global variables
  */
 
-wimp_t			task_handle;
-int			quit_flag = FALSE;
-osspriteop_area		*wimp_sprites;
+wimp_t			main_task_handle;
+int			main_quit_flag = FALSE;
+osspriteop_area		*main_wimp_sprites;
 
 
 /**
@@ -96,9 +96,6 @@ osspriteop_area		*wimp_sprites;
 
 int main(int argc, char *argv[])
 {
-	extern wimp_t task_handle;
-
-
 	main_initialise();
 
 	main_parse_command_line(argc, argv);
@@ -107,7 +104,7 @@ int main(int argc, char *argv[])
 
 	terminate_bookmarks();
 	msgs_close_file();
-	wimp_close_down(task_handle);
+	wimp_close_down(main_task_handle);
 	remove_all_remaining_conversions();
 
 	return 0;
@@ -124,11 +121,10 @@ static void main_poll_loop(void)
 	wimp_event_no		reason;
 	wimp_block		blk;
 
-	extern int		quit_flag;
 
 	poll_time = os_read_monotonic_time();
 
-	while (!quit_flag) {
+	while (!main_quit_flag) {
 		reason = wimp_poll_idle(0, &blk, poll_time, 0);
 
 		/* Events are passed to Event Lib first; only if this fails
@@ -220,12 +216,12 @@ static void main_initialise(void)
 	message_list.messages[12]=message_QUIT;
 
 	msgs_lookup("TaskName", task_name, sizeof (task_name));
-	task_handle = wimp_initialise(wimp_VERSION_RO3, task_name, (wimp_message_list *) &message_list, &wimp_version);
+	main_task_handle = wimp_initialise(wimp_VERSION_RO3, task_name, (wimp_message_list *) &message_list, &wimp_version);
 
 	/* Test to see if any other copies of PrintPDF are running, and set to quit if they are. */
 
-	if (taskman_task_is_running(task_name, task_handle))
-		quit_flag = TRUE;
+	if (taskman_task_is_running(task_name, main_task_handle))
+		main_quit_flag = TRUE;
 
 	/* Initialise the configuration. */
 
@@ -289,7 +285,7 @@ static void main_initialise(void)
 
 	sprites = load_user_sprite_area("<PrintPDF$Dir>.Sprites");
 
-	wimp_sprites = sprites;
+	main_wimp_sprites = sprites;
 
 	snprintf(res_temp, sizeof(res_temp), "%s.Templates", resources);
 	load_window_templates(res_temp, sprites);
@@ -311,7 +307,7 @@ static void main_initialise(void)
 
 	/* Create an icon-bar icon. */
 
-	set_iconbar_icon(read_config_opt("IconBarIcon") && (quit_flag == FALSE));
+	set_iconbar_icon(read_config_opt("IconBarIcon") && (main_quit_flag == FALSE));
 
 	hourglass_off();
 }
@@ -899,7 +895,7 @@ static void user_message_handler (wimp_message *message)
 {
 	switch (message->action) {
 	case message_QUIT:
-		quit_flag=TRUE;
+		main_quit_flag=TRUE;
 		break;
 
 	case message_PRE_QUIT:
@@ -910,7 +906,7 @@ static void user_message_handler (wimp_message *message)
 		break;
 
 	case message_DATA_SAVE:
-		if (message->sender != task_handle) /* We don't want to respond to our own save requests. */
+		if (message->sender != main_task_handle) /* We don't want to respond to our own save requests. */
 			message_data_save_reply (message);
 		break;
 

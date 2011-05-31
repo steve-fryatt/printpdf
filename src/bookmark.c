@@ -40,6 +40,7 @@
 #include "convert.h"
 #include "dataxfer.h"
 #include "ihelp.h"
+#include "main.h"
 #include "menus.h"
 #include "pdfmark.h"
 #include "pmenu.h"
@@ -760,7 +761,6 @@ void open_bookmark_window(bookmark_block *bm)
 
 	extern global_windows	windows;
 	extern global_menus	menus;
-	extern osspriteop_area	*wimp_sprites;
 
 
 	if (bm != NULL && bm->window == NULL && bm->toolbar == NULL) {
@@ -804,7 +804,7 @@ void open_bookmark_window(bookmark_block *bm)
 		windows.bookmark_window_def->extent.y1 = 0;
 		windows.bookmark_window_def->extent.y0 = extent;
 
-		windows.bookmark_pane_def->sprite_area = wimp_sprites;
+		windows.bookmark_pane_def->sprite_area = main_wimp_sprites;
 
 		place_window_as_toolbar(windows.bookmark_window_def,
 				windows.bookmark_pane_def,
@@ -1002,7 +1002,6 @@ void redraw_bookmark_window(wimp_draw *redraw)
 	bookmark_block		*bm;
 
 	extern global_windows	windows;
-	extern osspriteop_area	*wimp_sprites;
 
 
 	bm = (bookmark_block *) event_get_window_user_data(redraw->w);
@@ -1065,7 +1064,7 @@ void redraw_bookmark_window(wimp_draw *redraw)
 			icon[BOOKMARK_ICON_TITLE].data.indirected_text.text = node->title;
 			icon[BOOKMARK_ICON_PAGE].data.indirected_text.text = buf;
 			icon[BOOKMARK_ICON_EXPAND].data.indirected_sprite.id = (osspriteop_id) ((node->expanded) ? "nodee" : "nodec");
-			icon[BOOKMARK_ICON_EXPAND].data.indirected_sprite.area = wimp_sprites;
+			icon[BOOKMARK_ICON_EXPAND].data.indirected_sprite.area = main_wimp_sprites;
 			icon[BOOKMARK_ICON_EXPAND].data.indirected_sprite.size = 6;
 
 			/* Plot the expansion arrow for node heads, which show up

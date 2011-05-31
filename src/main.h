@@ -27,9 +27,9 @@
  * Application-wide global variables.
  */
 
-extern wimp_t		task_handle;
-extern int		quit_flag;
-extern osspriteop_area	*wimp_sprites;
+extern wimp_t		main_task_handle;
+extern int		main_quit_flag;
+extern osspriteop_area	*main_wimp_sprites;
 
 /**
  * Main code entry point.
