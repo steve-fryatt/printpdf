@@ -27,6 +27,11 @@
  * Application-wide global variables.
  */
 
+extern int		global_encryption_dialogue_location;
+extern int		global_optimization_dialogue_location;
+extern int		global_pdfmark_dialogue_location;
+extern int		global_bookmark_dialogue_location;
+
 extern wimp_t		main_task_handle;
 extern int		main_quit_flag;
 extern osspriteop_area	*main_wimp_sprites;

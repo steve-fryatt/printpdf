@@ -164,7 +164,7 @@ static void iconbar_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
  		break;
 
  	case ICONBAR_MENU_CHOICES:
- 		open_choices_window(&pointer);
+ 		choices_open_window(&pointer);
  		break;
 
  	case ICONBAR_MENU_QUIT:

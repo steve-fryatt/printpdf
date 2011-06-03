@@ -300,6 +300,7 @@ static void main_initialise(void)
 	taskman_initialise();
 	popup_initialise();
 	dataxfer_initialise();
+	choices_initialise();
 	initialise_iconbar();
 	initialise_conversion();
 	initialise_bookmarks();
@@ -632,70 +633,6 @@ static void mouse_click_handler (wimp_pointer *pointer)
         break;
     }
   }
-
-  /* Choices Window. */
-
-  else if (pointer->w == windows.choices)
-  {
-    switch ((int) pointer->i)
-    {
-      case CHOICE_ICON_APPLY:
-        if (pointer->buttons == wimp_CLICK_SELECT || pointer->buttons == wimp_CLICK_ADJUST)
-        {
-          read_choices_window ();
-
-          if (pointer->buttons == wimp_CLICK_SELECT)
-          {
-            close_choices_window ();
-          }
-        }
-        break;
-
-      case CHOICE_ICON_SAVE:
-        if (pointer->buttons == wimp_CLICK_SELECT || pointer->buttons == wimp_CLICK_ADJUST)
-        {
-          read_choices_window ();
-          config_save();
-
-          if (pointer->buttons == wimp_CLICK_SELECT)
-          {
-            close_choices_window ();
-          }
-        }
-        break;
-
-      case CHOICE_ICON_CANCEL:
-        if (pointer->buttons == wimp_CLICK_SELECT)
-        {
-          close_choices_window ();
-        }
-        else if (pointer->buttons == wimp_CLICK_ADJUST)
-        {
-          set_choices_window ();
-          redraw_choices_window ();
-        }
-        break;
-
-      case CHOICE_ICON_VERSION_MENU:
-        open_choices_version_menu (pointer, windows.choices, CHOICE_ICON_VERSION);
-        break;
-
-      case CHOICE_ICON_OPTIMIZE_MENU:
-        global_optimization_dialogue_location = OPTIMIZATION_CHOICE;
-        open_choices_optimize_menu (pointer, windows.choices, CHOICE_ICON_OPTIMIZE);
-        break;
-
-      case CHOICE_ICON_ENCRYPT_MENU:
-        global_encryption_dialogue_location = ENCRYPTION_CHOICE;
-        open_choices_encrypt_dialogue (pointer);
-        break;
-
-      case CHOICE_ICON_INFO_MENU:
-        global_pdfmark_dialogue_location = PDFMARK_CHOICE;
-        open_choices_pdfmark_dialogue (pointer);
-        break;
-    }
-  }
 }
 
 /* ==================================================================================================================
@@ -813,29 +750,6 @@ static void key_press_handler (wimp_key *key)
 
       case wimp_KEY_ESCAPE:
         wimp_create_menu ((wimp_menu *) -1, 0, 0);
-        break;
-
-      default:
-        wimp_process_key (key->c);
-        break;
-    }
-  }
-
-
-  /* Choices window */
-
-  else if (key->w == windows.choices)
-  {
-    switch (key->c)
-    {
-      case wimp_KEY_RETURN:
-        read_choices_window ();
-        config_save();
-        close_choices_window ();
-        break;
-
-      case wimp_KEY_ESCAPE:
-        close_choices_window ();
         break;
 
       default:

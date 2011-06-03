@@ -311,6 +311,7 @@ static osbool message_data_load_reply(wimp_message *message)
 	wimp_full_message_data_xfer	*dataload = (wimp_full_message_data_xfer *) message;
 	os_error			*error;
 	char				queue_file[512];
+	osbool				handled = FALSE;
 
 	extern global_windows		windows;
 
@@ -340,13 +341,14 @@ static osbool message_data_load_reply(wimp_message *message)
 		error = xwimp_send_message(wimp_USER_MESSAGE, (wimp_message *) dataload, dataload->sender);
 		if (error != NULL)
 			wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
-	} else if (dataload->w == windows.choices) {
-		handle_choices_icon_drop(dataload);
+
+		handled = TRUE;
 	} else if (dataload->w == windows.save_pdf) {
 		handle_save_icon_drop(dataload);
+		handled = TRUE;
 	}
 
-	return TRUE;
+	return handled;
 }
 
 

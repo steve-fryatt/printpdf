@@ -1,10 +1,10 @@
 /* PrintPDF - choices.h
- * (c) Stephen Fryatt, 2007
+ * (c) Stephen Fryatt, 2007-2011
  *
  */
 
-#ifndef _PRINTPDF_CHOICES
-#define _PRINTPDF_CHOICES
+#ifndef PRINTPDF_CHOICES
+#define PRINTPDF_CHOICES
 
 /* Main window icons. */
 
@@ -26,27 +26,31 @@
 #define CHOICE_ICON_IBAR 19
 #define CHOICE_ICON_MEMORY 21
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void open_choices_window (wimp_pointer *pointer);
-void close_choices_window (void);
+/**
+ * Initialise the Choices module.
+ */
 
-void set_choices_window (void);
-void read_choices_window (void);
+void choices_initialise(void);
 
-void redraw_choices_window (void);
 
-void handle_choices_icon_drop (wimp_full_message_data_xfer *datasave);
+/**
+ * Open the Choices window at the mouse pointer.
+ *
+ * \param *pointer		The details of the pointer to open the window at.
+ */
 
-void open_choices_version_menu (wimp_pointer *pointer, wimp_w window, wimp_i icon);
+void choices_open_window(wimp_pointer *pointer);
+
+
+
+
+
 void process_choices_version_menu (wimp_selection *selection);
-void open_choices_optimize_menu (wimp_pointer *pointer, wimp_w window, wimp_i icon);
 void process_choices_optimize_menu (wimp_selection *selection);
-
-void open_choices_encrypt_dialogue (wimp_pointer *pointer);
 void process_choices_encrypt_dialogue (void);
-void open_choices_pdfmark_dialogue (wimp_pointer *pointer);
 void process_choices_pdfmark_dialogue (void);
 void process_choices_optimize_dialogue (void);
 
 #endif
+

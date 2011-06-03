@@ -59,7 +59,7 @@ static osbool taskman_check_new_task(wimp_message *message)
 	msgs_lookup("TaskName", task_name, sizeof(task_name));
 	if (task_init->sender != main_task_handle && strcmp(task_name, task_init->task_name) == 0) {
 		wimp_get_pointer_info(&pointer);
-		open_choices_window(&pointer);
+		choices_open_window(&pointer);
 	}
 
 	return FALSE;
