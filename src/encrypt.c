@@ -37,17 +37,17 @@
  */
 void initialise_encryption_settings (encrypt_params *params)
 {
-  strcpy(params->owner_password, read_config_str ("OwnerPasswd"));
-  strcpy(params->access_password, read_config_str ("UserPasswd"));
+  strcpy(params->owner_password, config_str_read ("OwnerPasswd"));
+  strcpy(params->access_password, config_str_read ("UserPasswd"));
 
-  params->allow_print = read_config_opt ("AllowPrint");
-  params->allow_full_print = read_config_opt ("AllowFullPrint");
-  params->allow_extraction = read_config_opt ("AllowExtraction");
-  params->allow_full_extraction = read_config_opt ("AllowFullExtraction");
-  params->allow_forms = read_config_opt ("AllowForms");
-  params->allow_annotation = read_config_opt ("AllowAnnotation");
-  params->allow_modifications = read_config_opt ("AllowModifications");
-  params->allow_assembly = read_config_opt ("AllowAssembly");
+  params->allow_print = config_opt_read ("AllowPrint");
+  params->allow_full_print = config_opt_read ("AllowFullPrint");
+  params->allow_extraction = config_opt_read ("AllowExtraction");
+  params->allow_full_extraction = config_opt_read ("AllowFullExtraction");
+  params->allow_forms = config_opt_read ("AllowForms");
+  params->allow_annotation = config_opt_read ("AllowAnnotation");
+  params->allow_modifications = config_opt_read ("AllowModifications");
+  params->allow_assembly = config_opt_read ("AllowAssembly");
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

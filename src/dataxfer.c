@@ -264,7 +264,7 @@ static osbool message_data_save_reply(wimp_message *message)
 
 		switch (datasave->file_type) {
 		case PS_FILE_TYPE:
-			sprintf(datasave->file_name, "%s.printout/ps", read_config_str("FileQueue"));
+			sprintf(datasave->file_name, "%s.printout/ps", config_str_read("FileQueue"));
 			break;
 
 		case PRINTPDF_FILE_TYPE:
@@ -323,7 +323,7 @@ static osbool message_data_load_reply(wimp_message *message)
 			 * If it isn't, queue it and respond accordingly.
 			 */
 
-			sprintf(queue_file, "%s.printout/ps", read_config_str("FileQueue"));
+			sprintf(queue_file, "%s.printout/ps", config_str_read("FileQueue"));
 			if (strcmp(queue_file, dataload->file_name) != 0)
 				queue_ps_file(dataload->file_name);
 			break;

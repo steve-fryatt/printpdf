@@ -106,7 +106,7 @@ typedef struct bookmark_node {
 	int			level;
 	int			count;
 
-	int			expanded;
+	osbool			expanded;
 
 	struct bookmark_node	*next;
 } bookmark_node;

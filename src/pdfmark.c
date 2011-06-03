@@ -85,10 +85,10 @@ static char latin1_to_pdfdocencoding[] = {
 
 void initialise_pdfmark_settings (pdfmark_params *params)
 {
-  strcpy(params->title, read_config_str("PDFMarkTitle"));
-  strcpy(params->author, read_config_str("PDFMarkAuthor"));
-  strcpy(params->subject, read_config_str("PDFMarkSubject"));
-  strcpy(params->keywords, read_config_str("PDFMarkKeyWords"));
+  strcpy(params->title, config_str_read("PDFMarkTitle"));
+  strcpy(params->author, config_str_read("PDFMarkAuthor"));
+  strcpy(params->subject, config_str_read("PDFMarkSubject"));
+  strcpy(params->keywords, config_str_read("PDFMarkKeyWords"));
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

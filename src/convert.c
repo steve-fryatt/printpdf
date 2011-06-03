@@ -114,7 +114,7 @@ void initialise_conversion(void)
 
 	/* Set up the queue directory */
 
-	queue_dir = read_config_str("FileQueue");
+	queue_dir = config_str_read("FileQueue");
 
 	xosfile_read_no_path(queue_dir, &type, NULL, NULL, NULL, NULL);
 
@@ -125,9 +125,9 @@ void initialise_conversion(void)
 
 	/* Initialise the options. */
 
-	strcpy (indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_NAME), read_config_str("FileName"));
-	strcpy (indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_USERFILE), read_config_str("PDFMarkUserFile"));
-	set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, read_config_opt("PreProcess"));
+	strcpy (indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_NAME), config_str_read("FileName"));
+	strcpy (indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_USERFILE), config_str_read("PDFMarkUserFile"));
+	set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, config_opt_read("PreProcess"));
 
 	initialise_encryption_settings(&encryption);
 	initialise_optimization_settings(&optimization);
@@ -155,7 +155,7 @@ void check_for_ps_file (void)
   int                    size;
   char                   check_file[512];
 
-  sprintf (check_file, "%s.printout/ps", read_config_str("FileQueue"));
+  sprintf (check_file, "%s.printout/ps", config_str_read("FileQueue"));
 
   xosfile_read_stamped_no_path(check_file, &type, NULL, NULL, &size, NULL, NULL);
 
@@ -234,7 +234,7 @@ int queue_ps_file (char *filename)
 
     *list = new;
 
-    sprintf (queued_filename, "%s.%s", read_config_str("FileQueue"), new->filename);
+    sprintf (queued_filename, "%s.%s", config_str_read("FileQueue"), new->filename);
     error = xosfscontrol_copy (filename, queued_filename, osfscontrol_COPY_FORCE, 0, 0, 0, 0, NULL);
 
     if (error != NULL)
@@ -384,10 +384,10 @@ void open_conversion_dialogue(void)
 
 	/* Set up and open the conversion window. */
 
-	if (read_config_opt ("ResetParams")) {
-		strcpy(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), read_config_str ("FileName"));
-		strcpy(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE), read_config_str ("PDFMarkUserFile"));
-		set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, read_config_opt ("PreProcess"));
+	if (config_opt_read ("ResetParams")) {
+		strcpy(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), config_str_read ("FileName"));
+		strcpy(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE), config_str_read ("PDFMarkUserFile"));
+		set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, config_opt_read ("PreProcess"));
 		initialise_encryption_settings(&encryption);
 		initialise_optimization_settings(&optimization);
 		initialise_version_settings(&version);
@@ -579,7 +579,7 @@ int conversion_progress (conversion_params *params)
       {
         if (preprocess_in_ps2ps)
         {
-          sprintf (intermediate_file, "%s.%s", read_config_str("FileQueue"), intermediate_leaf);
+          sprintf (intermediate_file, "%s.%s", config_str_read("FileQueue"), intermediate_leaf);
           conversion_state = (launch_ps2ps (intermediate_file)) ? CONVERSION_STOPPED : CONVERSION_PS2PS;
         }
         else
@@ -635,9 +635,9 @@ int conversion_progress (conversion_params *params)
     case CONVERSION_PS2PDF:
       osfile_set_type (output_file, 0xadf);
 
-      if (read_config_opt ("PopUpAfter"))
+      if (config_opt_read ("PopUpAfter"))
       {
-        popup_open(read_config_int("PopUpTime"));
+        popup_open(config_int_read("PopUpTime"));
       }
       conversion_state = CONVERSION_STOPPED;
       break;
@@ -663,7 +663,7 @@ int launch_ps2ps (char *file_out)
 
   msgs_lookup ("ChildTaskName", taskname, sizeof (taskname));
 
-  param_file = fopen (read_config_str("ParamFile"), "w");
+  param_file = fopen (config_str_read("ParamFile"), "w");
   if (param_file != NULL)
   {
     /* Write all the conversion options and filename details to the gs parameters file. */
@@ -676,7 +676,7 @@ int launch_ps2ps (char *file_out)
     {
       if (list->object_type == BEING_PROCESSED)
       {
-        fprintf (param_file, " %s.%s", read_config_str("FileQueue"), list->filename);
+        fprintf (param_file, " %s.%s", config_str_read("FileQueue"), list->filename);
       }
 
       list = list->next;
@@ -688,7 +688,7 @@ int launch_ps2ps (char *file_out)
 
     sprintf (command,
              "TaskWindow \"gs @%s\" %dk -name \"%s\" -quit",
-             read_config_str("ParamFile"), read_config_int("TaskMemory"), taskname);
+             config_str_read("ParamFile"), config_int_read("TaskMemory"), taskname);
 
     /* Launch the conversion task. */
 
@@ -717,14 +717,14 @@ int launch_ps2pdf (char *file_out, char *user_pdfmark_file)
 
   msgs_lookup ("ChildTaskName", taskname, sizeof (taskname));
 
-  param_file = fopen (read_config_str("ParamFile"), "w");
+  param_file = fopen (config_str_read("ParamFile"), "w");
   if (param_file != NULL)
   {
     /* Generate a PDFMark file if necessary. */
 
     if (pdfmark_data_available(&pdfmark) || bookmark_data_available(&bookmark))
     {
-      pdfmark_file = fopen (read_config_str ("PDFMarkFile"), "w");
+      pdfmark_file = fopen (config_str_read ("PDFMarkFile"), "w");
 
       if (pdfmark_file != NULL)
       {
@@ -753,17 +753,17 @@ int launch_ps2pdf (char *file_out, char *user_pdfmark_file)
     {
       if (list->object_type == BEING_PROCESSED)
       {
-        fprintf (param_file, " %s.%s", read_config_str("FileQueue"), list->filename);
+        fprintf (param_file, " %s.%s", config_str_read("FileQueue"), list->filename);
       }
 
       list = list->next;
     }
 
-    if (osfile_read_stamped_no_path (read_config_str ("PDFMarkFile"), NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
+    if (osfile_read_stamped_no_path (config_str_read ("PDFMarkFile"), NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
     {
       /* If there is a PDFMark file, pass that in too. */
 
-      fprintf (param_file, " %s", read_config_str ("PDFMarkFile"));
+      fprintf (param_file, " %s", config_str_read ("PDFMarkFile"));
     }
 
     if (*user_pdfmark_file != '\0' &&
@@ -780,7 +780,7 @@ int launch_ps2pdf (char *file_out, char *user_pdfmark_file)
 
     sprintf (command,
              "TaskWindow \"gs @%s\" %dk -name \"%s\" -quit",
-             read_config_str("ParamFile"), read_config_int("TaskMemory"), taskname);
+             config_str_read("ParamFile"), config_int_read("TaskMemory"), taskname);
 
     #ifdef DEBUG
     debug_printf ("Command (length %d): '%s'", strlen(command), command);
@@ -974,7 +974,7 @@ void remove_current_conversion (void)
     if ((*list)->object_type == BEING_PROCESSED || (*list)->object_type == DISCARDED)
     {
       old = (*list);
-      sprintf (old_file, "%s.%s", read_config_str("FileQueue"), old->filename);
+      sprintf (old_file, "%s.%s", config_str_read("FileQueue"), old->filename);
       xosfile_delete (old_file, NULL, NULL, NULL, NULL, NULL);
 
       *list = ((*list)->next);
@@ -1005,7 +1005,7 @@ void remove_deleted_files (void)
     if ((*list)->object_type == DELETED)
     {
       old = (*list);
-      sprintf (old_file, "%s.%s", read_config_str("FileQueue"), old->filename);
+      sprintf (old_file, "%s.%s", config_str_read("FileQueue"), old->filename);
       xosfile_delete (old_file, NULL, NULL, NULL, NULL, NULL);
 
       *list = ((*list)->next);
@@ -1030,7 +1030,7 @@ void remove_first_conversion (void)
   char                  old_file[512];
 
   old = queue;
-  sprintf (old_file, "%s.%s", read_config_str("FileQueue"), old->filename);
+  sprintf (old_file, "%s.%s", config_str_read("FileQueue"), old->filename);
   xosfile_delete (old_file, NULL, NULL, NULL, NULL, NULL);
 
   queue = old->next;

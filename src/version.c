@@ -45,7 +45,7 @@ int version_menu_tick (version_params *params);
 
 void initialise_version_settings (version_params *params)
 {
-  params->standard_version = read_config_int ("PDFVersion");
+  params->standard_version = config_int_read ("PDFVersion");
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

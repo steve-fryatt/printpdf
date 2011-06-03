@@ -85,7 +85,7 @@ int		bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direc
 void		bookmark_delete_edit_row(bookmark_block *bm, bookmark_node *node);
 void		bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node, int action);
 void		bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *contract);
-void		bookmark_tree_node_expansion(bookmark_block *bm, int expand);
+void		bookmark_tree_node_expansion(bookmark_block *bm, osbool expand);
 int		bookmark_place_edit_icon(bookmark_block *bm, int row, int col);
 void		bookmark_remove_edit_icon(void);
 void		bookmark_resync_edit_with_file(void);
@@ -563,7 +563,7 @@ bookmark_node *insert_bookmark_node(bookmark_block *bm, bookmark_node *before)
 
 	new->page = 0;
 	new->yoffset = -1;
-	new->expanded = 1;
+	new->expanded = TRUE;
 	new->level = 1;
 	new->count = 0;
 	new->next = NULL;
@@ -1619,10 +1619,10 @@ void bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *
 		return;
 
 	for (node = bm->root; node != NULL; node = node->next) {
-		if (node->count > 0 && node->expanded == 0)
+		if (node->count > 0 && node->expanded == FALSE)
 			e = 1;
 
-		if (node->count > 0 && node->expanded == 1)
+		if (node->count > 0 && node->expanded == TRUE)
 			c = 1;
 	}
 
@@ -1643,10 +1643,10 @@ void bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *
  * Expand or contract all the nodes in a window.
  *
  * \param  *bm			The bookmark window to alter.
- * \param  expand		1 to expand the tree; 0 to contract.
+ * \param  expand		TRUE to expand the tree; FALSE to contract.
  */
 
-void bookmark_tree_node_expansion(bookmark_block *bm, int expanded)
+void bookmark_tree_node_expansion(bookmark_block *bm, osbool expanded)
 {
 	bookmark_node		*node;
 
@@ -2302,10 +2302,10 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 		bookmark_change_edit_row_indentation(bm, bm->redraw[bm->caret_row].node, (int) pointer->i);
 		break;
 	case BOOKMARK_TB_EXPAND:
-		bookmark_tree_node_expansion(bm, 1);
+		bookmark_tree_node_expansion(bm, TRUE);
 		break;
 	case BOOKMARK_TB_CONTRACT:
-		bookmark_tree_node_expansion(bm, 0);
+		bookmark_tree_node_expansion(bm, FALSE);
 		break;
 	}
 }
@@ -2504,10 +2504,10 @@ void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selectio
 	case BOOKMARK_MENU_VIEW:
 		switch (selection->items[1]) {
 		case BOOKMARK_MENU_VIEW_EXPAND:
-			bookmark_tree_node_expansion(bm, 1);
+			bookmark_tree_node_expansion(bm, TRUE);
 			break;
 		case BOOKMARK_MENU_VIEW_CONTRACT:
-			bookmark_tree_node_expansion(bm, 0);
+			bookmark_tree_node_expansion(bm, FALSE);
 			break;
 		}
 		break;
@@ -2792,7 +2792,7 @@ void save_bookmark_file(bookmark_block *bm, char *filename)
 		if (node->level > 1)
 			fprintf(out, "Level: %d\n", node->level);
 		if (!node->expanded)
-			fprintf(out, "Expanded: %s\n", return_opt_string(node->expanded));
+			fprintf(out, "Expanded: %s\n", config_return_opt_string(node->expanded));
 
 		node = node->next;
 	}
@@ -2864,7 +2864,7 @@ bookmark_block *load_bookmark_file(char *filename)
 
 	current = NULL;
 
-	while ((result = read_config_token_pair (in, token, value, section)) != sf_READ_CONFIG_EOF) {
+	while ((result = config_read_token_pair(in, token, value, section)) != sf_READ_CONFIG_EOF) {
 		if (result == sf_READ_CONFIG_NEW_SECTION)
 			bookmarks = (strcmp_no_case(section, "Bookmarks") == 0);
 
@@ -2880,7 +2880,7 @@ bookmark_block *load_bookmark_file(char *filename)
 
 					new->page = 0;
 					new->yoffset = -1;
-					new->expanded = 1;
+					new->expanded = TRUE;
 					new->level = 1;
 					new->count = 0;
 
@@ -2905,7 +2905,7 @@ bookmark_block *load_bookmark_file(char *filename)
 					current->level = atoi(value);
 			} else if (strcmp_no_case(token, "Expanded") == 0) {
 				if (current != NULL)
-					current->expanded = read_opt_string(value);
+					current->expanded = config_read_opt_string(value);
 			} else {
 				unknown_data = 1;
 			}

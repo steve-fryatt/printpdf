@@ -80,19 +80,19 @@ void set_choices_window (void)
 
   /* Set the main window up. */
 
-  sprintf (indirected_icon_text (windows.choices, CHOICE_ICON_DEFFILE), "%s", read_config_str ("FileName"));
+  sprintf (indirected_icon_text (windows.choices, CHOICE_ICON_DEFFILE), "%s", config_str_read ("FileName"));
 
   initialise_encryption_settings (&encryption);
   initialise_optimization_settings (&optimization);
   initialise_version_settings (&version);
   initialise_pdfmark_settings (&pdfmark);
 
-  set_icon_selected (windows.choices, CHOICE_ICON_RESETEVERY, read_config_opt ("ResetParams"));
-  set_icon_selected (windows.choices, CHOICE_ICON_IBAR, read_config_opt ("IconBarIcon"));
-  set_icon_selected (windows.choices, CHOICE_ICON_POPUP, read_config_opt ("PopUpAfter"));
-  set_icon_selected (windows.choices, CHOICE_ICON_PREPROCESS, read_config_opt ("PreProcess"));
+  set_icon_selected (windows.choices, CHOICE_ICON_RESETEVERY, config_opt_read ("ResetParams"));
+  set_icon_selected (windows.choices, CHOICE_ICON_IBAR, config_opt_read ("IconBarIcon"));
+  set_icon_selected (windows.choices, CHOICE_ICON_POPUP, config_opt_read ("PopUpAfter"));
+  set_icon_selected (windows.choices, CHOICE_ICON_PREPROCESS, config_opt_read ("PreProcess"));
 
-  sprintf (indirected_icon_text (windows.choices, CHOICE_ICON_MEMORY), "%d", read_config_int ("TaskMemory"));
+  sprintf (indirected_icon_text (windows.choices, CHOICE_ICON_MEMORY), "%d", config_int_read ("TaskMemory"));
 
   fill_version_field (windows.choices, CHOICE_ICON_VERSION, &version);
   fill_optimization_field (windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
@@ -110,72 +110,72 @@ void read_choices_window (void)
 
   /* Read the main window. */
 
-  set_config_str ("FileName", indirected_icon_text (windows.choices, CHOICE_ICON_DEFFILE));
+  config_str_set ("FileName", indirected_icon_text (windows.choices, CHOICE_ICON_DEFFILE));
 
-  set_config_int ("PDFVersion", version.standard_version);
+  config_int_set ("PDFVersion", version.standard_version);
 
-  set_config_int ("Optimization", optimization.standard_preset);
+  config_int_set ("Optimization", optimization.standard_preset);
 
-  set_config_opt ("ResetParams", read_icon_selected (windows.choices, CHOICE_ICON_RESETEVERY));
-  set_config_opt ("IconBarIcon", read_icon_selected (windows.choices, CHOICE_ICON_IBAR));
-  set_config_opt ("PopUpAfter", read_icon_selected (windows.choices, CHOICE_ICON_POPUP));
-  set_config_opt ("PreProcess", read_icon_selected (windows.choices, CHOICE_ICON_PREPROCESS));
+  config_opt_set ("ResetParams", read_icon_selected (windows.choices, CHOICE_ICON_RESETEVERY));
+  config_opt_set ("IconBarIcon", read_icon_selected (windows.choices, CHOICE_ICON_IBAR));
+  config_opt_set ("PopUpAfter", read_icon_selected (windows.choices, CHOICE_ICON_POPUP));
+  config_opt_set ("PreProcess", read_icon_selected (windows.choices, CHOICE_ICON_PREPROCESS));
 
-  set_config_int ("TaskMemory", atoi (indirected_icon_text (windows.choices, CHOICE_ICON_MEMORY)));
+  config_int_set ("TaskMemory", atoi (indirected_icon_text (windows.choices, CHOICE_ICON_MEMORY)));
 
-  set_config_str ("OwnerPasswd", encryption.owner_password);
-  set_config_str ("UserPasswd", encryption.access_password);
+  config_str_set ("OwnerPasswd", encryption.owner_password);
+  config_str_set ("UserPasswd", encryption.access_password);
 
-  set_config_opt ("AllowPrint", encryption.allow_print);
-  set_config_opt ("AllowFullPrint", encryption.allow_full_print);
-  set_config_opt ("AllowExtraction", encryption.allow_extraction);
-  set_config_opt ("AllowFullExtraction", encryption.allow_full_extraction);
-  set_config_opt ("AllowForms", encryption.allow_forms);
-  set_config_opt ("AllowAnnotation", encryption.allow_annotation);
-  set_config_opt ("AllowModifications", encryption.allow_modifications);
-  set_config_opt ("AllowAssembly", encryption.allow_assembly);
+  config_opt_set ("AllowPrint", encryption.allow_print);
+  config_opt_set ("AllowFullPrint", encryption.allow_full_print);
+  config_opt_set ("AllowExtraction", encryption.allow_extraction);
+  config_opt_set ("AllowFullExtraction", encryption.allow_full_extraction);
+  config_opt_set ("AllowForms", encryption.allow_forms);
+  config_opt_set ("AllowAnnotation", encryption.allow_annotation);
+  config_opt_set ("AllowModifications", encryption.allow_modifications);
+  config_opt_set ("AllowAssembly", encryption.allow_assembly);
 
-  set_config_str ("PDFMarkTitle", pdfmark.title);
-  set_config_str ("PDFMarkAuthor", pdfmark.author);
-  set_config_str ("PDFMarkSubject", pdfmark.subject);
-  set_config_str ("PDFMarkKeywords", pdfmark.keywords);
+  config_str_set ("PDFMarkTitle", pdfmark.title);
+  config_str_set ("PDFMarkAuthor", pdfmark.author);
+  config_str_set ("PDFMarkSubject", pdfmark.subject);
+  config_str_set ("PDFMarkKeywords", pdfmark.keywords);
 
-  set_config_int ("Optimization", optimization.standard_preset);
+  config_int_set ("Optimization", optimization.standard_preset);
 
-  set_config_opt ("DownsampleMono", optimization.downsample_mono_images);
-  set_config_int ("DownsampleMonoType", optimization.downsample_mono_type);
-  set_config_int ("DownsampleMonoResolution", optimization.downsample_mono_resolution);
-  set_config_int ("DownsampleMonoThreshold", optimization.downsample_mono_threshold);
-  set_config_int ("DownsampleMonoDepth", optimization.downsample_mono_depth);
+  config_opt_set ("DownsampleMono", optimization.downsample_mono_images);
+  config_int_set ("DownsampleMonoType", optimization.downsample_mono_type);
+  config_int_set ("DownsampleMonoResolution", optimization.downsample_mono_resolution);
+  config_int_set ("DownsampleMonoThreshold", optimization.downsample_mono_threshold);
+  config_int_set ("DownsampleMonoDepth", optimization.downsample_mono_depth);
 
-  set_config_opt ("DownsampleGrey", optimization.downsample_grey_images);
-  set_config_int ("DownsampleGreyType", optimization.downsample_grey_type);
-  set_config_int ("DownsampleGreyResolution", optimization.downsample_grey_resolution);
-  set_config_int ("DownsampleGreyThreshold", optimization.downsample_grey_threshold);
-  set_config_int ("DownsampleGreyDepth", optimization.downsample_grey_depth);
+  config_opt_set ("DownsampleGrey", optimization.downsample_grey_images);
+  config_int_set ("DownsampleGreyType", optimization.downsample_grey_type);
+  config_int_set ("DownsampleGreyResolution", optimization.downsample_grey_resolution);
+  config_int_set ("DownsampleGreyThreshold", optimization.downsample_grey_threshold);
+  config_int_set ("DownsampleGreyDepth", optimization.downsample_grey_depth);
 
-  set_config_opt ("DownsampleColour", optimization.downsample_colour_images);
-  set_config_int ("DownsampleColourType", optimization.downsample_colour_type);
-  set_config_int ("DownsampleColourResolution", optimization.downsample_colour_resolution);
-  set_config_int ("DownsampleColourThreshold", optimization.downsample_colour_threshold);
-  set_config_int ("DownsampleColourDepth", optimization.downsample_colour_depth);
+  config_opt_set ("DownsampleColour", optimization.downsample_colour_images);
+  config_int_set ("DownsampleColourType", optimization.downsample_colour_type);
+  config_int_set ("DownsampleColourResolution", optimization.downsample_colour_resolution);
+  config_int_set ("DownsampleColourThreshold", optimization.downsample_colour_threshold);
+  config_int_set ("DownsampleColourDepth", optimization.downsample_colour_depth);
 
-  set_config_opt ("EncodeMono", optimization.encode_mono_images);
-  set_config_int ("EncodeMonoType", optimization.encode_mono_type);
+  config_opt_set ("EncodeMono", optimization.encode_mono_images);
+  config_int_set ("EncodeMonoType", optimization.encode_mono_type);
 
-  set_config_opt ("EncodeGrey", optimization.encode_grey_images);
-  set_config_int ("EncodeGreyType", optimization.encode_grey_type);
+  config_opt_set ("EncodeGrey", optimization.encode_grey_images);
+  config_int_set ("EncodeGreyType", optimization.encode_grey_type);
 
-  set_config_opt ("EncodeColour", optimization.encode_colour_images);
-  set_config_int ("EncodeColourType", optimization.encode_colour_type);
+  config_opt_set ("EncodeColour", optimization.encode_colour_images);
+  config_int_set ("EncodeColourType", optimization.encode_colour_type);
 
-  set_config_int ("AutoPageRotation", optimization.auto_page_rotation);
+  config_int_set ("AutoPageRotation", optimization.auto_page_rotation);
 
-  set_config_opt ("CompressPages", optimization.compress_pages);
+  config_opt_set ("CompressPages", optimization.compress_pages);
 
   /* Make any immediate changes that depend on the choices. */
 
-  set_iconbar_icon (read_config_opt ("IconBarIcon"));
+  set_iconbar_icon (config_opt_read ("IconBarIcon"));
 }
 
 /* ================================================================================================================== */

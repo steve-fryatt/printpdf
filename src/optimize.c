@@ -49,38 +49,38 @@ int optimize_menu_tick (optimize_params *params);
 
 void initialise_optimization_settings (optimize_params *params)
 {
-  params->standard_preset = read_config_int ("Optimization");
+  params->standard_preset = config_int_read ("Optimization");
 
-  params->downsample_mono_images = read_config_opt ("DownsampleMono");
-  params->downsample_mono_type = read_config_int ("DownsampleMonoType");
-  params->downsample_mono_resolution = read_config_int ("DownsampleMonoResolution");
-  params->downsample_mono_threshold = read_config_int ("DownsampleMonoThreshold");
-  params->downsample_mono_depth = read_config_int ("DownsampleMonoDepth");
+  params->downsample_mono_images = config_opt_read ("DownsampleMono");
+  params->downsample_mono_type = config_int_read ("DownsampleMonoType");
+  params->downsample_mono_resolution = config_int_read ("DownsampleMonoResolution");
+  params->downsample_mono_threshold = config_int_read ("DownsampleMonoThreshold");
+  params->downsample_mono_depth = config_int_read ("DownsampleMonoDepth");
 
-  params->downsample_grey_images = read_config_opt ("DownsampleGrey");
-  params->downsample_grey_type = read_config_int ("DownsampleGreyType");
-  params->downsample_grey_resolution = read_config_int ("DownsampleGreyResolution");
-  params->downsample_grey_threshold = read_config_int ("DownsampleGreyThreshold");
-  params->downsample_grey_depth = read_config_int ("DownsampleGreyDepth");
+  params->downsample_grey_images = config_opt_read ("DownsampleGrey");
+  params->downsample_grey_type = config_int_read ("DownsampleGreyType");
+  params->downsample_grey_resolution = config_int_read ("DownsampleGreyResolution");
+  params->downsample_grey_threshold = config_int_read ("DownsampleGreyThreshold");
+  params->downsample_grey_depth = config_int_read ("DownsampleGreyDepth");
 
-  params->downsample_colour_images = read_config_opt ("DownsampleColour");
-  params->downsample_colour_type = read_config_int ("DownsampleColourType");
-  params->downsample_colour_resolution = read_config_int ("DownsampleColourResolution");
-  params->downsample_colour_threshold = read_config_int ("DownsampleColourThreshold");
-  params->downsample_colour_depth = read_config_int ("DownsampleColourDepth");
+  params->downsample_colour_images = config_opt_read ("DownsampleColour");
+  params->downsample_colour_type = config_int_read ("DownsampleColourType");
+  params->downsample_colour_resolution = config_int_read ("DownsampleColourResolution");
+  params->downsample_colour_threshold = config_int_read ("DownsampleColourThreshold");
+  params->downsample_colour_depth = config_int_read ("DownsampleColourDepth");
 
-  params->encode_mono_images = read_config_opt ("EncodeMono");
-  params->encode_mono_type = read_config_int ("EncodeMonoType");
+  params->encode_mono_images = config_opt_read ("EncodeMono");
+  params->encode_mono_type = config_int_read ("EncodeMonoType");
 
-  params->encode_grey_images = read_config_opt ("EncodeGrey");
-  params->encode_grey_type = read_config_int ("EncodeGreyType");
+  params->encode_grey_images = config_opt_read ("EncodeGrey");
+  params->encode_grey_type = config_int_read ("EncodeGreyType");
 
-  params->encode_colour_images = read_config_opt ("EncodeColour");
-  params->encode_colour_type = read_config_int ("EncodeColourType");
+  params->encode_colour_images = config_opt_read ("EncodeColour");
+  params->encode_colour_type = config_int_read ("EncodeColourType");
 
-  params->auto_page_rotation = read_config_int ("AutoPageRotation");
+  params->auto_page_rotation = config_int_read ("AutoPageRotation");
 
-  params->compress_pages = read_config_opt ("CompressPages");
+  params->compress_pages = config_opt_read ("CompressPages");
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

@@ -139,7 +139,7 @@ static void main_poll_loop(void)
 				popup_test_and_close(poll_time);
 				check_for_ps_file();
 				check_for_pending_files();
-				poll_time += read_config_int("PollDelay");
+				poll_time += config_int_read("PollDelay");
 				break;
 
 			case wimp_OPEN_WINDOW_REQUEST:
@@ -224,61 +224,61 @@ static void main_initialise(void)
 
 	/* Initialise the configuration. */
 
-	initialise_configuration(task_name, "PrintPDF", "<PrintPDF$Dir>");
+	config_initialise(task_name, "PrintPDF", "<PrintPDF$Dir>");
 
-	init_config_str("FileQueue", "<Wimp$ScrapDir>.PrintPDF");
-	init_config_str("ParamFile", "Pipe:$.PrintPDF");
-	init_config_str("PDFMarkFile", "Pipe:$.PrintPDFMark");
-	init_config_str("FileName", msgs_lookup ("FileName", filename, sizeof (filename)));
-	init_config_int("PollDelay", 500);
-	init_config_int("PopUpTime", 200);
-	init_config_int("TaskMemory", 8192);
-	init_config_int("PDFVersion", 0);
-	init_config_int("Optimization", 0);
-	init_config_opt("DownsampleMono", FALSE);
-	init_config_int("DownsampleMonoType", 0);
-	init_config_int("DownsampleMonoResolution", 300);
-	init_config_int("DownsampleMonoThreshold", 15);
-	init_config_int("DownsampleMonoDepth", -1);
-	init_config_opt("DownsampleGrey", FALSE);
-	init_config_int("DownsampleGreyType", 0);
-	init_config_int("DownsampleGreyResolution", 72);
-	init_config_int("DownsampleGreyThreshold", 15);
-	init_config_int("DownsampleGreyDepth", -1);
-	init_config_opt("DownsampleColour", FALSE);
-	init_config_int("DownsampleColourType", 0);
-	init_config_int("DownsampleColourResolution", 72);
-	init_config_int("DownsampleColourThreshold", 15);
-	init_config_int("DownsampleColourDepth", -1);
-	init_config_opt("EncodeMono", TRUE);
-	init_config_int("EncodeMonoType", 2);
-	init_config_opt("EncodeGrey", TRUE);
-	init_config_int("EncodeGreyType", 0);
-	init_config_opt("EncodeColour", TRUE);
-	init_config_int("EncodeColourType", 0);
-	init_config_int("AutoPageRotation", 2);
-	init_config_opt("CompressPages", TRUE);
-	init_config_str("OwnerPasswd", "");
-	init_config_str("UserPasswd", "");
-	init_config_opt("AllowPrint", TRUE);
-	init_config_opt("AllowFullPrint", TRUE);
-	init_config_opt("AllowExtraction", TRUE);
-	init_config_opt("AllowFullExtraction", TRUE);
-	init_config_opt("AllowForms", TRUE);
-	init_config_opt("AllowAnnotation", TRUE);
-	init_config_opt("AllowModifications", TRUE);
-	init_config_opt("AllowAssembly", TRUE);
-	init_config_str("PDFMarkTitle", "");
-	init_config_str("PDFMarkAuthor", "");
-	init_config_str("PDFMarkSubject", "");
-	init_config_str("PDFMarkKeywords", "");
-	init_config_str("PDFMarkUserFile", "");
-	init_config_opt("PreProcess", FALSE);
-	init_config_opt("ResetParams", FALSE);
-	init_config_opt("IconBarIcon", TRUE);
-	init_config_opt("PopUpAfter", TRUE);
+	config_str_init("FileQueue", "<Wimp$ScrapDir>.PrintPDF");
+	config_str_init("ParamFile", "Pipe:$.PrintPDF");
+	config_str_init("PDFMarkFile", "Pipe:$.PrintPDFMark");
+	config_str_init("FileName", msgs_lookup ("FileName", filename, sizeof (filename)));
+	config_int_init("PollDelay", 500);
+	config_int_init("PopUpTime", 200);
+	config_int_init("TaskMemory", 8192);
+	config_int_init("PDFVersion", 0);
+	config_int_init("Optimization", 0);
+	config_opt_init("DownsampleMono", FALSE);
+	config_int_init("DownsampleMonoType", 0);
+	config_int_init("DownsampleMonoResolution", 300);
+	config_int_init("DownsampleMonoThreshold", 15);
+	config_int_init("DownsampleMonoDepth", -1);
+	config_opt_init("DownsampleGrey", FALSE);
+	config_int_init("DownsampleGreyType", 0);
+	config_int_init("DownsampleGreyResolution", 72);
+	config_int_init("DownsampleGreyThreshold", 15);
+	config_int_init("DownsampleGreyDepth", -1);
+	config_opt_init("DownsampleColour", FALSE);
+	config_int_init("DownsampleColourType", 0);
+	config_int_init("DownsampleColourResolution", 72);
+	config_int_init("DownsampleColourThreshold", 15);
+	config_int_init("DownsampleColourDepth", -1);
+	config_opt_init("EncodeMono", TRUE);
+	config_int_init("EncodeMonoType", 2);
+	config_opt_init("EncodeGrey", TRUE);
+	config_int_init("EncodeGreyType", 0);
+	config_opt_init("EncodeColour", TRUE);
+	config_int_init("EncodeColourType", 0);
+	config_int_init("AutoPageRotation", 2);
+	config_opt_init("CompressPages", TRUE);
+	config_str_init("OwnerPasswd", "");
+	config_str_init("UserPasswd", "");
+	config_opt_init("AllowPrint", TRUE);
+	config_opt_init("AllowFullPrint", TRUE);
+	config_opt_init("AllowExtraction", TRUE);
+	config_opt_init("AllowFullExtraction", TRUE);
+	config_opt_init("AllowForms", TRUE);
+	config_opt_init("AllowAnnotation", TRUE);
+	config_opt_init("AllowModifications", TRUE);
+	config_opt_init("AllowAssembly", TRUE);
+	config_str_init("PDFMarkTitle", "");
+	config_str_init("PDFMarkAuthor", "");
+	config_str_init("PDFMarkSubject", "");
+	config_str_init("PDFMarkKeywords", "");
+	config_str_init("PDFMarkUserFile", "");
+	config_opt_init("PreProcess", FALSE);
+	config_opt_init("ResetParams", FALSE);
+	config_opt_init("IconBarIcon", TRUE);
+	config_opt_init("PopUpAfter", TRUE);
 
-	load_configuration();
+	config_load();
 
 	/* Load the window templates. */
 
@@ -308,7 +308,7 @@ static void main_initialise(void)
 
 	/* Create an icon-bar icon. */
 
-	set_iconbar_icon(read_config_opt("IconBarIcon") && (main_quit_flag == FALSE));
+	set_iconbar_icon(config_opt_read("IconBarIcon") && (main_quit_flag == FALSE));
 
 	hourglass_off();
 }
@@ -655,7 +655,7 @@ static void mouse_click_handler (wimp_pointer *pointer)
         if (pointer->buttons == wimp_CLICK_SELECT || pointer->buttons == wimp_CLICK_ADJUST)
         {
           read_choices_window ();
-          save_configuration ();
+          config_save();
 
           if (pointer->buttons == wimp_CLICK_SELECT)
           {
@@ -830,7 +830,7 @@ static void key_press_handler (wimp_key *key)
     {
       case wimp_KEY_RETURN:
         read_choices_window ();
-        save_configuration ();
+        config_save();
         close_choices_window ();
         break;
 
