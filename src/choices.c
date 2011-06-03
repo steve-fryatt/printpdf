@@ -219,6 +219,7 @@ static void choices_redraw_window(void)
 {
 	extern global_windows		windows;
 
+	wimp_set_icon_state(windows.choices, CHOICE_ICON_DEFFILE, 0, 0);
 	wimp_set_icon_state(windows.choices, CHOICE_ICON_VERSION, 0, 0);
 	wimp_set_icon_state(windows.choices, CHOICE_ICON_OPTIMIZE, 0, 0);
 	wimp_set_icon_state(windows.choices, CHOICE_ICON_MEMORY, 0, 0);
