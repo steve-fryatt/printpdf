@@ -75,7 +75,7 @@ void		close_bookmark_window(wimp_close *close);
 void		decode_bookmark_window_help(char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons);
 void		redraw_bookmark_window(wimp_draw *redraw);
 void		bookmark_click_handler(wimp_pointer *pointer);
-void		bookmark_key_handler(wimp_key *key);
+osbool		bookmark_key_handler(wimp_key *key);
 void		bookmark_lose_caret_handler(wimp_caret *caret);
 void		bookmark_gain_caret_handler(wimp_caret *caret);
 void		bookmark_scroll_handler(wimp_scroll *scroll);
@@ -103,7 +103,7 @@ void		bookmark_terminate_line_drag(wimp_dragged *drag, void *data);
 /* Bookmark Toolbar Handling */
 
 void		bookmark_toolbar_click_handler(wimp_pointer *pointer);
-void		bookmark_toolbar_key_handler(wimp_key *key);
+osbool		bookmark_toolbar_key_handler(wimp_key *key);
 void		bookmark_resync_toolbar_name_with_file(bookmark_block *bm);
 
 /* Bookmark Window Menu Handling */
@@ -121,7 +121,7 @@ void prepare_file_info_window(bookmark_block *bm);
 
 void		prepare_bookmark_save_window(bookmark_block *bm);
 void		bookmark_save_as_click(wimp_pointer *pointer);
-void		bookmark_save_as_keypress(wimp_key *key);
+osbool		bookmark_save_as_keypress(wimp_key *key);
 int		start_direct_dialog_save(void);
 void		start_direct_menu_save(bookmark_block *bm);
 
@@ -1147,15 +1147,16 @@ void bookmark_click_handler(wimp_pointer *pointer)
  * Callback handler for Wimp Key events.
  *
  * \param  *key			The associated wimp event block.
+ * \return			TRUE if the keypress was handled; else FALSE.
  */
 
-void bookmark_key_handler(wimp_key *key)
+osbool bookmark_key_handler(wimp_key *key)
 {
 	bookmark_block		*bm;
 
 	bm = (bookmark_block *) event_get_window_user_data(key->w);
 	if (bm == NULL)
-		return;
+		return FALSE;
 
 	if (bookmarks_edit != NULL && bookmarks_edit->window == key->w && bookmarks_edit->edit_icon == key->i) {
 		switch (key->c) {
@@ -1212,7 +1213,9 @@ void bookmark_key_handler(wimp_key *key)
 			(key->c == (wimp_KEY_F12 | wimp_KEY_SHIFT)) ||
 			(key->c == (wimp_KEY_F12 | wimp_KEY_CONTROL)) ||
 			(key->c == (wimp_KEY_F12 | wimp_KEY_SHIFT | wimp_KEY_CONTROL)))
-		wimp_process_key(key->c);
+		return FALSE;
+
+	return TRUE;
 }
 
 
@@ -2315,15 +2318,16 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
  * Callback handler for Wimp Key events in the toolbar.
  *
  * \param  *key			The associated wimp event block.
+ * \return			TRUE if the keypress was handled; else FALSE.
  */
 
-void bookmark_toolbar_key_handler(wimp_key *key)
+osbool bookmark_toolbar_key_handler(wimp_key *key)
 {
 	bookmark_block		*bm;
 
 	bm = (bookmark_block *) event_get_window_user_data(key->w);
 	if (bm == NULL)
-		return;
+		return FALSE;
 
 	switch (key->c) {
 	case wimp_KEY_RETURN:
@@ -2344,7 +2348,9 @@ void bookmark_toolbar_key_handler(wimp_key *key)
 			(key->c == (wimp_KEY_F12 | wimp_KEY_SHIFT)) ||
 			(key->c == (wimp_KEY_F12 | wimp_KEY_CONTROL)) ||
 			(key->c == (wimp_KEY_F12 | wimp_KEY_SHIFT | wimp_KEY_CONTROL)))
-		wimp_process_key(key->c);
+		return FALSE;
+
+	return TRUE;
 }
 
 
@@ -2656,9 +2662,12 @@ void bookmark_save_as_click(wimp_pointer *pointer)
 
 /**
  * Process keypresses in the SaveAs window.
+ *
+ * \param *key		The keypress data to handle.
+ * \return		TRUE if the keypress was handled; FALSE if not.
  */
 
-void bookmark_save_as_keypress(wimp_key *key)
+osbool bookmark_save_as_keypress(wimp_key *key)
 {
 	switch (key->c) {
 	case wimp_KEY_RETURN:
@@ -2668,7 +2677,11 @@ void bookmark_save_as_keypress(wimp_key *key)
 	case wimp_KEY_ESCAPE:
 		wimp_create_menu((wimp_menu *) -1, 0, 0);
 		break;
+	default:
+		return FALSE;
 	}
+
+	return TRUE;
 }
 
 /**
