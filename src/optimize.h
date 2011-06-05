@@ -1,10 +1,10 @@
 /* PrintPDF - optimize.h
  *
- * (c) Stephen Fryatt, 2007
+ * (c) Stephen Fryatt, 2007-2011
  */
 
-#ifndef _PRINTPDF_OPTIMIZE
-#define _PRINTPDF_OPTIMIZE
+#ifndef PRINTPDF_OPTIMIZE
+#define PRINTPDF_OPTIMIZE
 
 /* ==================================================================================================================
  * Static constants
@@ -69,65 +69,125 @@
 
 #define OPTIMIZE_ICON_COMPRESS 60
 
-/* ==================================================================================================================
- * Data structures
+
+typedef struct optimize_params {
+	int		standard_preset;
+
+	int		downsample_mono_images;
+	int		downsample_mono_type;
+	int		downsample_mono_resolution;
+	int		downsample_mono_threshold;
+	int		downsample_mono_depth;
+
+	int		downsample_grey_images;
+	int		downsample_grey_type;
+	int		downsample_grey_resolution;
+	int		downsample_grey_threshold;
+	int		downsample_grey_depth;
+
+	int		downsample_colour_images;
+	int		downsample_colour_type;
+	int		downsample_colour_resolution;
+	int		downsample_colour_threshold;
+	int		downsample_colour_depth;
+
+	int		encode_mono_images;
+	int		encode_mono_type;
+
+	int		encode_grey_images;
+	int		encode_grey_type;
+
+	int		encode_colour_images;
+	int		encode_colour_type;
+
+	int		auto_page_rotation;
+
+	int		compress_pages;
+} optimize_params;
+
+
+/**
+ * Initialise the optimization dialogue.
  */
 
-typedef struct optimize_params
-{
-  int  standard_preset;
+void optimize_initialise(void);
 
-  int  downsample_mono_images;
-  int  downsample_mono_type;
-  int  downsample_mono_resolution;
-  int  downsample_mono_threshold;
-  int  downsample_mono_depth;
 
-  int  downsample_grey_images;
-  int  downsample_grey_type;
-  int  downsample_grey_resolution;
-  int  downsample_grey_threshold;
-  int  downsample_grey_depth;
-
-  int  downsample_colour_images;
-  int  downsample_colour_type;
-  int  downsample_colour_resolution;
-  int  downsample_colour_threshold;
-  int  downsample_colour_depth;
-
-  int  encode_mono_images;
-  int  encode_mono_type;
-
-  int  encode_grey_images;
-  int  encode_grey_type;
-
-  int  encode_colour_images;
-  int  encode_colour_type;
-
-  int  auto_page_rotation;
-
-  int  compress_pages;
-}
-optimize_params;
-
-/* ==================================================================================================================
- * Function prototypes.
+/**
+ * Initialise the values in an optimization settings structure.
+ *
+ * \param *params		The optimisation params struct to be initialised.
  */
 
-/* Handle the optimization window and menu. */
+void optimize_initialise_settings(optimize_params *params);
 
-void initialise_optimization_settings (optimize_params *params);
-void open_optimize_menu (optimize_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon, int ident);
-void process_optimize_menu (optimize_params *params, wimp_selection *selection);
-void open_optimize_dialogue (optimize_params *params, wimp_pointer *pointer);
-void process_optimize_dialogue (optimize_params *params);
-void shade_optimize_dialogue (void);
-void fill_optimization_field (wimp_w window, wimp_i icon, optimize_params *params);
-void build_optimization_params (char *buffer, optimize_params *params);
-char *true_false (int value);
-char *depth_text (char *buffer, int value);
-void update_resolution_icon (wimp_i i, int dir);
-void update_threshold_icon (wimp_i i, int dir);
-void update_depth_icon (wimp_i i, int dir);
+
+/**
+ * Build and open the optimization values menu.
+ *
+ * \param *params		The optimization parameter block to use for the menu.
+ * \param *pointer		The Wimp pointer details.
+ * \param window		The window to open the menu over.
+ * \param icon			The icon to open the menu over.
+ * \param ident			The param menu ident.
+ */
+
+void optimize_open_menu(optimize_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon, int ident);
+
+
+/**
+ * Handle selections from the optimize menu.
+ *
+ * \param *params		The optimization parameter block for the menu.
+ * \param *selection		The menu selection details.
+ */
+
+void optimize_process_menu(optimize_params *params, wimp_selection *selection);
+
+
+/**
+ * Set a callback handler to be called when the OK button of the
+ * optimize dialogue is clicked.
+ *
+ * \param callback		The callback function to use, or NULL.
+ */
+
+void optimize_set_dialogue_callback(void (*callback)(void));
+
+
+/**
+ * Store the settings from the currently open Optimization dialogue box in
+ * an optimization parameter block.
+ *
+ * \param *params		The optimization parameter block to be used.
+ */
+
+void optimize_process_dialogue(optimize_params *params);
+
+
+/**
+ * Update the given text field icon with a status reflecting the settings
+ * in the given optimization parameter block.
+ *
+ * \param window		The window containing the icon.
+ * \param icon			The icon to update.
+ * \param *params		The optimization parameter block to use.
+ */
+
+void optimize_fill_field(wimp_w window, wimp_i icon, optimize_params *params);
+
+
+/**
+ * Build up a text string in the supplied buffer containing the GS
+ * parameters that reflect the contents of the given optimization
+ * parameter block.
+ *
+ * \param *buffer		Buffer to hold the result.
+ * \param len			The size of the buffer.
+ * \param *params		The optimization parameter block to translate.
+ */
+
+void optimize_build_params(char *buffer, size_t len, optimize_params *params);
 
 #endif
+

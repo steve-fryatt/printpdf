@@ -78,7 +78,6 @@ static void	menu_selection_handler(wimp_selection *);
  */
 
 int			global_encryption_dialogue_location;
-int			global_optimization_dialogue_location;
 int			global_pdfmark_dialogue_location;
 int			global_bookmark_dialogue_location;
 
@@ -301,6 +300,7 @@ static void main_initialise(void)
 	popup_initialise();
 	dataxfer_initialise();
 	choices_initialise();
+	optimize_initialise();
 	initialise_iconbar();
 	initialise_conversion();
 	initialise_bookmarks();
@@ -418,7 +418,7 @@ static void mouse_click_handler (wimp_pointer *pointer)
         break;
 
       case SAVE_PDF_ICON_OPT_MENU:
-        global_optimization_dialogue_location = OPTIMIZATION_SAVE;
+        optimize_set_dialogue_callback(process_convert_optimize_dialogue);
         open_convert_optimize_menu (pointer, windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD);
         break;
 
@@ -484,134 +484,6 @@ static void mouse_click_handler (wimp_pointer *pointer)
           case PDFMARK_CHOICE:
             process_choices_pdfmark_dialogue ();
             break;
-        }
-        break;
-    }
-  }
-
-  /* The Optimization Window. */
-
-  else if (pointer->w == windows.optimization)
-  {
-    switch ((int) pointer->i)
-    {
-      case OPTIMIZE_ICON_CANCEL:
-        wimp_create_menu ((wimp_menu *) -1, 0, 0);
-        break;
-
-      case OPTIMIZE_ICON_OK:
-        switch (global_optimization_dialogue_location)
-        {
-          case OPTIMIZATION_SAVE:
-            process_convert_optimize_dialogue ();
-            break;
-
-          case OPTIMIZATION_CHOICE:
-            process_choices_optimize_dialogue ();
-            break;
-        }
-        break;
-
-      case OPTIMIZE_ICON_COLOUR_RESOLUTION_UP:
-        update_resolution_icon(OPTIMIZE_ICON_COLOUR_RESOLUTION, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
-        break;
-
-      case OPTIMIZE_ICON_COLOUR_RESOLUTION_DOWN:
-        update_resolution_icon(OPTIMIZE_ICON_COLOUR_RESOLUTION, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
-        break;
-
-      case OPTIMIZE_ICON_GREY_RESOLUTION_UP:
-        update_resolution_icon(OPTIMIZE_ICON_GREY_RESOLUTION, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
-        break;
-
-      case OPTIMIZE_ICON_GREY_RESOLUTION_DOWN:
-        update_resolution_icon(OPTIMIZE_ICON_GREY_RESOLUTION, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
-        break;
-
-      case OPTIMIZE_ICON_MONO_RESOLUTION_UP:
-        update_resolution_icon(OPTIMIZE_ICON_MONO_RESOLUTION, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
-        break;
-
-      case OPTIMIZE_ICON_MONO_RESOLUTION_DOWN:
-        update_resolution_icon(OPTIMIZE_ICON_MONO_RESOLUTION, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
-        break;
-
-      case OPTIMIZE_ICON_COLOUR_THRESHOLD_UP:
-        update_threshold_icon(OPTIMIZE_ICON_COLOUR_THRESHOLD, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
-        break;
-
-      case OPTIMIZE_ICON_COLOUR_THRESHOLD_DOWN:
-        update_threshold_icon(OPTIMIZE_ICON_COLOUR_THRESHOLD, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
-        break;
-
-      case OPTIMIZE_ICON_GREY_THRESHOLD_UP:
-        update_threshold_icon(OPTIMIZE_ICON_GREY_THRESHOLD, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
-        break;
-
-      case OPTIMIZE_ICON_GREY_THRESHOLD_DOWN:
-        update_threshold_icon(OPTIMIZE_ICON_GREY_THRESHOLD, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
-        break;
-
-      case OPTIMIZE_ICON_MONO_THRESHOLD_UP:
-        update_threshold_icon(OPTIMIZE_ICON_MONO_THRESHOLD, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
-        break;
-
-      case OPTIMIZE_ICON_MONO_THRESHOLD_DOWN:
-        update_threshold_icon(OPTIMIZE_ICON_MONO_THRESHOLD, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
-        break;
-
-      case OPTIMIZE_ICON_COLOUR_DEPTH_UP:
-        update_depth_icon(OPTIMIZE_ICON_COLOUR_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
-        break;
-
-      case OPTIMIZE_ICON_COLOUR_DEPTH_DOWN:
-        update_depth_icon(OPTIMIZE_ICON_COLOUR_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
-        break;
-
-      case OPTIMIZE_ICON_GREY_DEPTH_UP:
-        update_depth_icon(OPTIMIZE_ICON_GREY_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
-        break;
-
-      case OPTIMIZE_ICON_GREY_DEPTH_DOWN:
-        update_depth_icon(OPTIMIZE_ICON_GREY_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
-        break;
-
-      case OPTIMIZE_ICON_MONO_DEPTH_UP:
-        update_depth_icon(OPTIMIZE_ICON_MONO_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
-        break;
-
-      case OPTIMIZE_ICON_MONO_DEPTH_DOWN:
-        update_depth_icon(OPTIMIZE_ICON_MONO_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
-        break;
-
-      case OPTIMIZE_ICON_COLOUR_DOWNSAMPLE:
-      case OPTIMIZE_ICON_GREY_DOWNSAMPLE:
-      case OPTIMIZE_ICON_MONO_DOWNSAMPLE:
-      case OPTIMIZE_ICON_COLOUR_ENCODE:
-      case OPTIMIZE_ICON_GREY_ENCODE:
-      case OPTIMIZE_ICON_MONO_ENCODE:
-        shade_optimize_dialogue ();
-        break;
-
-      case OPTIMIZE_ICON_COLOUR_SUBSAMPLE:
-      case OPTIMIZE_ICON_GREY_SUBSAMPLE:
-      case OPTIMIZE_ICON_MONO_SUBSAMPLE:
-      case OPTIMIZE_ICON_COLOUR_AVERAGE:
-      case OPTIMIZE_ICON_GREY_AVERAGE:
-      case OPTIMIZE_ICON_MONO_AVERAGE:
-      case OPTIMIZE_ICON_COLOUR_DCT:
-      case OPTIMIZE_ICON_GREY_DCT:
-      case OPTIMIZE_ICON_MONO_CCITT:
-      case OPTIMIZE_ICON_COLOUR_FLATE:
-      case OPTIMIZE_ICON_GREY_FLATE:
-      case OPTIMIZE_ICON_MONO_FLATE:
-      case OPTIMIZE_ICON_MONO_RUNLENGTH:
-      case OPTIMIZE_ICON_ROTATE_NONE:
-      case OPTIMIZE_ICON_ROTATE_ALL:
-      case OPTIMIZE_ICON_ROTATE_PAGE:
-        if (pointer->buttons == wimp_CLICK_ADJUST)
-        {
-          set_icon_selected (pointer->w, pointer->i, TRUE);
         }
         break;
     }
@@ -715,35 +587,6 @@ static void key_press_handler (wimp_key *key)
 
           case ENCRYPTION_CHOICE:
             process_choices_encrypt_dialogue ();
-            break;
-        }
-        break;
-
-      case wimp_KEY_ESCAPE:
-        wimp_create_menu ((wimp_menu *) -1, 0, 0);
-        break;
-
-      default:
-        wimp_process_key (key->c);
-        break;
-    }
-  }
-
-  /* The Optimization Window. */
-
-  else if (key->w == windows.optimization)
-  {
-    switch (key->c)
-    {
-      case wimp_KEY_RETURN:
-        switch (global_optimization_dialogue_location)
-        {
-          case OPTIMIZATION_SAVE:
-            process_convert_optimize_dialogue ();
-            break;
-
-          case OPTIMIZATION_CHOICE:
-            process_choices_optimize_dialogue ();
             break;
         }
         break;

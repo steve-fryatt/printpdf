@@ -1,6 +1,6 @@
 /* PrintPDF - optimize.c
  *
- * (C) Stephen Fryatt, 2005
+ * (C) Stephen Fryatt, 2005-2011
  */
 
 /* ANSI C header files */
@@ -17,6 +17,7 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
+#include "sflib/event.h"
 #include "sflib/icons.h"
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
@@ -31,493 +32,730 @@
 #include "pmenu.h"
 #include "windows.h"
 
-/* ==================================================================================================================
- * Global variables.
- */
 
-static int downsample_mono_depth;
-static int downsample_grey_depth;
-static int downsample_colour_depth;
+static int	downsample_mono_depth;
+static int	downsample_grey_depth;
+static int	downsample_colour_depth;
+
+static void	(*optimize_dialogue_close_callback)(void) = NULL;
 
 /* Function Prototypes. */
 
-int optimize_menu_tick (optimize_params *params);
+static void	optimize_click_handler(wimp_pointer *pointer);
+static osbool	optimize_keypress_handler(wimp_key *key);
 
-/* ==================================================================================================================
- *
+static int	optimize_tick_menu(optimize_params *params);
+static void	optimize_open_dialogue(optimize_params *params, wimp_pointer *pointer);
+static void	optimize_shade_dialogue(void);
+
+static char	*optimize_true_false(osbool value);
+static char	*optimize_depth_text(char *buffer, int value);
+
+static void	optimize_update_resolution_icon(wimp_i i, int dir);
+static void	optimize_update_threshold_icon(wimp_i i, int dir);
+static void	optimize_update_depth_icon(wimp_i i, int dir);
+
+/**
+ * Initialise the optimization dialogue.
  */
 
-void initialise_optimization_settings (optimize_params *params)
+void optimize_initialise(void)
 {
-  params->standard_preset = config_int_read ("Optimization");
+	extern global_windows		windows;
 
-  params->downsample_mono_images = config_opt_read ("DownsampleMono");
-  params->downsample_mono_type = config_int_read ("DownsampleMonoType");
-  params->downsample_mono_resolution = config_int_read ("DownsampleMonoResolution");
-  params->downsample_mono_threshold = config_int_read ("DownsampleMonoThreshold");
-  params->downsample_mono_depth = config_int_read ("DownsampleMonoDepth");
-
-  params->downsample_grey_images = config_opt_read ("DownsampleGrey");
-  params->downsample_grey_type = config_int_read ("DownsampleGreyType");
-  params->downsample_grey_resolution = config_int_read ("DownsampleGreyResolution");
-  params->downsample_grey_threshold = config_int_read ("DownsampleGreyThreshold");
-  params->downsample_grey_depth = config_int_read ("DownsampleGreyDepth");
-
-  params->downsample_colour_images = config_opt_read ("DownsampleColour");
-  params->downsample_colour_type = config_int_read ("DownsampleColourType");
-  params->downsample_colour_resolution = config_int_read ("DownsampleColourResolution");
-  params->downsample_colour_threshold = config_int_read ("DownsampleColourThreshold");
-  params->downsample_colour_depth = config_int_read ("DownsampleColourDepth");
-
-  params->encode_mono_images = config_opt_read ("EncodeMono");
-  params->encode_mono_type = config_int_read ("EncodeMonoType");
-
-  params->encode_grey_images = config_opt_read ("EncodeGrey");
-  params->encode_grey_type = config_int_read ("EncodeGreyType");
-
-  params->encode_colour_images = config_opt_read ("EncodeColour");
-  params->encode_colour_type = config_int_read ("EncodeColourType");
-
-  params->auto_page_rotation = config_int_read ("AutoPageRotation");
-
-  params->compress_pages = config_opt_read ("CompressPages");
+	event_add_window_mouse_event(windows.optimization, optimize_click_handler);
+	event_add_window_key_event(windows.optimization, optimize_keypress_handler);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void open_optimize_menu (optimize_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon, int ident)
+/**
+ * Initialise the values in an optimization settings structure.
+ *
+ * \param *params		The optimisation params struct to be initialised.
+ */
+
+void optimize_initialise_settings(optimize_params *params)
 {
-  if (build_param_menu ("OptimizationMenu", ident, optimize_menu_tick (params)) != NULL)
-  {
-    open_param_menu (pointer, window, icon);
-  }
+	params->standard_preset = config_int_read("Optimization");
+
+	params->downsample_mono_images = config_opt_read("DownsampleMono");
+	params->downsample_mono_type = config_int_read("DownsampleMonoType");
+	params->downsample_mono_resolution = config_int_read("DownsampleMonoResolution");
+	params->downsample_mono_threshold = config_int_read("DownsampleMonoThreshold");
+	params->downsample_mono_depth = config_int_read("DownsampleMonoDepth");
+
+	params->downsample_grey_images = config_opt_read("DownsampleGrey");
+	params->downsample_grey_type = config_int_read("DownsampleGreyType");
+	params->downsample_grey_resolution = config_int_read("DownsampleGreyResolution");
+	params->downsample_grey_threshold = config_int_read("DownsampleGreyThreshold");
+	params->downsample_grey_depth = config_int_read("DownsampleGreyDepth");
+
+	params->downsample_colour_images = config_opt_read("DownsampleColour");
+	params->downsample_colour_type = config_int_read("DownsampleColourType");
+	params->downsample_colour_resolution = config_int_read("DownsampleColourResolution");
+	params->downsample_colour_threshold = config_int_read("DownsampleColourThreshold");
+	params->downsample_colour_depth = config_int_read("DownsampleColourDepth");
+
+	params->encode_mono_images = config_opt_read("EncodeMono");
+	params->encode_mono_type = config_int_read("EncodeMonoType");
+
+	params->encode_grey_images = config_opt_read("EncodeGrey");
+	params->encode_grey_type = config_int_read("EncodeGreyType");
+
+	params->encode_colour_images = config_opt_read("EncodeColour");
+	params->encode_colour_type = config_int_read("EncodeColourType");
+
+	params->auto_page_rotation = config_int_read("AutoPageRotation");
+
+	params->compress_pages = config_opt_read("CompressPages");
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void process_optimize_menu (optimize_params *params, wimp_selection *selection)
+/**
+ * Build and open the optimization values menu.
+ *
+ * \param *params		The optimization parameter block to use for the menu.
+ * \param *pointer		The Wimp pointer details.
+ * \param window		The window to open the menu over.
+ * \param icon			The icon to open the menu over.
+ * \param ident			The param menu ident.
+ */
+
+void optimize_open_menu(optimize_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon, int ident)
 {
-  wimp_pointer pointer;
-
-  if (selection->items[0] == param_menu_len ("OptimizationMenu") - 1)
-  {
-    wimp_get_pointer_info (&pointer);
-    open_optimize_dialogue (params, &pointer);
-  }
-  else
-  {
-    params->standard_preset = selection->items[0];
-  }
-
-  build_param_menu ("OptimizationMenu", param_menu_ident (), optimize_menu_tick (params));
+	if (build_param_menu("OptimizationMenu", ident, optimize_tick_menu(params)) != NULL)
+		open_param_menu(pointer, window, icon);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int optimize_menu_tick (optimize_params *params)
+/**
+ * Handle selections from the optimize menu.
+ *
+ * \param *params		The optimization parameter block for the menu.
+ * \param *selection		The menu selection details.
+ */
+
+void optimize_process_menu(optimize_params *params, wimp_selection *selection)
 {
-  int          item;
+	wimp_pointer		pointer;
 
-  if (params->standard_preset == -1)
-  {
-    item = param_menu_len ("OptimizationMenu") - 1;
-  }
-  else
-  {
-    item = params->standard_preset;
-  }
-  return (item);
+	if (selection->items[0] == param_menu_len("OptimizationMenu") - 1) {
+		wimp_get_pointer_info(&pointer);
+		optimize_open_dialogue(params, &pointer);
+	} else {
+		params->standard_preset = selection->items[0];
+	}
+
+	build_param_menu("OptimizationMenu", param_menu_ident(), optimize_tick_menu(params));
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void open_optimize_dialogue (optimize_params *params, wimp_pointer *pointer)
+/**
+ * Return the number of the menu item which should be ticked based on the
+ * supplied parameter block.
+ *
+ * \param *params		The optimization parameter block to be used.
+ * \return			The menu entry to be ticked.
+ */
+
+static int optimize_tick_menu(optimize_params *params)
 {
-  extern global_windows windows;
+	int		item;
 
-  /* Set the dialogue icons. */
+	if (params->standard_preset == -1)
+		item = param_menu_len ("OptimizationMenu") - 1;
+	else
+		item = params->standard_preset;
 
-  set_icon_selected (windows.optimization, OPTIMIZE_ICON_COLOUR_DOWNSAMPLE, params->downsample_colour_images);
-  set_icon_selected (windows.optimization, OPTIMIZE_ICON_GREY_DOWNSAMPLE, params->downsample_grey_images);
-  set_icon_selected (windows.optimization, OPTIMIZE_ICON_MONO_DOWNSAMPLE, params->downsample_mono_images);
-
-  set_radio_icon_group_selected (windows.optimization, params->downsample_colour_type, 2,
-                                 OPTIMIZE_ICON_COLOUR_SUBSAMPLE, OPTIMIZE_ICON_COLOUR_AVERAGE);
-  set_radio_icon_group_selected (windows.optimization, params->downsample_grey_type, 2,
-                                 OPTIMIZE_ICON_GREY_SUBSAMPLE, OPTIMIZE_ICON_GREY_AVERAGE);
-  set_radio_icon_group_selected (windows.optimization, params->downsample_mono_type, 2,
-                                 OPTIMIZE_ICON_MONO_SUBSAMPLE, OPTIMIZE_ICON_MONO_AVERAGE);
-
-  set_icon_selected (windows.optimization, OPTIMIZE_ICON_COLOUR_ENCODE, params->encode_colour_images);
-  set_icon_selected (windows.optimization, OPTIMIZE_ICON_GREY_ENCODE, params->encode_grey_images);
-  set_icon_selected (windows.optimization, OPTIMIZE_ICON_MONO_ENCODE, params->encode_mono_images);
-
-  set_radio_icon_group_selected (windows.optimization, params->encode_colour_type, 2,
-                                 OPTIMIZE_ICON_COLOUR_DCT, OPTIMIZE_ICON_COLOUR_FLATE);
-  set_radio_icon_group_selected (windows.optimization, params->encode_grey_type, 2,
-                                 OPTIMIZE_ICON_GREY_DCT, OPTIMIZE_ICON_GREY_FLATE);
-  set_radio_icon_group_selected (windows.optimization, params->encode_mono_type, 3,
-                                 OPTIMIZE_ICON_MONO_CCITT, OPTIMIZE_ICON_MONO_FLATE, OPTIMIZE_ICON_MONO_RUNLENGTH);
-
-  set_radio_icon_group_selected (windows.optimization, params->auto_page_rotation, 3,
-                                 OPTIMIZE_ICON_ROTATE_NONE, OPTIMIZE_ICON_ROTATE_ALL, OPTIMIZE_ICON_ROTATE_PAGE);
-
-  set_icon_selected (windows.optimization, OPTIMIZE_ICON_COMPRESS, params->compress_pages);
-
-  sprintf (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_COLOUR_RESOLUTION),
-           "%d", params->downsample_colour_resolution);
-
-  sprintf (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_GREY_RESOLUTION),
-           "%d", params->downsample_grey_resolution);
-
-  sprintf (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_MONO_RESOLUTION),
-           "%d", params->downsample_mono_resolution);
-
-  sprintf (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_COLOUR_THRESHOLD),
-           "%.1f", (double) params->downsample_colour_threshold / 10.0);
-
-  sprintf (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_GREY_THRESHOLD),
-           "%.1f", (double) params->downsample_grey_threshold / 10.0);
-
-  sprintf (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_MONO_THRESHOLD),
-           "%.1f", (double) params->downsample_mono_threshold / 10.0);
-
-  downsample_mono_depth = params->downsample_mono_depth;
-  downsample_grey_depth = params->downsample_grey_depth;
-  downsample_colour_depth = params->downsample_colour_depth;
-
-  depth_text (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_MONO_DEPTH), downsample_mono_depth);
-  depth_text (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_GREY_DEPTH), downsample_grey_depth);
-  depth_text (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_COLOUR_DEPTH), downsample_colour_depth);
-
-  shade_optimize_dialogue ();
-
-  open_transient_window_centred_at_pointer (windows.optimization, pointer);
+	return item;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void process_optimize_dialogue (optimize_params *params)
+/**
+ * Set a callback handler to be called when the OK button of the
+ * optimize dialogue is clicked.
+ *
+ * \param callback		The callback function to use, or NULL.
+ */
+
+void optimize_set_dialogue_callback(void (*callback)(void))
 {
-  extern global_windows windows;
-
-  params->standard_preset = -1;
-
-  params->downsample_colour_images = read_icon_selected (windows.optimization, OPTIMIZE_ICON_COLOUR_DOWNSAMPLE);
-  params->downsample_grey_images = read_icon_selected (windows.optimization, OPTIMIZE_ICON_GREY_DOWNSAMPLE);
-  params->downsample_mono_images = read_icon_selected (windows.optimization, OPTIMIZE_ICON_MONO_DOWNSAMPLE);
-
-  params->downsample_colour_type = read_radio_icon_group_selected (windows.optimization, 2,
-                                   OPTIMIZE_ICON_COLOUR_SUBSAMPLE, OPTIMIZE_ICON_COLOUR_AVERAGE);
-  params->downsample_grey_type = read_radio_icon_group_selected (windows.optimization, 2,
-                                 OPTIMIZE_ICON_GREY_SUBSAMPLE, OPTIMIZE_ICON_GREY_AVERAGE);
-  params->downsample_mono_type = read_radio_icon_group_selected (windows.optimization, 2,
-                                 OPTIMIZE_ICON_MONO_SUBSAMPLE, OPTIMIZE_ICON_MONO_AVERAGE);
-
-  params->encode_colour_images = read_icon_selected (windows.optimization, OPTIMIZE_ICON_COLOUR_ENCODE);
-  params->encode_grey_images = read_icon_selected (windows.optimization, OPTIMIZE_ICON_GREY_ENCODE);
-  params->encode_mono_images = read_icon_selected (windows.optimization, OPTIMIZE_ICON_MONO_ENCODE);
-
-  params->encode_colour_type = read_radio_icon_group_selected (windows.optimization, 2,
-                               OPTIMIZE_ICON_COLOUR_DCT, OPTIMIZE_ICON_COLOUR_FLATE);
-  params->encode_grey_type = read_radio_icon_group_selected (windows.optimization, 2,
-                             OPTIMIZE_ICON_GREY_DCT, OPTIMIZE_ICON_GREY_FLATE);
-  params->encode_mono_type = read_radio_icon_group_selected (windows.optimization, 3,
-                             OPTIMIZE_ICON_MONO_CCITT, OPTIMIZE_ICON_MONO_FLATE, OPTIMIZE_ICON_MONO_RUNLENGTH);
-
-  params->auto_page_rotation = read_radio_icon_group_selected (windows.optimization, 3,
-                               OPTIMIZE_ICON_ROTATE_NONE, OPTIMIZE_ICON_ROTATE_ALL, OPTIMIZE_ICON_ROTATE_PAGE);
-
-  params->compress_pages = read_icon_selected (windows.optimization, OPTIMIZE_ICON_COMPRESS);
-
-  terminate_ctrl_str (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_COLOUR_RESOLUTION));
-  terminate_ctrl_str (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_GREY_RESOLUTION));
-  terminate_ctrl_str (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_MONO_RESOLUTION));
-
-  params->downsample_colour_resolution = atoi (indirected_icon_text (windows.optimization,
-                                                                     OPTIMIZE_ICON_COLOUR_RESOLUTION));
-  params->downsample_grey_resolution = atoi (indirected_icon_text (windows.optimization,
-                                                                   OPTIMIZE_ICON_GREY_RESOLUTION));
-  params->downsample_mono_resolution = atoi (indirected_icon_text (windows.optimization,
-                                                                   OPTIMIZE_ICON_MONO_RESOLUTION));
-
-  terminate_ctrl_str (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_COLOUR_THRESHOLD));
-  terminate_ctrl_str (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_GREY_THRESHOLD));
-  terminate_ctrl_str (indirected_icon_text (windows.optimization, OPTIMIZE_ICON_MONO_THRESHOLD));
-
-  params->downsample_colour_threshold = (int) 10.0 * atof (indirected_icon_text (windows.optimization,
-                                                                                 OPTIMIZE_ICON_COLOUR_THRESHOLD));
-  params->downsample_grey_threshold = (int) 10.0 * atof (indirected_icon_text (windows.optimization,
-                                                                               OPTIMIZE_ICON_GREY_THRESHOLD));
-  params->downsample_mono_threshold = (int) 10.0 * atof (indirected_icon_text (windows.optimization,
-                                                                               OPTIMIZE_ICON_MONO_THRESHOLD));
-
-  params->downsample_mono_depth = downsample_mono_depth;
-  params->downsample_grey_depth = downsample_grey_depth;
-  params->downsample_colour_depth = downsample_colour_depth;
-
-  wimp_create_menu ((wimp_menu *) -1, 0, 0);
+	optimize_dialogue_close_callback = callback;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void shade_optimize_dialogue (void)
+/**
+ * Process mouse clicks in the Optimization dialogue.
+ *
+ * \param *pointer		The mouse event block to handle.
+ */
+
+static void optimize_click_handler(wimp_pointer *pointer)
 {
-  extern global_windows windows;
+	extern global_windows		windows;
 
-  set_icons_shaded_when_radio_off (windows.optimization, OPTIMIZE_ICON_COLOUR_DOWNSAMPLE, 11,
-                                   OPTIMIZE_ICON_COLOUR_SUBSAMPLE, OPTIMIZE_ICON_COLOUR_AVERAGE,
-                                   OPTIMIZE_ICON_COLOUR_RESOLUTION, OPTIMIZE_ICON_COLOUR_RESOLUTION_UP,
-                                   OPTIMIZE_ICON_COLOUR_RESOLUTION_DOWN, OPTIMIZE_ICON_COLOUR_THRESHOLD,
-                                   OPTIMIZE_ICON_COLOUR_THRESHOLD_UP, OPTIMIZE_ICON_COLOUR_THRESHOLD_DOWN,
-                                   OPTIMIZE_ICON_COLOUR_DEPTH, OPTIMIZE_ICON_COLOUR_DEPTH_UP,
-                                   OPTIMIZE_ICON_COLOUR_DEPTH_DOWN);
+	if (pointer == NULL)
+		return;
 
-  set_icons_shaded_when_radio_off (windows.optimization, OPTIMIZE_ICON_GREY_DOWNSAMPLE, 11,
-                                   OPTIMIZE_ICON_GREY_SUBSAMPLE, OPTIMIZE_ICON_GREY_AVERAGE,
-                                   OPTIMIZE_ICON_GREY_RESOLUTION, OPTIMIZE_ICON_GREY_RESOLUTION_UP,
-                                   OPTIMIZE_ICON_GREY_RESOLUTION_DOWN, OPTIMIZE_ICON_GREY_THRESHOLD,
-                                   OPTIMIZE_ICON_GREY_THRESHOLD_UP, OPTIMIZE_ICON_GREY_THRESHOLD_DOWN,
-                                   OPTIMIZE_ICON_GREY_DEPTH, OPTIMIZE_ICON_GREY_DEPTH_UP,
-                                   OPTIMIZE_ICON_GREY_DEPTH_DOWN);
+	switch ((int) pointer->i) {
+	case OPTIMIZE_ICON_CANCEL:
+		wimp_create_menu((wimp_menu *) -1, 0, 0);
+		break;
 
-  set_icons_shaded_when_radio_off (windows.optimization, OPTIMIZE_ICON_MONO_DOWNSAMPLE, 11,
-                                   OPTIMIZE_ICON_MONO_SUBSAMPLE, OPTIMIZE_ICON_MONO_AVERAGE,
-                                   OPTIMIZE_ICON_MONO_RESOLUTION, OPTIMIZE_ICON_MONO_RESOLUTION_UP,
-                                   OPTIMIZE_ICON_MONO_RESOLUTION_DOWN, OPTIMIZE_ICON_MONO_THRESHOLD,
-                                   OPTIMIZE_ICON_MONO_THRESHOLD_UP, OPTIMIZE_ICON_MONO_THRESHOLD_DOWN,
-                                   OPTIMIZE_ICON_MONO_DEPTH, OPTIMIZE_ICON_MONO_DEPTH_UP,
-                                   OPTIMIZE_ICON_MONO_DEPTH_DOWN);
+	case OPTIMIZE_ICON_OK:
+		if (optimize_dialogue_close_callback != NULL)
+			optimize_dialogue_close_callback();
+		break;
 
-  set_icons_shaded_when_radio_off (windows.optimization, OPTIMIZE_ICON_COLOUR_ENCODE, 2,
-                                   OPTIMIZE_ICON_COLOUR_DCT, OPTIMIZE_ICON_COLOUR_FLATE);
+	case OPTIMIZE_ICON_COLOUR_RESOLUTION_UP:
+		optimize_update_resolution_icon(OPTIMIZE_ICON_COLOUR_RESOLUTION, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
+		break;
 
-  set_icons_shaded_when_radio_off (windows.optimization, OPTIMIZE_ICON_GREY_ENCODE, 2,
-                                   OPTIMIZE_ICON_GREY_DCT, OPTIMIZE_ICON_GREY_FLATE);
+	case OPTIMIZE_ICON_COLOUR_RESOLUTION_DOWN:
+		optimize_update_resolution_icon(OPTIMIZE_ICON_COLOUR_RESOLUTION, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
+		break;
 
-  set_icons_shaded_when_radio_off (windows.optimization, OPTIMIZE_ICON_MONO_ENCODE, 3,
-                                   OPTIMIZE_ICON_MONO_CCITT, OPTIMIZE_ICON_MONO_FLATE, OPTIMIZE_ICON_MONO_RUNLENGTH);
+	case OPTIMIZE_ICON_GREY_RESOLUTION_UP:
+		optimize_update_resolution_icon(OPTIMIZE_ICON_GREY_RESOLUTION, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
+		break;
 
-  replace_caret_in_window (windows.optimization);
+	case OPTIMIZE_ICON_GREY_RESOLUTION_DOWN:
+		optimize_update_resolution_icon(OPTIMIZE_ICON_GREY_RESOLUTION, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
+		break;
+
+	case OPTIMIZE_ICON_MONO_RESOLUTION_UP:
+		optimize_update_resolution_icon(OPTIMIZE_ICON_MONO_RESOLUTION, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
+		break;
+
+	case OPTIMIZE_ICON_MONO_RESOLUTION_DOWN:
+		optimize_update_resolution_icon(OPTIMIZE_ICON_MONO_RESOLUTION, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
+		break;
+
+	case OPTIMIZE_ICON_COLOUR_THRESHOLD_UP:
+		optimize_update_threshold_icon(OPTIMIZE_ICON_COLOUR_THRESHOLD, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
+		break;
+
+	case OPTIMIZE_ICON_COLOUR_THRESHOLD_DOWN:
+		optimize_update_threshold_icon(OPTIMIZE_ICON_COLOUR_THRESHOLD, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
+		break;
+
+	case OPTIMIZE_ICON_GREY_THRESHOLD_UP:
+		optimize_update_threshold_icon(OPTIMIZE_ICON_GREY_THRESHOLD, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
+		break;
+
+	case OPTIMIZE_ICON_GREY_THRESHOLD_DOWN:
+		optimize_update_threshold_icon(OPTIMIZE_ICON_GREY_THRESHOLD, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
+		break;
+
+	case OPTIMIZE_ICON_MONO_THRESHOLD_UP:
+		optimize_update_threshold_icon(OPTIMIZE_ICON_MONO_THRESHOLD, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
+		break;
+
+	case OPTIMIZE_ICON_MONO_THRESHOLD_DOWN:
+		optimize_update_threshold_icon(OPTIMIZE_ICON_MONO_THRESHOLD, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
+		break;
+
+	case OPTIMIZE_ICON_COLOUR_DEPTH_UP:
+		optimize_update_depth_icon(OPTIMIZE_ICON_COLOUR_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
+		break;
+
+	case OPTIMIZE_ICON_COLOUR_DEPTH_DOWN:
+		optimize_update_depth_icon(OPTIMIZE_ICON_COLOUR_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
+		break;
+
+	case OPTIMIZE_ICON_GREY_DEPTH_UP:
+		optimize_update_depth_icon(OPTIMIZE_ICON_GREY_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
+		break;
+
+	case OPTIMIZE_ICON_GREY_DEPTH_DOWN:
+		optimize_update_depth_icon(OPTIMIZE_ICON_GREY_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
+		break;
+
+	case OPTIMIZE_ICON_MONO_DEPTH_UP:
+		optimize_update_depth_icon(OPTIMIZE_ICON_MONO_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? -1 : 1);
+		break;
+
+	case OPTIMIZE_ICON_MONO_DEPTH_DOWN:
+		optimize_update_depth_icon(OPTIMIZE_ICON_MONO_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
+		break;
+
+	case OPTIMIZE_ICON_COLOUR_DOWNSAMPLE:
+	case OPTIMIZE_ICON_GREY_DOWNSAMPLE:
+	case OPTIMIZE_ICON_MONO_DOWNSAMPLE:
+	case OPTIMIZE_ICON_COLOUR_ENCODE:
+	case OPTIMIZE_ICON_GREY_ENCODE:
+	case OPTIMIZE_ICON_MONO_ENCODE:
+		optimize_shade_dialogue();
+		break;
+
+	case OPTIMIZE_ICON_COLOUR_SUBSAMPLE:
+	case OPTIMIZE_ICON_GREY_SUBSAMPLE:
+	case OPTIMIZE_ICON_MONO_SUBSAMPLE:
+	case OPTIMIZE_ICON_COLOUR_AVERAGE:
+	case OPTIMIZE_ICON_GREY_AVERAGE:
+	case OPTIMIZE_ICON_MONO_AVERAGE:
+	case OPTIMIZE_ICON_COLOUR_DCT:
+	case OPTIMIZE_ICON_GREY_DCT:
+	case OPTIMIZE_ICON_MONO_CCITT:
+	case OPTIMIZE_ICON_COLOUR_FLATE:
+	case OPTIMIZE_ICON_GREY_FLATE:
+	case OPTIMIZE_ICON_MONO_FLATE:
+	case OPTIMIZE_ICON_MONO_RUNLENGTH:
+	case OPTIMIZE_ICON_ROTATE_NONE:
+	case OPTIMIZE_ICON_ROTATE_ALL:
+	case OPTIMIZE_ICON_ROTATE_PAGE:
+		if (pointer->buttons == wimp_CLICK_ADJUST)
+			set_icon_selected(pointer->w, pointer->i, TRUE);
+		break;
+	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void fill_optimization_field (wimp_w window, wimp_i icon, optimize_params *params)
+/**
+ * Process keypresses in the Optimization window.
+ *
+ * \param *key		The keypress event block to handle.
+ * \return		TRUE if the event was handled; else FALSE.
+ */
+
+static osbool optimize_keypress_handler(wimp_key *key)
 {
-  if (params->standard_preset == -1)
-  {
-    msgs_lookup ("Custom", indirected_icon_text (window, icon), 20);
-  }
-  else
-  {
-    param_menu_entry (indirected_icon_text (window, icon), "OptimizationMenu", params->standard_preset + 1);
-  }
+	if (key == NULL)
+		return FALSE;
 
-  wimp_set_icon_state (window, icon, 0, 0);
+	switch (key->c) {
+	case wimp_KEY_RETURN:
+		if (optimize_dialogue_close_callback != NULL)
+			optimize_dialogue_close_callback();
+		break;
+
+	case wimp_KEY_ESCAPE:
+		wimp_create_menu ((wimp_menu *) -1, 0, 0);
+		break;
+
+	default:
+		return FALSE;
+		break;
+	}
+
+	return TRUE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void build_optimization_params (char *buffer, optimize_params *params)
+/**
+ * Open the Optimize dialogue for the given parameter block.
+ *
+ * \param *params		The optimization parameter block to be used.
+ * \param *pointer		The current pointer state.
+ */
+
+static void optimize_open_dialogue(optimize_params *params, wimp_pointer *pointer)
 {
-  char settings[1024], *pointers[10], *extras, *end;
+	extern global_windows		windows;
 
-  *buffer = '\0';
-  extras = "";
+	/* Set the dialogue icons. */
 
-  if (params->standard_preset != -1)
-  {
-    param_menu_entry (settings, "OptimizationList", params->standard_preset);
+	set_icon_selected(windows.optimization, OPTIMIZE_ICON_COLOUR_DOWNSAMPLE, params->downsample_colour_images);
+	set_icon_selected(windows.optimization, OPTIMIZE_ICON_GREY_DOWNSAMPLE, params->downsample_grey_images);
+	set_icon_selected(windows.optimization, OPTIMIZE_ICON_MONO_DOWNSAMPLE, params->downsample_mono_images);
 
-    switch (params->standard_preset)
-    {
-      case 2:
-        extras = "-dUseCIEColor=true ";
-        break;
-    }
+	set_radio_icon_group_selected(windows.optimization, params->downsample_colour_type, 2,
+			OPTIMIZE_ICON_COLOUR_SUBSAMPLE, OPTIMIZE_ICON_COLOUR_AVERAGE);
+	set_radio_icon_group_selected(windows.optimization, params->downsample_grey_type, 2,
+			OPTIMIZE_ICON_GREY_SUBSAMPLE, OPTIMIZE_ICON_GREY_AVERAGE);
+	set_radio_icon_group_selected(windows.optimization, params->downsample_mono_type, 2,
+			OPTIMIZE_ICON_MONO_SUBSAMPLE, OPTIMIZE_ICON_MONO_AVERAGE);
 
-    sprintf (buffer, "-dPDFSETTINGS=%s %s", settings, extras);
-  }
-  else
-  {
-    end = settings;
+	set_icon_selected(windows.optimization, OPTIMIZE_ICON_COLOUR_ENCODE, params->encode_colour_images);
+	set_icon_selected(windows.optimization, OPTIMIZE_ICON_GREY_ENCODE, params->encode_grey_images);
+	set_icon_selected(windows.optimization, OPTIMIZE_ICON_MONO_ENCODE, params->encode_mono_images);
 
-    end = param_menu_entry (pointers[0] = end, "DownsampleList", params->downsample_colour_type);
-    end = param_menu_entry (pointers[1] = end, "DownsampleList", params->downsample_grey_type);
-    end = param_menu_entry (pointers[2] = end, "DownsampleList", params->downsample_mono_type);
-    end = param_menu_entry (pointers[3] = end, "EncodeList1", params->encode_colour_type);
-    end = param_menu_entry (pointers[4] = end, "EncodeList1", params->encode_grey_type);
-    end = param_menu_entry (pointers[5] = end, "EncodeList2", params->encode_mono_type);
-    end = param_menu_entry (pointers[6] = end, "AutoPageRotateList", params->auto_page_rotation);
+	set_radio_icon_group_selected(windows.optimization, params->encode_colour_type, 2,
+			OPTIMIZE_ICON_COLOUR_DCT, OPTIMIZE_ICON_COLOUR_FLATE);
+	set_radio_icon_group_selected(windows.optimization, params->encode_grey_type, 2,
+			OPTIMIZE_ICON_GREY_DCT, OPTIMIZE_ICON_GREY_FLATE);
+	set_radio_icon_group_selected(windows.optimization, params->encode_mono_type, 3,
+			OPTIMIZE_ICON_MONO_CCITT, OPTIMIZE_ICON_MONO_FLATE, OPTIMIZE_ICON_MONO_RUNLENGTH);
 
-    sprintf (buffer, "-dDownsampleColorImages=%s -dDownsampleGrayImages=%s -dDownsampleMonoImages=%s "
-             "-dColorImageDownsampleType=%s -dGrayImageDownsampleType=%s -dMonoImageDownsampleType=%s "
-             "-dColorImageResolution=%d -dGrayImageResolution=%d -dMonoImageResolution=%d "
-             "-dColorImageDownsampleThreshold=%.1f -dGrayImageDownsampleThreshold=%.1f "
-             "-dMonoImageDownsampleThreshold=%.1f "
-             "-dColorImageDepth=%d -dGrayImageDepth=%d -dMonoImageDepth=%d "
-             "-dEncodeColorImages=%s -dEncodeGrayImages=%s -dEncodeMonoImages=%s "
-             "-dAutoFilterColorImages=false -dAutofilterGrayImages=false -dAutoFilterMonoImages=false "
-             "-dColorImageFilter=%s -dGreyImageFilter=%s -dMonoImageFilter=%s "
-             "-dAutoRotatePages=%s -dCompressPages=%s ",
-             true_false (params->downsample_colour_images), true_false (params->downsample_grey_images),
-             true_false (params->downsample_mono_images), pointers[0], pointers[1], pointers[2],
-             params->downsample_colour_resolution, params->downsample_grey_resolution,
-             params->downsample_mono_resolution, (double) params->downsample_colour_threshold / 10.0,
-             (double) params->downsample_grey_threshold / 10.0,  (double) params->downsample_mono_threshold / 10.0,
-             params->downsample_colour_depth, params->downsample_grey_depth, params->downsample_mono_depth,
-             true_false (params->encode_colour_images), true_false (params->encode_grey_images),
-             true_false (params->encode_mono_images), pointers[3], pointers[4], pointers[5], pointers[6],
-             true_false (params->compress_pages));
-  }
+	set_radio_icon_group_selected(windows.optimization, params->auto_page_rotation, 3,
+			OPTIMIZE_ICON_ROTATE_NONE, OPTIMIZE_ICON_ROTATE_ALL, OPTIMIZE_ICON_ROTATE_PAGE);
+
+	set_icon_selected(windows.optimization, OPTIMIZE_ICON_COMPRESS, params->compress_pages);
+
+	sprintf(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_COLOUR_RESOLUTION),
+			"%d", params->downsample_colour_resolution);
+
+	sprintf(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_GREY_RESOLUTION),
+			"%d", params->downsample_grey_resolution);
+
+	sprintf(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_MONO_RESOLUTION),
+			"%d", params->downsample_mono_resolution);
+
+	sprintf(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_COLOUR_THRESHOLD),
+			"%.1f", (double) params->downsample_colour_threshold / 10.0);
+
+	sprintf(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_GREY_THRESHOLD),
+			"%.1f", (double) params->downsample_grey_threshold / 10.0);
+
+	sprintf(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_MONO_THRESHOLD),
+			"%.1f", (double) params->downsample_mono_threshold / 10.0);
+
+	downsample_mono_depth = params->downsample_mono_depth;
+	downsample_grey_depth = params->downsample_grey_depth;
+	downsample_colour_depth = params->downsample_colour_depth;
+
+	optimize_depth_text(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_MONO_DEPTH), downsample_mono_depth);
+	optimize_depth_text(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_GREY_DEPTH), downsample_grey_depth);
+	optimize_depth_text(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_COLOUR_DEPTH), downsample_colour_depth);
+
+	optimize_shade_dialogue();
+
+	open_transient_window_centred_at_pointer(windows.optimization, pointer);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-char *true_false (int value)
+/**
+ * Store the settings from the currently open Optimization dialogue box in
+ * an optimization parameter block.
+ *
+ * \param *params		The optimization parameter block to be used.
+ */
+
+void optimize_process_dialogue(optimize_params *params)
 {
-  if (value)
-  {
-    return ("true");
-  }
-  else
-  {
-    return ("false");
-  }
+	extern global_windows		windows;
+
+	params->standard_preset = -1;
+
+	params->downsample_colour_images = read_icon_selected(windows.optimization,
+			OPTIMIZE_ICON_COLOUR_DOWNSAMPLE);
+	params->downsample_grey_images = read_icon_selected(windows.optimization,
+			OPTIMIZE_ICON_GREY_DOWNSAMPLE);
+	params->downsample_mono_images = read_icon_selected(windows.optimization,
+			OPTIMIZE_ICON_MONO_DOWNSAMPLE);
+
+	params->downsample_colour_type = read_radio_icon_group_selected(windows.optimization, 2,
+			OPTIMIZE_ICON_COLOUR_SUBSAMPLE, OPTIMIZE_ICON_COLOUR_AVERAGE);
+	params->downsample_grey_type = read_radio_icon_group_selected(windows.optimization, 2,
+			OPTIMIZE_ICON_GREY_SUBSAMPLE, OPTIMIZE_ICON_GREY_AVERAGE);
+	params->downsample_mono_type = read_radio_icon_group_selected(windows.optimization, 2,
+			OPTIMIZE_ICON_MONO_SUBSAMPLE, OPTIMIZE_ICON_MONO_AVERAGE);
+
+	params->encode_colour_images = read_icon_selected(windows.optimization, OPTIMIZE_ICON_COLOUR_ENCODE);
+	params->encode_grey_images = read_icon_selected(windows.optimization, OPTIMIZE_ICON_GREY_ENCODE);
+	params->encode_mono_images = read_icon_selected(windows.optimization, OPTIMIZE_ICON_MONO_ENCODE);
+
+	params->encode_colour_type = read_radio_icon_group_selected(windows.optimization, 2,
+			OPTIMIZE_ICON_COLOUR_DCT, OPTIMIZE_ICON_COLOUR_FLATE);
+	params->encode_grey_type = read_radio_icon_group_selected(windows.optimization, 2,
+			OPTIMIZE_ICON_GREY_DCT, OPTIMIZE_ICON_GREY_FLATE);
+	params->encode_mono_type = read_radio_icon_group_selected(windows.optimization, 3,
+			OPTIMIZE_ICON_MONO_CCITT, OPTIMIZE_ICON_MONO_FLATE, OPTIMIZE_ICON_MONO_RUNLENGTH);
+
+	params->auto_page_rotation = read_radio_icon_group_selected(windows.optimization, 3,
+			OPTIMIZE_ICON_ROTATE_NONE, OPTIMIZE_ICON_ROTATE_ALL, OPTIMIZE_ICON_ROTATE_PAGE);
+
+	params->compress_pages = read_icon_selected (windows.optimization, OPTIMIZE_ICON_COMPRESS);
+
+	terminate_ctrl_str(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_COLOUR_RESOLUTION));
+	terminate_ctrl_str(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_GREY_RESOLUTION));
+	terminate_ctrl_str(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_MONO_RESOLUTION));
+
+	params->downsample_colour_resolution =
+			atoi(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_COLOUR_RESOLUTION));
+	params->downsample_grey_resolution =
+			atoi(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_GREY_RESOLUTION));
+	params->downsample_mono_resolution =
+			atoi(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_MONO_RESOLUTION));
+
+	terminate_ctrl_str(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_COLOUR_THRESHOLD));
+	terminate_ctrl_str(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_GREY_THRESHOLD));
+	terminate_ctrl_str(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_MONO_THRESHOLD));
+
+	params->downsample_colour_threshold = (int) 10.0 *
+			atof(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_COLOUR_THRESHOLD));
+	params->downsample_grey_threshold = (int) 10.0 *
+			atof(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_GREY_THRESHOLD));
+	params->downsample_mono_threshold = (int) 10.0 *
+			atof(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_MONO_THRESHOLD));
+
+	params->downsample_mono_depth = downsample_mono_depth;
+	params->downsample_grey_depth = downsample_grey_depth;
+	params->downsample_colour_depth = downsample_colour_depth;
+
+	wimp_create_menu((wimp_menu *) -1, 0, 0);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-char *depth_text (char *buffer, int value)
+/**
+ * Update the shading in the optimization dialogue, based on the current icon
+ * selections
+ */
+
+static void optimize_shade_dialogue(void)
 {
-  if (value > 0)
-  {
-    sprintf (buffer, "%d", value);
-  }
-  else
-  {
-    msgs_lookup ("DepthOff", buffer, sizeof (buffer));
-  }
+	extern global_windows		windows;
 
-  return (buffer);
+	set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_COLOUR_DOWNSAMPLE, 11,
+			OPTIMIZE_ICON_COLOUR_SUBSAMPLE, OPTIMIZE_ICON_COLOUR_AVERAGE,
+			OPTIMIZE_ICON_COLOUR_RESOLUTION, OPTIMIZE_ICON_COLOUR_RESOLUTION_UP,
+			OPTIMIZE_ICON_COLOUR_RESOLUTION_DOWN, OPTIMIZE_ICON_COLOUR_THRESHOLD,
+			OPTIMIZE_ICON_COLOUR_THRESHOLD_UP, OPTIMIZE_ICON_COLOUR_THRESHOLD_DOWN,
+			OPTIMIZE_ICON_COLOUR_DEPTH, OPTIMIZE_ICON_COLOUR_DEPTH_UP,
+			OPTIMIZE_ICON_COLOUR_DEPTH_DOWN);
+
+	set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_GREY_DOWNSAMPLE, 11,
+			OPTIMIZE_ICON_GREY_SUBSAMPLE, OPTIMIZE_ICON_GREY_AVERAGE,
+			OPTIMIZE_ICON_GREY_RESOLUTION, OPTIMIZE_ICON_GREY_RESOLUTION_UP,
+			OPTIMIZE_ICON_GREY_RESOLUTION_DOWN, OPTIMIZE_ICON_GREY_THRESHOLD,
+			OPTIMIZE_ICON_GREY_THRESHOLD_UP, OPTIMIZE_ICON_GREY_THRESHOLD_DOWN,
+			OPTIMIZE_ICON_GREY_DEPTH, OPTIMIZE_ICON_GREY_DEPTH_UP,
+			OPTIMIZE_ICON_GREY_DEPTH_DOWN);
+
+	set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_MONO_DOWNSAMPLE, 11,
+			OPTIMIZE_ICON_MONO_SUBSAMPLE, OPTIMIZE_ICON_MONO_AVERAGE,
+			OPTIMIZE_ICON_MONO_RESOLUTION, OPTIMIZE_ICON_MONO_RESOLUTION_UP,
+			OPTIMIZE_ICON_MONO_RESOLUTION_DOWN, OPTIMIZE_ICON_MONO_THRESHOLD,
+			OPTIMIZE_ICON_MONO_THRESHOLD_UP, OPTIMIZE_ICON_MONO_THRESHOLD_DOWN,
+			OPTIMIZE_ICON_MONO_DEPTH, OPTIMIZE_ICON_MONO_DEPTH_UP,
+			OPTIMIZE_ICON_MONO_DEPTH_DOWN);
+
+	set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_COLOUR_ENCODE, 2,
+			OPTIMIZE_ICON_COLOUR_DCT, OPTIMIZE_ICON_COLOUR_FLATE);
+
+	set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_GREY_ENCODE, 2,
+			OPTIMIZE_ICON_GREY_DCT, OPTIMIZE_ICON_GREY_FLATE);
+
+	set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_MONO_ENCODE, 3,
+			OPTIMIZE_ICON_MONO_CCITT, OPTIMIZE_ICON_MONO_FLATE, OPTIMIZE_ICON_MONO_RUNLENGTH);
+
+	replace_caret_in_window(windows.optimization);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void update_resolution_icon (wimp_i i, int dir)
+/**
+ * Update the given text field icon with a status reflecting the settings
+ * in the given optimization parameter block.
+ *
+ * \param window		The window containing the icon.
+ * \param icon			The icon to update.
+ * \param *params		The optimization parameter block to use.
+ */
+
+void optimize_fill_field (wimp_w window, wimp_i icon, optimize_params *params)
 {
-  int value = -1;
+	if (params->standard_preset == -1)
+		msgs_lookup("Custom", indirected_icon_text(window, icon), 20);
+	else
+		param_menu_entry(indirected_icon_text(window, icon), "OptimizationMenu", params->standard_preset + 1);
 
-  extern global_windows windows;
-
-
-  value = atoi (indirected_icon_text (windows.optimization, i));
-
-  if (dir > 0 && value < 999)
-  {
-    value += 1;
-  }
-  else if (dir < 0 && value > 1)
-  {
-    value -= 1;
-  }
-
-  sprintf (indirected_icon_text (windows.optimization, i), "%d", value);
-  wimp_set_icon_state (windows.optimization, i, 0, 0);
+	wimp_set_icon_state(window, icon, 0, 0);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void update_threshold_icon (wimp_i i, int dir)
+/**
+ * Build up a text string in the supplied buffer containing the GS
+ * parameters that reflect the contents of the given optimization
+ * parameter block.
+ *
+ * \param *buffer		Buffer to hold the result.
+ * \param len			The size of the buffer.
+ * \param *params		The optimization parameter block to translate.
+ */
+
+void optimize_build_params(char *buffer, size_t len, optimize_params *params)
 {
-  int value = -1;
+	char		settings[1024], *pointers[10], *extras, *end;
 
-  extern global_windows windows;
+	*buffer = '\0';
+	extras = "";
 
+	if (params->standard_preset != -1) {
+		param_menu_entry(settings, "OptimizationList", params->standard_preset);
 
-  value = (int) 10.0 * atof (indirected_icon_text (windows.optimization, i));
+		switch (params->standard_preset) {
+		case 2:
+			extras = "-dUseCIEColor=true ";
+			break;
+		}
 
-  if (dir > 0 && value < 999)
-  {
-    value += 1;
-  }
-  else if (dir < 0 && value > 1)
-  {
-    value -= 1;
-  }
+		snprintf(buffer, len, "-dPDFSETTINGS=%s %s", settings, extras);
+	} else {
+		end = settings;
 
-  sprintf (indirected_icon_text (windows.optimization, i), "%.1f", (double) value / 10.0);
-  wimp_set_icon_state (windows.optimization, i, 0, 0);
+		end = param_menu_entry(pointers[0] = end, "DownsampleList", params->downsample_colour_type);
+		end = param_menu_entry(pointers[1] = end, "DownsampleList", params->downsample_grey_type);
+		end = param_menu_entry(pointers[2] = end, "DownsampleList", params->downsample_mono_type);
+		end = param_menu_entry(pointers[3] = end, "EncodeList1", params->encode_colour_type);
+		end = param_menu_entry(pointers[4] = end, "EncodeList1", params->encode_grey_type);
+		end = param_menu_entry(pointers[5] = end, "EncodeList2", params->encode_mono_type);
+		end = param_menu_entry(pointers[6] = end, "AutoPageRotateList", params->auto_page_rotation);
+
+	snprintf(buffer, len, "-dDownsampleColorImages=%s -dDownsampleGrayImages=%s -dDownsampleMonoImages=%s "
+			"-dColorImageDownsampleType=%s -dGrayImageDownsampleType=%s -dMonoImageDownsampleType=%s "
+			"-dColorImageResolution=%d -dGrayImageResolution=%d -dMonoImageResolution=%d "
+			"-dColorImageDownsampleThreshold=%.1f -dGrayImageDownsampleThreshold=%.1f "
+			"-dMonoImageDownsampleThreshold=%.1f "
+			"-dColorImageDepth=%d -dGrayImageDepth=%d -dMonoImageDepth=%d "
+			"-dEncodeColorImages=%s -dEncodeGrayImages=%s -dEncodeMonoImages=%s "
+			"-dAutoFilterColorImages=false -dAutofilterGrayImages=false -dAutoFilterMonoImages=false "
+			"-dColorImageFilter=%s -dGreyImageFilter=%s -dMonoImageFilter=%s "
+			"-dAutoRotatePages=%s -dCompressPages=%s ",
+			optimize_true_false(params->downsample_colour_images), optimize_true_false(params->downsample_grey_images),
+			optimize_true_false(params->downsample_mono_images), pointers[0], pointers[1], pointers[2],
+			params->downsample_colour_resolution, params->downsample_grey_resolution,
+			params->downsample_mono_resolution, (double) params->downsample_colour_threshold / 10.0,
+			(double) params->downsample_grey_threshold / 10.0,  (double) params->downsample_mono_threshold / 10.0,
+			params->downsample_colour_depth, params->downsample_grey_depth, params->downsample_mono_depth,
+			optimize_true_false(params->encode_colour_images), optimize_true_false(params->encode_grey_images),
+			optimize_true_false(params->encode_mono_images), pointers[3], pointers[4], pointers[5], pointers[6],
+			optimize_true_false(params->compress_pages));
+	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void update_depth_icon (wimp_i i, int dir)
+/**
+ * Return "true" or "false" depending on the logical value of the
+ * parameter.
+ *
+ * \param value		The logical value to test.
+ * \return		Pointer to "true" or "false".
+ */
+
+static char *optimize_true_false(osbool value)
 {
-  int value = -1;
-
-  extern global_windows windows;
-
-
-  switch (i)
-  {
-    case OPTIMIZE_ICON_MONO_DEPTH:
-         value = downsample_mono_depth;
-         break;
-
-    case OPTIMIZE_ICON_GREY_DEPTH:
-         value = downsample_grey_depth;
-         break;
-
-    case OPTIMIZE_ICON_COLOUR_DEPTH:
-         value = downsample_colour_depth;
-         break;
-  }
-
-  if (dir > 0)
-  {
-    if (value >=1 && value <= 4)
-    {
-      value *= 2;
-    }
-    else if (value == -1)
-    {
-      value = 1;
-    }
-  }
-  else if (dir < 0)
-  {
-    if (value >=2 && value <= 8)
-    {
-      value /= 2;
-    }
-    else if (value == 1)
-    {
-      value = -1;
-    }
-  }
-
-  if (value != -1 && value != 1 && value != 2 && value != 4 && value != 8)
-  {
-    value = -1;
-  }
-
-  switch (i)
-  {
-    case OPTIMIZE_ICON_MONO_DEPTH:
-         downsample_mono_depth = value;
-         break;
-
-    case OPTIMIZE_ICON_GREY_DEPTH:
-         downsample_grey_depth = value;
-         break;
-
-    case OPTIMIZE_ICON_COLOUR_DEPTH:
-         downsample_colour_depth = value;
-         break;
-  }
-
-  depth_text (indirected_icon_text (windows.optimization, i), value);
-  wimp_set_icon_state (windows.optimization, i, 0, 0);
+	if (value)
+		return "true";
+	else
+		return "false";
 }
+
+
+/**
+ * Write a textual version of the given depth value into thje supplied buffer.
+ *
+ * \TODO -- This needs to take the buffer size as a parameter.
+ *
+ * \param *buffer		The buffer to take the textual value.
+ * \param value			The value to convert.
+ * \return			Pointer to the start of the buffer.
+ */
+
+static char *optimize_depth_text(char *buffer, int value)
+{
+	if (value > 0)
+		snprintf(buffer, sizeof(buffer), "%d", value);
+	else
+		msgs_lookup("DepthOff", buffer, sizeof(buffer));
+
+	return buffer;
+}
+
+
+/**
+ * Update a resolution icon in the specified direction.
+ *
+ * \param i		The icon to update.
+ * \param dir		The direction to move.
+ */
+
+static void optimize_update_resolution_icon(wimp_i i, int dir)
+{
+	int			value = -1;
+	extern global_windows	windows;
+
+	value = atoi(indirected_icon_text(windows.optimization, i));
+
+	if (dir > 0 && value < 999)
+		value += 1;
+	else if (dir < 0 && value > 1)
+		value -= 1;
+
+	sprintf(indirected_icon_text(windows.optimization, i), "%d", value);
+	wimp_set_icon_state(windows.optimization, i, 0, 0);
+}
+
+
+/**
+ * Update a threshold icon in the specified direction.
+ *
+ * \param i		The icon to update.
+ * \param dir		The direction to move.
+ */
+
+static void optimize_update_threshold_icon(wimp_i i, int dir)
+{
+	int			value = -1;
+	extern global_windows	windows;
+
+	value = (int) 10.0 * atof(indirected_icon_text(windows.optimization, i));
+
+	if (dir > 0 && value < 999)
+		value += 1;
+	else if (dir < 0 && value > 1)
+		value -= 1;
+
+	sprintf(indirected_icon_text(windows.optimization, i), "%.1f", (double) value / 10.0);
+	wimp_set_icon_state(windows.optimization, i, 0, 0);
+}
+
+
+/**
+ * Update a depth icon in the specified direction.
+ *
+ * \param i		The icon to update.
+ * \param dir		The direction to move.
+ */
+
+static void optimize_update_depth_icon(wimp_i i, int dir)
+{
+	int			value = -1;
+	extern global_windows	windows;
+
+	switch (i) {
+	case OPTIMIZE_ICON_MONO_DEPTH:
+		value = downsample_mono_depth;
+		break;
+
+	case OPTIMIZE_ICON_GREY_DEPTH:
+		value = downsample_grey_depth;
+		break;
+
+	case OPTIMIZE_ICON_COLOUR_DEPTH:
+		value = downsample_colour_depth;
+		break;
+	}
+
+	if (dir > 0) {
+		if (value >=1 && value <= 4)
+			value *= 2;
+		else if (value == -1)
+			value = 1;
+	} else if (dir < 0) {
+		if (value >=2 && value <= 8)
+			value /= 2;
+		else if (value == 1)
+			value = -1;
+	}
+
+	if (value != -1 && value != 1 && value != 2 && value != 4 && value != 8)
+		value = -1;
+
+	switch (i) {
+	case OPTIMIZE_ICON_MONO_DEPTH:
+		downsample_mono_depth = value;
+		break;
+
+	case OPTIMIZE_ICON_GREY_DEPTH:
+		downsample_grey_depth = value;
+		break;
+
+	case OPTIMIZE_ICON_COLOUR_DEPTH:
+		downsample_colour_depth = value;
+		break;
+	}
+
+	optimize_depth_text(indirected_icon_text(windows.optimization, i), value);
+	wimp_set_icon_state(windows.optimization, i, 0, 0);
+}
+

@@ -28,7 +28,6 @@
  */
 
 extern int		global_encryption_dialogue_location;
-extern int		global_optimization_dialogue_location;
 extern int		global_pdfmark_dialogue_location;
 extern int		global_bookmark_dialogue_location;
 

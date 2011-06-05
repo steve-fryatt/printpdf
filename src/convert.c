@@ -130,7 +130,7 @@ void initialise_conversion(void)
 	set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, config_opt_read("PreProcess"));
 
 	initialise_encryption_settings(&encryption);
-	initialise_optimization_settings(&optimization);
+	optimize_initialise_settings(&optimization);
 	initialise_version_settings(&version);
 	initialise_pdfmark_settings(&pdfmark);
 	initialise_bookmark_settings(&bookmark);
@@ -389,14 +389,14 @@ void open_conversion_dialogue(void)
 		strcpy(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE), config_str_read ("PDFMarkUserFile"));
 		set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, config_opt_read ("PreProcess"));
 		initialise_encryption_settings(&encryption);
-		initialise_optimization_settings(&optimization);
+		optimize_initialise_settings(&optimization);
 		initialise_version_settings(&version);
 		initialise_pdfmark_settings(&pdfmark);
 		initialise_bookmark_settings(&bookmark);
 	}
 
 	fill_version_field(windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
-	fill_optimization_field(windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
+	optimize_fill_field(windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
 	fill_encryption_field(windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
 	fill_pdfmark_field(windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
 	fill_bookmark_field(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
@@ -738,7 +738,7 @@ int launch_ps2pdf (char *file_out, char *user_pdfmark_file)
     /* Write all the conversion options and filename details to the gs parameters file. */
 
     build_version_params (version_buf, &version);
-    build_optimization_params (optimize_buf, &optimization);
+    optimize_build_params (optimize_buf, sizeof(optimize_buf), &optimization);
     build_encryption_params (encrypt_buf, &encryption, version.standard_version >= 2);
 
     fprintf (param_file,
@@ -871,7 +871,7 @@ void process_convert_version_menu (wimp_selection *selection)
 
 void open_convert_optimize_menu (wimp_pointer *pointer, wimp_w window, wimp_i icon)
 {
-  open_optimize_menu (&optimization, pointer, window, icon, PARAM_MENU_CONVERT_OPTIMIZE);
+  optimize_open_menu(&optimization, pointer, window, icon, PARAM_MENU_CONVERT_OPTIMIZE);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -880,9 +880,9 @@ void process_convert_optimize_menu (wimp_selection *selection)
 {
   extern global_windows windows;
 
-  process_optimize_menu (&optimization, selection);
+  optimize_process_menu(&optimization, selection);
 
-  fill_optimization_field (windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
+  optimize_fill_field (windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
 }
 
 /**
@@ -950,9 +950,9 @@ void process_convert_optimize_dialogue (void)
 {
   extern global_windows windows;
 
-  process_optimize_dialogue (&optimization);
+  optimize_process_dialogue (&optimization);
 
-  fill_optimization_field (windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
+  optimize_fill_field (windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
 }
 
 /* ==================================================================================================================

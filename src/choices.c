@@ -56,6 +56,8 @@ static osbool	choices_keypress_handler(wimp_key *key);
 
 static osbool	handle_choices_icon_drop(wimp_message *message);
 
+static void	process_choices_optimize_dialogue(void);
+
 
 /**
  * Initialise the Choices module.
@@ -114,7 +116,7 @@ static void choices_set_window(void)
 	sprintf(indirected_icon_text(windows.choices, CHOICE_ICON_DEFFILE), "%s", config_str_read("FileName"));
 
 	initialise_encryption_settings(&encryption);
-	initialise_optimization_settings(&optimization);
+	optimize_initialise_settings(&optimization);
 	initialise_version_settings(&version);
 	initialise_pdfmark_settings(&pdfmark);
 
@@ -126,7 +128,7 @@ static void choices_set_window(void)
 	sprintf(indirected_icon_text (windows.choices, CHOICE_ICON_MEMORY), "%d", config_int_read("TaskMemory"));
 
 	fill_version_field(windows.choices, CHOICE_ICON_VERSION, &version);
-	fill_optimization_field(windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
+	optimize_fill_field(windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
 	fill_encryption_field(windows.choices, CHOICE_ICON_ENCRYPT, &encryption);
 	fill_pdfmark_field(windows.choices, CHOICE_ICON_INFO, &pdfmark);
 }
@@ -275,8 +277,8 @@ static void choices_click_handler(wimp_pointer *pointer)
 		break;
 
 	case CHOICE_ICON_OPTIMIZE_MENU:
-		global_optimization_dialogue_location = OPTIMIZATION_CHOICE;
-		open_optimize_menu(&optimization, pointer, windows.choices, CHOICE_ICON_OPTIMIZE, PARAM_MENU_CHOICES_OPTIMIZE);
+		optimize_set_dialogue_callback(process_choices_optimize_dialogue);
+		optimize_open_menu(&optimization, pointer, windows.choices, CHOICE_ICON_OPTIMIZE, PARAM_MENU_CHOICES_OPTIMIZE);
 		break;
 
 	case CHOICE_ICON_ENCRYPT_MENU:
@@ -392,9 +394,9 @@ void process_choices_optimize_menu (wimp_selection *selection)
 {
   extern global_windows windows;
 
-  process_optimize_menu (&optimization, selection);
+  optimize_process_menu(&optimization, selection);
 
-  fill_optimization_field (windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
+  optimize_fill_field (windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
 }
 
 /* ==================================================================================================================
@@ -427,11 +429,16 @@ void process_choices_pdfmark_dialogue (void)
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-void process_choices_optimize_dialogue (void)
+
+/**
+ * Callback to respond to clicks on the OK button of the optimization
+ * dialogue.
+ */
+
+static void process_choices_optimize_dialogue(void)
 {
-  extern global_windows windows;
+	extern global_windows		windows;
 
-  process_optimize_dialogue (&optimization);
-
-  fill_optimization_field (windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
+	optimize_process_dialogue(&optimization);
+	optimize_fill_field(windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
 }
