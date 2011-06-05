@@ -42,6 +42,16 @@ void encrypt_initialise_settings(encrypt_params *params);
 
 
 /**
+ * Save the settings from an encryption settings structure back into the
+ * corresponding config settings.
+ *
+ * \param *param		The encryption params struct to be saved.
+ */
+
+void encrypt_save_settings(encrypt_params *params);
+
+
+/**
  * Set a callback handler to be called when the OK button of the
  * encryption dialogue is clicked.
  *

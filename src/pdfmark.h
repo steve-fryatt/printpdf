@@ -36,6 +36,16 @@ void pdfmark_initialise_settings(pdfmark_params *params);
 
 
 /**
+ * Save the settings from a PDFMark settings structure back into the
+ * corresponding config settings.
+ *
+ * \param *param		The PDFMark params struct to be saved.
+ */
+
+void pdfmark_save_settings(pdfmark_params *params);
+
+
+/**
  * Set a callback handler to be called when the OK button of the
  * PDFMark dialogue is clicked.
  *

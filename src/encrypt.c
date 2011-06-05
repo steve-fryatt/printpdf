@@ -115,6 +115,29 @@ void encrypt_initialise_settings(encrypt_params *params)
 
 
 /**
+ * Save the settings from an encryption settings structure back into the
+ * corresponding config settings.
+ *
+ * \param *param		The encryption params struct to be saved.
+ */
+
+void encrypt_save_settings(encrypt_params *params)
+{
+	config_str_set("OwnerPasswd", params->owner_password);
+	config_str_set("UserPasswd", params->access_password);
+
+	config_opt_set("AllowPrint", params->allow_print);
+	config_opt_set("AllowFullPrint", params->allow_full_print);
+	config_opt_set("AllowExtraction", params->allow_extraction);
+	config_opt_set("AllowFullExtraction", params->allow_full_extraction);
+	config_opt_set("AllowForms", params->allow_forms);
+	config_opt_set("AllowAnnotation", params->allow_annotation);
+	config_opt_set("AllowModifications", params->allow_modifications);
+	config_opt_set("AllowAssembly", params->allow_assembly);
+}
+
+
+/**
  * Set a callback handler to be called when the OK button of the
  * encryption dialogue is clicked.
  *

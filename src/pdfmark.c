@@ -1,4 +1,4 @@
-/* PrintPDF - pdfmark.c
+/* PrintPDF - params->c
  *
  * (C) Stephen Fryatt, 2010
  */
@@ -118,6 +118,22 @@ void pdfmark_initialise_settings(pdfmark_params *params)
 	strcpy(params->author, config_str_read("PDFMarkAuthor"));
 	strcpy(params->subject, config_str_read("PDFMarkSubject"));
 	strcpy(params->keywords, config_str_read("PDFMarkKeyWords"));
+}
+
+
+/**
+ * Save the settings from a PDFMark settings structure back into the
+ * corresponding config settings.
+ *
+ * \param *param		The PDFMark params struct to be saved.
+ */
+
+void pdfmark_save_settings(pdfmark_params *params)
+{
+	config_str_set("PDFMarkTitle", params->title);
+	config_str_set("PDFMarkAuthor", params->author);
+	config_str_set("PDFMarkSubject", params->subject);
+	config_str_set("PDFMarkKeywords", params->keywords);
 }
 
 

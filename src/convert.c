@@ -131,7 +131,7 @@ void initialise_conversion(void)
 
 	encrypt_initialise_settings(&encryption);
 	optimize_initialise_settings(&optimization);
-	initialise_version_settings(&version);
+	version_initialise_settings(&version);
 	pdfmark_initialise_settings(&pdfmark);
 	initialise_bookmark_settings(&bookmark);
 
@@ -390,12 +390,12 @@ void open_conversion_dialogue(void)
 		set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, config_opt_read ("PreProcess"));
 		encrypt_initialise_settings(&encryption);
 		optimize_initialise_settings(&optimization);
-		initialise_version_settings(&version);
+		version_initialise_settings(&version);
 		pdfmark_initialise_settings(&pdfmark);
 		initialise_bookmark_settings(&bookmark);
 	}
 
-	fill_version_field(windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
+	version_fill_field(windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
 	optimize_fill_field(windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
 	encrypt_fill_field(windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
 	pdfmark_fill_field(windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
@@ -737,7 +737,7 @@ int launch_ps2pdf (char *file_out, char *user_pdfmark_file)
 
     /* Write all the conversion options and filename details to the gs parameters file. */
 
-    build_version_params(version_buf, &version);
+    version_build_params(version_buf, sizeof(version_buf), &version);
     optimize_build_params(optimize_buf, sizeof(optimize_buf), &optimization);
     encryption_build_params(encrypt_buf, sizeof(encrypt_buf), &encryption, version.standard_version >= 2);
 
@@ -853,7 +853,7 @@ void convert_validate_params(void)
 
 void open_convert_version_menu (wimp_pointer *pointer, wimp_w window, wimp_i icon)
 {
-  open_version_menu (&version, pointer, window, icon, PARAM_MENU_CONVERT_VERSION);
+  version_open_menu (&version, pointer, window, icon, PARAM_MENU_CONVERT_VERSION);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -862,9 +862,9 @@ void process_convert_version_menu (wimp_selection *selection)
 {
   extern global_windows windows;
 
-  process_version_menu (&version, selection);
+  version_process_menu (&version, selection);
 
-  fill_version_field (windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
+  version_fill_field (windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

@@ -119,7 +119,7 @@ static void choices_set_window(void)
 
 	encrypt_initialise_settings(&encryption);
 	optimize_initialise_settings(&optimization);
-	initialise_version_settings(&version);
+	version_initialise_settings(&version);
 	pdfmark_initialise_settings(&pdfmark);
 
 	set_icon_selected(windows.choices, CHOICE_ICON_RESETEVERY, config_opt_read("ResetParams"));
@@ -129,7 +129,7 @@ static void choices_set_window(void)
 
 	sprintf(indirected_icon_text (windows.choices, CHOICE_ICON_MEMORY), "%d", config_int_read("TaskMemory"));
 
-	fill_version_field(windows.choices, CHOICE_ICON_VERSION, &version);
+	version_fill_field(windows.choices, CHOICE_ICON_VERSION, &version);
 	optimize_fill_field(windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
 	encrypt_fill_field(windows.choices, CHOICE_ICON_ENCRYPT, &encryption);
 	pdfmark_fill_field(windows.choices, CHOICE_ICON_INFO, &pdfmark);
@@ -148,8 +148,6 @@ static void choices_read_window(void)
 
 	config_str_set("FileName", indirected_icon_text(windows.choices, CHOICE_ICON_DEFFILE));
 
-	config_int_set("PDFVersion", version.standard_version);
-
 	config_opt_set("ResetParams", read_icon_selected(windows.choices, CHOICE_ICON_RESETEVERY));
 	config_opt_set("IconBarIcon", read_icon_selected(windows.choices, CHOICE_ICON_IBAR));
 	config_opt_set("PopUpAfter", read_icon_selected(windows.choices, CHOICE_ICON_POPUP));
@@ -157,24 +155,10 @@ static void choices_read_window(void)
 
 	config_int_set("TaskMemory", atoi(indirected_icon_text(windows.choices, CHOICE_ICON_MEMORY)));
 
-	config_str_set("OwnerPasswd", encryption.owner_password);
-	config_str_set("UserPasswd", encryption.access_password);
-
-	config_opt_set("AllowPrint", encryption.allow_print);
-	config_opt_set("AllowFullPrint", encryption.allow_full_print);
-	config_opt_set("AllowExtraction", encryption.allow_extraction);
-	config_opt_set("AllowFullExtraction", encryption.allow_full_extraction);
-	config_opt_set("AllowForms", encryption.allow_forms);
-	config_opt_set("AllowAnnotation", encryption.allow_annotation);
-	config_opt_set("AllowModifications", encryption.allow_modifications);
-	config_opt_set("AllowAssembly", encryption.allow_assembly);
-
-	config_str_set("PDFMarkTitle", pdfmark.title);
-	config_str_set("PDFMarkAuthor", pdfmark.author);
-	config_str_set("PDFMarkSubject", pdfmark.subject);
-	config_str_set("PDFMarkKeywords", pdfmark.keywords);
-
+	version_save_settings(&version);
+	encrypt_save_settings(&encryption);
 	optimise_save_settings(&optimization);
+	pdfmark_save_settings(&pdfmark);
 
 	/* Make any immediate changes that depend on the choices. */
 
@@ -242,7 +226,7 @@ static void choices_click_handler(wimp_pointer *pointer)
 		break;
 
 	case CHOICE_ICON_VERSION_MENU:
-		open_version_menu(&version, pointer, windows.choices, CHOICE_ICON_VERSION, PARAM_MENU_CHOICES_VERSION);
+		version_open_menu(&version, pointer, windows.choices, CHOICE_ICON_VERSION, PARAM_MENU_CHOICES_VERSION);
 		break;
 
 	case CHOICE_ICON_OPTIMIZE_MENU:
@@ -351,9 +335,9 @@ void process_choices_version_menu (wimp_selection *selection)
 {
   extern global_windows windows;
 
-  process_version_menu (&version, selection);
+  version_process_menu (&version, selection);
 
-  fill_version_field (windows.choices, CHOICE_ICON_VERSION, &version);
+  version_fill_field (windows.choices, CHOICE_ICON_VERSION, &version);
 }
 
 
