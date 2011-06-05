@@ -129,10 +129,10 @@ void initialise_conversion(void)
 	strcpy (indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_USERFILE), config_str_read("PDFMarkUserFile"));
 	set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, config_opt_read("PreProcess"));
 
-	initialise_encryption_settings(&encryption);
+	encrypt_initialise_settings(&encryption);
 	optimize_initialise_settings(&optimization);
 	initialise_version_settings(&version);
-	initialise_pdfmark_settings(&pdfmark);
+	pdfmark_initialise_settings(&pdfmark);
 	initialise_bookmark_settings(&bookmark);
 
 	/* Register event handlers. */
@@ -388,17 +388,17 @@ void open_conversion_dialogue(void)
 		strcpy(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), config_str_read ("FileName"));
 		strcpy(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE), config_str_read ("PDFMarkUserFile"));
 		set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, config_opt_read ("PreProcess"));
-		initialise_encryption_settings(&encryption);
+		encrypt_initialise_settings(&encryption);
 		optimize_initialise_settings(&optimization);
 		initialise_version_settings(&version);
-		initialise_pdfmark_settings(&pdfmark);
+		pdfmark_initialise_settings(&pdfmark);
 		initialise_bookmark_settings(&bookmark);
 	}
 
 	fill_version_field(windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
 	optimize_fill_field(windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
-	fill_encryption_field(windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
-	fill_pdfmark_field(windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
+	encrypt_fill_field(windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
+	pdfmark_fill_field(windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
 	fill_bookmark_field(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
 
 	wimp_get_pointer_info(&pointer);
@@ -728,7 +728,7 @@ int launch_ps2pdf (char *file_out, char *user_pdfmark_file)
 
       if (pdfmark_file != NULL)
       {
-        write_pdfmark_docinfo_file(pdfmark_file, &pdfmark);
+        pdfmark_write_docinfo_file(pdfmark_file, &pdfmark);
         write_pdfmark_out_file(pdfmark_file, &bookmark);
 
         fclose(pdfmark_file);
@@ -737,9 +737,9 @@ int launch_ps2pdf (char *file_out, char *user_pdfmark_file)
 
     /* Write all the conversion options and filename details to the gs parameters file. */
 
-    build_version_params (version_buf, &version);
-    optimize_build_params (optimize_buf, sizeof(optimize_buf), &optimization);
-    build_encryption_params (encrypt_buf, &encryption, version.standard_version >= 2);
+    build_version_params(version_buf, &version);
+    optimize_build_params(optimize_buf, sizeof(optimize_buf), &optimization);
+    encryption_build_params(encrypt_buf, sizeof(encrypt_buf), &encryption, version.standard_version >= 2);
 
     fprintf (param_file,
              "-dSAFER %s%s%s"
@@ -912,7 +912,7 @@ void process_convert_bookmark_menu(wimp_selection *selection)
 
 void open_convert_pdfmark_dialogue (wimp_pointer *pointer)
 {
-  open_pdfmark_dialogue (&pdfmark, pointer);
+  pdfmark_open_dialogue (&pdfmark, pointer);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -921,16 +921,16 @@ void process_convert_pdfmark_dialogue (void)
 {
   extern global_windows windows;
 
-  process_pdfmark_dialogue (&pdfmark);
+  pdfmark_process_dialogue (&pdfmark);
 
-  fill_pdfmark_field (windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
+  pdfmark_fill_field (windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 void open_convert_encrypt_dialogue (wimp_pointer *pointer)
 {
-  open_encrypt_dialogue (&encryption, version.standard_version >= 2, pointer);
+  encrypt_open_dialogue (&encryption, version.standard_version >= 2, pointer);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -939,9 +939,9 @@ void process_convert_encrypt_dialogue (void)
 {
   extern global_windows windows;
 
-  process_encrypt_dialogue (&encryption);
+  encrypt_process_dialogue (&encryption);
 
-  fill_encryption_field (windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
+  encrypt_fill_field (windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

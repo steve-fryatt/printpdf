@@ -56,6 +56,8 @@ static osbool	choices_keypress_handler(wimp_key *key);
 
 static osbool	handle_choices_icon_drop(wimp_message *message);
 
+static void	process_choices_encrypt_dialogue(void);
+static void	process_choices_pdfmark_dialogue(void);
 static void	process_choices_optimize_dialogue(void);
 
 
@@ -115,10 +117,10 @@ static void choices_set_window(void)
 
 	sprintf(indirected_icon_text(windows.choices, CHOICE_ICON_DEFFILE), "%s", config_str_read("FileName"));
 
-	initialise_encryption_settings(&encryption);
+	encrypt_initialise_settings(&encryption);
 	optimize_initialise_settings(&optimization);
 	initialise_version_settings(&version);
-	initialise_pdfmark_settings(&pdfmark);
+	pdfmark_initialise_settings(&pdfmark);
 
 	set_icon_selected(windows.choices, CHOICE_ICON_RESETEVERY, config_opt_read("ResetParams"));
 	set_icon_selected(windows.choices, CHOICE_ICON_IBAR, config_opt_read("IconBarIcon"));
@@ -129,8 +131,8 @@ static void choices_set_window(void)
 
 	fill_version_field(windows.choices, CHOICE_ICON_VERSION, &version);
 	optimize_fill_field(windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
-	fill_encryption_field(windows.choices, CHOICE_ICON_ENCRYPT, &encryption);
-	fill_pdfmark_field(windows.choices, CHOICE_ICON_INFO, &pdfmark);
+	encrypt_fill_field(windows.choices, CHOICE_ICON_ENCRYPT, &encryption);
+	pdfmark_fill_field(windows.choices, CHOICE_ICON_INFO, &pdfmark);
 }
 
 
@@ -249,13 +251,13 @@ static void choices_click_handler(wimp_pointer *pointer)
 		break;
 
 	case CHOICE_ICON_ENCRYPT_MENU:
-		global_encryption_dialogue_location = ENCRYPTION_CHOICE;
-		open_encrypt_dialogue(&encryption, version.standard_version >= 2, pointer);
+		encrypt_set_dialogue_callback(process_choices_encrypt_dialogue);
+		encrypt_open_dialogue(&encryption, version.standard_version >= 2, pointer);
 		break;
 
 	case CHOICE_ICON_INFO_MENU:
-		global_pdfmark_dialogue_location = PDFMARK_CHOICE;
-		open_pdfmark_dialogue(&pdfmark, pointer);
+		pdfmark_set_dialogue_callback(process_choices_pdfmark_dialogue);
+		pdfmark_open_dialogue(&pdfmark, pointer);
 		break;
 	}
 }
@@ -366,35 +368,34 @@ void process_choices_optimize_menu (wimp_selection *selection)
   optimize_fill_field (windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
 }
 
-/* ==================================================================================================================
- * Handle Encryption dialogue.
+
+
+/**
+ * Callback to respond to clicks on the OK button of the encryption
+ * dialogue.
  */
 
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void process_choices_encrypt_dialogue (void)
+static void process_choices_encrypt_dialogue(void)
 {
-  extern global_windows windows;
+	extern global_windows		windows;
 
-  process_encrypt_dialogue (&encryption);
-
-  fill_encryption_field (windows.choices, CHOICE_ICON_ENCRYPT, &encryption);
+	encrypt_process_dialogue(&encryption);
+	encrypt_fill_field(windows.choices, CHOICE_ICON_ENCRYPT, &encryption);
 }
 
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+/**
+ * Callback to respond to clicks on the OK button of the PDFMark
+ * dialogue.
+ */
 
-void process_choices_pdfmark_dialogue (void)
+static void process_choices_pdfmark_dialogue(void)
 {
-  extern global_windows windows;
+	extern global_windows		windows;
 
-  process_pdfmark_dialogue (&pdfmark);
-
-  fill_pdfmark_field (windows.choices, CHOICE_ICON_INFO, &pdfmark);
+	pdfmark_process_dialogue(&pdfmark);
+	pdfmark_fill_field(windows.choices, CHOICE_ICON_INFO, &pdfmark);
 }
-
-/* ------------------------------------------------------------------------------------------------------------------ */
 
 
 /**
@@ -409,3 +410,4 @@ static void process_choices_optimize_dialogue(void)
 	optimize_process_dialogue(&optimization);
 	optimize_fill_field(windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
 }
+

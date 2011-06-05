@@ -670,6 +670,9 @@ void optimize_build_params(char *buffer, size_t len, optimize_params *params)
 {
 	char		settings[1024], *pointers[10], *extras, *end;
 
+	if (buffer == NULL || params == NULL)
+		return;
+
 	*buffer = '\0';
 	extras = "";
 

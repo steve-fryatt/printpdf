@@ -77,8 +77,6 @@ static void	menu_selection_handler(wimp_selection *);
  *Declare the global variables that are used.
  */
 
-int			global_encryption_dialogue_location;
-int			global_pdfmark_dialogue_location;
 int			global_bookmark_dialogue_location;
 
 /*
@@ -293,14 +291,16 @@ static void main_initialise(void)
 	snprintf(res_temp, sizeof(res_temp), "%s.Menus", resources);
 	load_menu_definitions(res_temp);
 
-	/* Initialise the postscript file queue and save box. */
+	/* Initialise the individual modules. */
 
 	ihelp_initialise();
 	taskman_initialise();
 	popup_initialise();
 	dataxfer_initialise();
 	choices_initialise();
+	encrypt_initialise();
 	optimize_initialise();
+	pdfmark_initialise();
 	initialise_iconbar();
 	initialise_conversion();
 	initialise_bookmarks();
@@ -423,68 +423,18 @@ static void mouse_click_handler (wimp_pointer *pointer)
         break;
 
       case SAVE_PDF_ICON_ENCRYPT_MENU:
-        global_encryption_dialogue_location = ENCRYPTION_SAVE;
+        encrypt_set_dialogue_callback(process_convert_encrypt_dialogue);
         open_convert_encrypt_dialogue (pointer);
         break;
 
       case SAVE_PDF_ICON_PDFMARK_MENU:
-        global_pdfmark_dialogue_location = PDFMARK_SAVE;
+        pdfmark_set_dialogue_callback(process_convert_pdfmark_dialogue);
         open_convert_pdfmark_dialogue (pointer);
         break;
 
       case SAVE_PDF_ICON_BOOKMARK_MENU:
         global_bookmark_dialogue_location = BOOKMARK_SAVE;
         open_convert_bookmark_menu(pointer, windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD);
-        break;
-    }
-  }
-
-  /* Either of the Security Windows. */
-
-  else if (pointer->w == windows.security2 || pointer->w == windows.security3)
-  {
-    switch ((int) pointer->i)
-    {
-      case ENCRYPT_ICON_CANCEL:
-        wimp_create_menu ((wimp_menu *) -1, 0, 0);
-        break;
-
-      case ENCRYPT_ICON_OK:
-        switch (global_encryption_dialogue_location)
-        {
-          case ENCRYPTION_SAVE:
-            process_convert_encrypt_dialogue ();
-            break;
-
-          case ENCRYPTION_CHOICE:
-            process_choices_encrypt_dialogue ();
-            break;
-        }
-        break;
-    }
-  }
-
-  /* The PDFMark Windows. */
-
-  else if (pointer->w == windows.pdfmark)
-  {
-    switch ((int) pointer->i)
-    {
-      case PDFMARK_ICON_CANCEL:
-        wimp_create_menu ((wimp_menu *) -1, 0, 0);
-        break;
-
-      case PDFMARK_ICON_OK:
-        switch (global_pdfmark_dialogue_location)
-        {
-          case PDFMARK_SAVE:
-            process_convert_pdfmark_dialogue ();
-            break;
-
-          case PDFMARK_CHOICE:
-            process_choices_pdfmark_dialogue ();
-            break;
-        }
         break;
     }
   }
@@ -530,69 +480,6 @@ static void key_press_handler (wimp_key *key)
 
       case wimp_KEY_ESCAPE:
         cancel_conversion ();
-        break;
-
-      default:
-        wimp_process_key (key->c);
-        break;
-    }
-  }
-
-  /* The PDFMark Window. */
-
-  else if (key->w == windows.pdfmark)
-  {
-    switch (key->c)
-    {
-      case wimp_KEY_RETURN:
-        switch (global_pdfmark_dialogue_location)
-        {
-          case PDFMARK_SAVE:
-            process_convert_pdfmark_dialogue ();
-            break;
-
-          case PDFMARK_CHOICE:
-            process_choices_pdfmark_dialogue ();
-            break;
-        }
-        break;
-
-      case wimp_KEY_ESCAPE:
-        wimp_create_menu ((wimp_menu *) -1, 0, 0);
-        break;
-
-      default:
-        wimp_process_key (key->c);
-        break;
-    }
-  }
-
-  /* Either of the Security Windows. */
-
-  else if (key->w == windows.security2 || key->w == windows.security3)
-  {
-    if (key->i == ENCRYPT_ICON_OWNER_PW)
-    {
-      shade_encrypt_dialogue (0);
-    }
-
-    switch (key->c)
-    {
-      case wimp_KEY_RETURN:
-        switch (global_encryption_dialogue_location)
-        {
-          case ENCRYPTION_SAVE:
-            process_convert_encrypt_dialogue ();
-            break;
-
-          case ENCRYPTION_CHOICE:
-            process_choices_encrypt_dialogue ();
-            break;
-        }
-        break;
-
-      case wimp_KEY_ESCAPE:
-        wimp_create_menu ((wimp_menu *) -1, 0, 0);
         break;
 
       default:
