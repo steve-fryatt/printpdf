@@ -32,6 +32,9 @@
 #include "pmenu.h"
 #include "windows.h"
 
+
+#define OPTIMIZE_MENU_LENGTH 6
+
 /* Optimization Window icons. */
 
 #define OPTIMIZE_ICON_CANCEL 0
@@ -218,16 +221,15 @@ void optimise_save_settings(optimize_params *params)
  * Build and open the optimization values menu.
  *
  * \param *params		The optimization parameter block to use for the menu.
- * \param *pointer		The Wimp pointer details.
- * \param window		The window to open the menu over.
- * \param icon			The icon to open the menu over.
- * \param ident			The param menu ident.
+ * \param *menu			The version menu block.
  */
 
-void optimize_open_menu(optimize_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon, int ident)
+void optimize_set_menu(optimize_params *params, wimp_menu *menu)
 {
-	if (build_param_menu("OptimizationMenu", ident, optimize_tick_menu(params)) != NULL)
-		open_param_menu(pointer, window, icon);
+	int		i;
+
+	for (i = 0; i < OPTIMIZE_MENU_LENGTH; i++)
+		tick_menu_item(menu, i, i == optimize_tick_menu(params));
 }
 
 
@@ -235,21 +237,20 @@ void optimize_open_menu(optimize_params *params, wimp_pointer *pointer, wimp_w w
  * Handle selections from the optimize menu.
  *
  * \param *params		The optimization parameter block for the menu.
+ * \param *menu			The version menu block.
  * \param *selection		The menu selection details.
  */
 
-void optimize_process_menu(optimize_params *params, wimp_selection *selection)
+void optimize_process_menu(optimize_params *params, wimp_menu *menu, wimp_selection *selection)
 {
 	wimp_pointer		pointer;
 
-	if (selection->items[0] == param_menu_len("OptimizationMenu") - 1) {
+	if (selection->items[0] == OPTIMIZE_MENU_LENGTH - 1) {
 		wimp_get_pointer_info(&pointer);
 		optimize_open_dialogue(params, &pointer);
 	} else {
 		params->standard_preset = selection->items[0];
 	}
-
-	build_param_menu("OptimizationMenu", param_menu_ident(), optimize_tick_menu(params));
 }
 
 
@@ -266,7 +267,7 @@ static int optimize_tick_menu(optimize_params *params)
 	int		item;
 
 	if (params->standard_preset == -1)
-		item = param_menu_len ("OptimizationMenu") - 1;
+		item = OPTIMIZE_MENU_LENGTH - 1;
 	else
 		item = params->standard_preset;
 
@@ -647,11 +648,14 @@ static void optimize_shade_dialogue(void)
 
 void optimize_fill_field (wimp_w window, wimp_i icon, optimize_params *params)
 {
-	if (params->standard_preset == -1)
-		msgs_lookup("Custom", indirected_icon_text(window, icon), 20);
-	else
-		param_menu_entry(indirected_icon_text(window, icon), "OptimizationMenu", params->standard_preset + 1);
+	char		token[20];
 
+	if (params->standard_preset == -1)
+		snprintf(token, sizeof(token), "Custom");
+	else
+		snprintf(token, sizeof(token), "Optimization%d", params->standard_preset);
+
+	msgs_lookup(token, indirected_icon_text(window, icon), 20);
 	wimp_set_icon_state(window, icon, 0, 0);
 }
 

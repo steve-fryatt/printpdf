@@ -853,7 +853,7 @@ void convert_validate_params(void)
 
 void open_convert_version_menu (wimp_pointer *pointer, wimp_w window, wimp_i icon)
 {
-  version_open_menu (&version, pointer, window, icon, PARAM_MENU_CONVERT_VERSION);
+  //version_open_menu (&version, pointer, window, icon, PARAM_MENU_CONVERT_VERSION);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -862,16 +862,16 @@ void process_convert_version_menu (wimp_selection *selection)
 {
   extern global_windows windows;
 
-  version_process_menu (&version, selection);
+  //version_process_menu (&version, selection);
 
-  version_fill_field (windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
+  //version_fill_field (windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 void open_convert_optimize_menu (wimp_pointer *pointer, wimp_w window, wimp_i icon)
 {
-  optimize_open_menu(&optimization, pointer, window, icon, PARAM_MENU_CONVERT_OPTIMIZE);
+  //optimize_open_menu(&optimization, pointer, window, icon, PARAM_MENU_CONVERT_OPTIMIZE);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -880,7 +880,7 @@ void process_convert_optimize_menu (wimp_selection *selection)
 {
   extern global_windows windows;
 
-  optimize_process_menu(&optimization, selection);
+  //optimize_process_menu(&optimization, selection);
 
   optimize_fill_field (windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
 }

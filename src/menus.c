@@ -77,6 +77,8 @@ void load_menu_definitions(char *menu_file)
 		menus.bookmarks_sub_view = menu_list[3];
 		menus.bookmarks_sub_level = menu_list[4];
 		menus.bookmarks_sub_insert = menu_list[5];
+		menus.version_popup = menu_list[6];
+		menus.optimize_popup = menu_list[7];
 	}
 
 	/* Register the current_menu pointer with eventlib. */
@@ -141,19 +143,19 @@ void decode_param_menu (wimp_selection *selection, wimp_pointer *pointer)
       break;
 
     case PARAM_MENU_CONVERT_OPTIMIZE:
-      process_convert_optimize_menu (selection);
+//      process_convert_optimize_menu (selection);
       break;
 
     case PARAM_MENU_CONVERT_VERSION:
-      process_convert_version_menu (selection);
+//      process_convert_version_menu (selection);
       break;
 
     case PARAM_MENU_CHOICES_OPTIMIZE:
-      process_choices_optimize_menu (selection);
+//      process_choices_optimize_menu (selection);
       break;
 
     case PARAM_MENU_CHOICES_VERSION:
-      process_choices_version_menu (selection);
+//      process_choices_version_menu (selection);
       break;
   }
 }

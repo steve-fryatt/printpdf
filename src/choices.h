@@ -42,12 +42,5 @@ void choices_initialise(void);
 
 void choices_open_window(wimp_pointer *pointer);
 
-
-
-
-
-void process_choices_version_menu (wimp_selection *selection);
-void process_choices_optimize_menu (wimp_selection *selection);
-
 #endif
 

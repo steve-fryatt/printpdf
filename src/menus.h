@@ -20,6 +20,8 @@ typedef struct {
 	wimp_menu	*bookmarks_sub_level;
 	wimp_menu	*bookmarks_sub_insert;
 	wimp_menu	*bookmarks_list;
+	wimp_menu	*version_popup;
+	wimp_menu	*optimize_popup;
 } global_menus;
 
 /* ------------------------------------------------------------------------------------------------------------------

@@ -17,6 +17,16 @@ SupportURL:http://www.stevefryatt.org.uk/software/printpdf/
 FileName:PDFFile/pdf
 BMFileName:Bookmarks
 
+Version0:1.2 (Acrobat 3)
+Version1:1.3 (Acrobat 4)
+Version2:1.4 (Acrobat 5)
+
+Optimization0:Default
+Optimization1:Prepress
+Optimization2:Printer
+Optimization3:EBook
+Optimization4:Screen
+
 Encrypt0:Unprotected
 Encrypt1:Encrypted
 Custom:Custom
@@ -53,9 +63,6 @@ PendingJobs:There are print jobs queued: do you want to quit anyway?
 PendingJobsB:Discard,Cancel
 
 # ps2pdf command-line option lists.
-
-VersionMenu:Version,1.2 (Acrobat 3),1.3 (Acrobat 4),1.4 (Acrobat 5)
-OptimizationMenu:Optimization,Default,Prepress,Printer,EBook,Screen,-Custom...
 
 VersionList:1.2,1.3,1.4
 OptimizationList:/default,/prepress,/printer,/ebook,/screen

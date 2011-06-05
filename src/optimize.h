@@ -72,23 +72,21 @@ void optimise_save_settings(optimize_params *params);
  * Build and open the optimization values menu.
  *
  * \param *params		The optimization parameter block to use for the menu.
- * \param *pointer		The Wimp pointer details.
- * \param window		The window to open the menu over.
- * \param icon			The icon to open the menu over.
- * \param ident			The param menu ident.
+ * \param *menu			The version menu block.
  */
 
-void optimize_open_menu(optimize_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon, int ident);
+void optimize_set_menu(optimize_params *params, wimp_menu *menu);
 
 
 /**
  * Handle selections from the optimize menu.
  *
  * \param *params		The optimization parameter block for the menu.
+ * \param *menu			The version menu block.
  * \param *selection		The menu selection details.
  */
 
-void optimize_process_menu(optimize_params *params, wimp_selection *selection);
+void optimize_process_menu(optimize_params *params, wimp_menu *menu, wimp_selection *selection);
 
 
 /**

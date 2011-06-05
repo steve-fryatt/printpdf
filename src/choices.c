@@ -31,6 +31,7 @@
 #include "encrypt.h"
 #include "iconbar.h"
 #include "main.h"
+#include "menus.h"
 #include "optimize.h"
 #include "pdfmark.h"
 #include "pmenu.h"
@@ -45,6 +46,9 @@ static optimize_params		optimization;
 static version_params		version;
 static pdfmark_params		pdfmark;
 
+static wimp_menu		*popup_version;
+static wimp_menu		*popup_optimize;
+
 
 static void	choices_close_window(void);
 static void	choices_set_window(void);
@@ -53,6 +57,8 @@ static void	choices_redraw_window(void);
 
 static void	choices_click_handler(wimp_pointer *pointer);
 static osbool	choices_keypress_handler(wimp_key *key);
+static void	choices_menu_prepare_handler(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
+static void	choices_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 
 static osbool	handle_choices_icon_drop(wimp_message *message);
 
@@ -68,9 +74,20 @@ static void	process_choices_optimize_dialogue(void);
 void choices_initialise(void)
 {
 	extern global_windows		windows;
+	extern global_menus		menus;
+
+	/* \TODO -- The interface for getting menu and window handles needs improved. */
+
+	popup_version = menus.version_popup;
+	popup_optimize = menus.optimize_popup;
 
 	event_add_window_mouse_event(windows.choices, choices_click_handler);
 	event_add_window_key_event(windows.choices, choices_keypress_handler);
+	event_add_window_menu_prepare(windows.choices, choices_menu_prepare_handler);
+	event_add_window_menu_selection(windows.choices, choices_menu_selection_handler);
+
+	event_add_window_icon_popup(windows.choices, CHOICE_ICON_VERSION_MENU, popup_version, -1);
+	event_add_window_icon_popup(windows.choices, CHOICE_ICON_OPTIMIZE_MENU, popup_optimize, -1);
 	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, handle_choices_icon_drop);
 }
 
@@ -225,15 +242,6 @@ static void choices_click_handler(wimp_pointer *pointer)
 		}
 		break;
 
-	case CHOICE_ICON_VERSION_MENU:
-		version_open_menu(&version, pointer, windows.choices, CHOICE_ICON_VERSION, PARAM_MENU_CHOICES_VERSION);
-		break;
-
-	case CHOICE_ICON_OPTIMIZE_MENU:
-		optimize_set_dialogue_callback(process_choices_optimize_dialogue);
-		optimize_open_menu(&optimization, pointer, windows.choices, CHOICE_ICON_OPTIMIZE, PARAM_MENU_CHOICES_OPTIMIZE);
-		break;
-
 	case CHOICE_ICON_ENCRYPT_MENU:
 		encrypt_set_dialogue_callback(process_choices_encrypt_dialogue);
 		encrypt_open_dialogue(&encryption, version.standard_version >= 2, pointer);
@@ -280,6 +288,43 @@ static osbool choices_keypress_handler(wimp_key *key)
 
 
 /**
+ * Process menu prepare events in the Choices window.
+ *
+ * \param w		The handle of the owning window.
+ * \param *menu		The menu handle.
+ * \param *pointer	The pointer position, or NULL for a re-open.
+ */
+
+static void choices_menu_prepare_handler(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
+{
+	if (menu == popup_version)
+		version_set_menu(&version, popup_version);
+	else if (menu == popup_optimize)
+		optimize_set_menu(&optimization, popup_optimize);
+}
+
+
+/**
+ * Process menu selection events in the Choices window.
+ *
+ * \param w		The handle of the owning window.
+ * \param *menu		The menu handle.
+ * \param *selection	The menu selection details.
+ */
+
+static void choices_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_selection *selection)
+{
+	if (menu == popup_version) {
+		version_process_menu(&version, popup_version, selection);
+		version_fill_field(w, CHOICE_ICON_VERSION, &version);
+	} else if (menu == popup_optimize) {
+		optimize_set_dialogue_callback(process_choices_optimize_dialogue);
+		optimize_process_menu(&optimization, popup_version, selection);
+		optimize_fill_field(w, CHOICE_ICON_OPTIMIZE, &optimization);
+	}
+}
+
+/**
  * Check incoming Message_DataSave to see if it's a file being dropped into the
  * the PDF filename icon.
  *
@@ -323,35 +368,6 @@ static osbool handle_choices_icon_drop(wimp_message *message)
 
 	return TRUE;
 }
-
-/* ==================================================================================================================
- * Handle pop-up menus from the dialogue.
- */
-
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void process_choices_version_menu (wimp_selection *selection)
-{
-  extern global_windows windows;
-
-  version_process_menu (&version, selection);
-
-  version_fill_field (windows.choices, CHOICE_ICON_VERSION, &version);
-}
-
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void process_choices_optimize_menu (wimp_selection *selection)
-{
-  extern global_windows windows;
-
-  optimize_process_menu(&optimization, selection);
-
-  optimize_fill_field (windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
-}
-
 
 
 /**

@@ -35,23 +35,21 @@ void version_save_settings(version_params *params);
  * Build and open the PDF version menu.
  *
  * \param *params		The version parameter block to use for the menu.
- * \param *pointer		The Wimp pointer details.
- * \param window		The window to open the menu over.
- * \param icon			The icon to open the menu over.
- * \param ident			The param menu ident.
+ * \param *menu			The version menu block.
  */
 
-void version_open_menu(version_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon, int ident);
+void version_set_menu(version_params *params, wimp_menu *menu);
 
 
 /**
  * Handle selections from the PDF version menu.
  *
  * \param *params		The version parameter block for the menu.
+ * \param *menu			The version menu block.
  * \param *selection		The menu selection details.
  */
 
-void version_process_menu(version_params *params, wimp_selection *selection);
+void version_process_menu(version_params *params, wimp_menu *menu, wimp_selection *selection);
 
 
 /**

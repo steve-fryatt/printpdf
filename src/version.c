@@ -30,6 +30,9 @@
 #include "windows.h"
 
 
+#define VERSION_MENU_LENGTH 3
+
+
 /* Function Prototypes. */
 
 static int	version_tick_menu(version_params *params);
@@ -63,16 +66,15 @@ void version_save_settings(version_params *params)
  * Build and open the PDF version menu.
  *
  * \param *params		The version parameter block to use for the menu.
- * \param *pointer		The Wimp pointer details.
- * \param window		The window to open the menu over.
- * \param icon			The icon to open the menu over.
- * \param ident			The param menu ident.
+ * \param *menu			The version menu block.
  */
 
-void version_open_menu(version_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon, int ident)
+void version_set_menu(version_params *params, wimp_menu *menu)
 {
-	if (build_param_menu("VersionMenu", ident, version_tick_menu(params)) != NULL)
-		open_param_menu(pointer, window, icon);
+	int		i;
+
+	for (i = 0; i < VERSION_MENU_LENGTH; i++)
+		tick_menu_item(menu, i, i == version_tick_menu(params));
 }
 
 
@@ -80,14 +82,13 @@ void version_open_menu(version_params *params, wimp_pointer *pointer, wimp_w win
  * Handle selections from the PDF version menu.
  *
  * \param *params		The version parameter block for the menu.
+ * \param *menu			The version menu block.
  * \param *selection		The menu selection details.
  */
 
-void version_process_menu(version_params *params, wimp_selection *selection)
+void version_process_menu(version_params *params, wimp_menu *menu, wimp_selection *selection)
 {
 	params->standard_version = selection->items[0];
-
-	build_param_menu("VersionMenu", param_menu_ident (), version_tick_menu (params));
 }
 
 
@@ -116,7 +117,10 @@ static int version_tick_menu(version_params *params)
 
 void version_fill_field(wimp_w window, wimp_i icon, version_params *params)
 {
-	param_menu_entry(indirected_icon_text(window, icon), "VersionMenu", params->standard_version + 1);
+	char		token[20];
+
+	snprintf(token, sizeof(token), "Version%d", params->standard_version);
+	msgs_lookup(token, indirected_icon_text(window, icon), 20);
 	wimp_set_icon_state(window, icon, 0, 0);
 }
 

@@ -102,3 +102,31 @@ menu(bm_insert, "Insert")
 	item("Before row");
 	item("After row");
 }
+
+/**
+ * PDF Version Menu.
+ */
+
+menu(version_popup, "PDF Version")
+{
+	item("1.2 (Acrobat 3)");
+	item("1.3 (Acrobat 4)");
+	item("1.4 (Acrobat 5)");
+}
+
+/**
+ * PDF Optimization Menu.
+ */
+
+menu(optimize_popup, "Optimization")
+{
+	item("Default");
+	item("Prepress");
+	item("Printer");
+	item("EBook");
+	item("Screen") {
+		dotted;
+	}
+	item("Custom...");
+}
+
