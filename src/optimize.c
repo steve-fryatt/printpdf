@@ -32,6 +32,65 @@
 #include "pmenu.h"
 #include "windows.h"
 
+/* Optimization Window icons. */
+
+#define OPTIMIZE_ICON_CANCEL 0
+#define OPTIMIZE_ICON_OK 1
+
+#define OPTIMIZE_ICON_COLOUR_DOWNSAMPLE 4
+#define OPTIMIZE_ICON_GREY_DOWNSAMPLE 16
+#define OPTIMIZE_ICON_MONO_DOWNSAMPLE 28
+#define OPTIMIZE_ICON_COLOUR_SUBSAMPLE 5
+#define OPTIMIZE_ICON_GREY_SUBSAMPLE 17
+#define OPTIMIZE_ICON_MONO_SUBSAMPLE 29
+#define OPTIMIZE_ICON_COLOUR_AVERAGE 6
+#define OPTIMIZE_ICON_GREY_AVERAGE 18
+#define OPTIMIZE_ICON_MONO_AVERAGE 30
+#define OPTIMIZE_ICON_COLOUR_RESOLUTION 7
+#define OPTIMIZE_ICON_GREY_RESOLUTION 19
+#define OPTIMIZE_ICON_MONO_RESOLUTION 31
+#define OPTIMIZE_ICON_COLOUR_RESOLUTION_UP 9
+#define OPTIMIZE_ICON_GREY_RESOLUTION_UP 21
+#define OPTIMIZE_ICON_MONO_RESOLUTION_UP 33
+#define OPTIMIZE_ICON_COLOUR_RESOLUTION_DOWN 8
+#define OPTIMIZE_ICON_GREY_RESOLUTION_DOWN 20
+#define OPTIMIZE_ICON_MONO_RESOLUTION_DOWN 32
+#define OPTIMIZE_ICON_COLOUR_THRESHOLD 10
+#define OPTIMIZE_ICON_GREY_THRESHOLD 22
+#define OPTIMIZE_ICON_MONO_THRESHOLD 34
+#define OPTIMIZE_ICON_COLOUR_THRESHOLD_UP 12
+#define OPTIMIZE_ICON_GREY_THRESHOLD_UP 24
+#define OPTIMIZE_ICON_MONO_THRESHOLD_UP 36
+#define OPTIMIZE_ICON_COLOUR_THRESHOLD_DOWN 11
+#define OPTIMIZE_ICON_GREY_THRESHOLD_DOWN 23
+#define OPTIMIZE_ICON_MONO_THRESHOLD_DOWN 35
+#define OPTIMIZE_ICON_COLOUR_DEPTH 13
+#define OPTIMIZE_ICON_GREY_DEPTH 25
+#define OPTIMIZE_ICON_MONO_DEPTH 37
+#define OPTIMIZE_ICON_COLOUR_DEPTH_UP 15
+#define OPTIMIZE_ICON_GREY_DEPTH_UP 27
+#define OPTIMIZE_ICON_MONO_DEPTH_UP 39
+#define OPTIMIZE_ICON_COLOUR_DEPTH_DOWN 14
+#define OPTIMIZE_ICON_GREY_DEPTH_DOWN 26
+#define OPTIMIZE_ICON_MONO_DEPTH_DOWN 38
+
+#define OPTIMIZE_ICON_COLOUR_ENCODE 46
+#define OPTIMIZE_ICON_GREY_ENCODE 49
+#define OPTIMIZE_ICON_MONO_ENCODE 52
+#define OPTIMIZE_ICON_COLOUR_DCT 47
+#define OPTIMIZE_ICON_GREY_DCT 50
+#define OPTIMIZE_ICON_MONO_CCITT 53
+#define OPTIMIZE_ICON_COLOUR_FLATE 48
+#define OPTIMIZE_ICON_GREY_FLATE 51
+#define OPTIMIZE_ICON_MONO_FLATE 54
+#define OPTIMIZE_ICON_MONO_RUNLENGTH 61
+
+#define OPTIMIZE_ICON_ROTATE_NONE 57
+#define OPTIMIZE_ICON_ROTATE_ALL 58
+#define OPTIMIZE_ICON_ROTATE_PAGE 59
+
+#define OPTIMIZE_ICON_COMPRESS 60
+
 
 static int	downsample_mono_depth;
 static int	downsample_grey_depth;
@@ -108,6 +167,50 @@ void optimize_initialise_settings(optimize_params *params)
 	params->auto_page_rotation = config_int_read("AutoPageRotation");
 
 	params->compress_pages = config_opt_read("CompressPages");
+}
+
+
+/**
+ * Save the settings from an optimization settings structure back into the
+ * corresponding config settings.
+ *
+ * \param *param		The optimisation params struct to be saved.
+ */
+
+void optimise_save_settings(optimize_params *params)
+{
+	config_int_set("Optimization", params->standard_preset);
+
+	config_opt_set("DownsampleMono", params->downsample_mono_images);
+	config_int_set("DownsampleMonoType", params->downsample_mono_type);
+	config_int_set("DownsampleMonoResolution", params->downsample_mono_resolution);
+	config_int_set("DownsampleMonoThreshold", params->downsample_mono_threshold);
+	config_int_set("DownsampleMonoDepth", params->downsample_mono_depth);
+
+	config_opt_set("DownsampleGrey", params->downsample_grey_images);
+	config_int_set("DownsampleGreyType", params->downsample_grey_type);
+	config_int_set("DownsampleGreyResolution", params->downsample_grey_resolution);
+	config_int_set("DownsampleGreyThreshold", params->downsample_grey_threshold);
+	config_int_set("DownsampleGreyDepth", params->downsample_grey_depth);
+
+	config_opt_set("DownsampleColour", params->downsample_colour_images);
+	config_int_set("DownsampleColourType", params->downsample_colour_type);
+	config_int_set("DownsampleColourResolution", params->downsample_colour_resolution);
+	config_int_set("DownsampleColourThreshold", params->downsample_colour_threshold);
+	config_int_set("DownsampleColourDepth", params->downsample_colour_depth);
+
+	config_opt_set("EncodeMono", params->encode_mono_images);
+	config_int_set("EncodeMonoType", params->encode_mono_type);
+
+	config_opt_set("EncodeGrey", params->encode_grey_images);
+	config_int_set("EncodeGreyType", params->encode_grey_type);
+
+	config_opt_set("EncodeColour", params->encode_colour_images);
+	config_int_set("EncodeColourType", params->encode_colour_type);
+
+	config_int_set("AutoPageRotation", params->auto_page_rotation);
+
+	config_opt_set("CompressPages", params->compress_pages);
 }
 
 

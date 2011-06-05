@@ -148,8 +148,6 @@ static void choices_read_window(void)
 
 	config_int_set("PDFVersion", version.standard_version);
 
-	config_int_set("Optimization", optimization.standard_preset);
-
 	config_opt_set("ResetParams", read_icon_selected(windows.choices, CHOICE_ICON_RESETEVERY));
 	config_opt_set("IconBarIcon", read_icon_selected(windows.choices, CHOICE_ICON_IBAR));
 	config_opt_set("PopUpAfter", read_icon_selected(windows.choices, CHOICE_ICON_POPUP));
@@ -174,38 +172,7 @@ static void choices_read_window(void)
 	config_str_set("PDFMarkSubject", pdfmark.subject);
 	config_str_set("PDFMarkKeywords", pdfmark.keywords);
 
-	config_int_set("Optimization", optimization.standard_preset);
-
-	config_opt_set("DownsampleMono", optimization.downsample_mono_images);
-	config_int_set("DownsampleMonoType", optimization.downsample_mono_type);
-	config_int_set("DownsampleMonoResolution", optimization.downsample_mono_resolution);
-	config_int_set("DownsampleMonoThreshold", optimization.downsample_mono_threshold);
-	config_int_set("DownsampleMonoDepth", optimization.downsample_mono_depth);
-
-	config_opt_set("DownsampleGrey", optimization.downsample_grey_images);
-	config_int_set("DownsampleGreyType", optimization.downsample_grey_type);
-	config_int_set("DownsampleGreyResolution", optimization.downsample_grey_resolution);
-	config_int_set("DownsampleGreyThreshold", optimization.downsample_grey_threshold);
-	config_int_set("DownsampleGreyDepth", optimization.downsample_grey_depth);
-
-	config_opt_set("DownsampleColour", optimization.downsample_colour_images);
-	config_int_set("DownsampleColourType", optimization.downsample_colour_type);
-	config_int_set("DownsampleColourResolution", optimization.downsample_colour_resolution);
-	config_int_set("DownsampleColourThreshold", optimization.downsample_colour_threshold);
-	config_int_set("DownsampleColourDepth", optimization.downsample_colour_depth);
-
-	config_opt_set("EncodeMono", optimization.encode_mono_images);
-	config_int_set("EncodeMonoType", optimization.encode_mono_type);
-
-	config_opt_set("EncodeGrey", optimization.encode_grey_images);
-	config_int_set("EncodeGreyType", optimization.encode_grey_type);
-
-	config_opt_set("EncodeColour", optimization.encode_colour_images);
-	config_int_set("EncodeColourType", optimization.encode_colour_type);
-
-	config_int_set("AutoPageRotation", optimization.auto_page_rotation);
-
-	config_opt_set("CompressPages", optimization.compress_pages);
+	optimise_save_settings(&optimization);
 
 	/* Make any immediate changes that depend on the choices. */
 
