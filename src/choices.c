@@ -62,9 +62,9 @@ static void	choices_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_selec
 
 static osbool	handle_choices_icon_drop(wimp_message *message);
 
-static void	process_choices_encrypt_dialogue(void);
-static void	process_choices_pdfmark_dialogue(void);
-static void	process_choices_optimize_dialogue(void);
+static void	choices_process_encrypt_dialogue(void);
+static void	choices_process_pdfmark_dialogue(void);
+static void	choices_process_optimize_dialogue(void);
 
 
 /**
@@ -243,12 +243,12 @@ static void choices_click_handler(wimp_pointer *pointer)
 		break;
 
 	case CHOICE_ICON_ENCRYPT_MENU:
-		encrypt_set_dialogue_callback(process_choices_encrypt_dialogue);
+		encrypt_set_dialogue_callback(choices_process_encrypt_dialogue);
 		encrypt_open_dialogue(&encryption, version.standard_version >= 2, pointer);
 		break;
 
 	case CHOICE_ICON_INFO_MENU:
-		pdfmark_set_dialogue_callback(process_choices_pdfmark_dialogue);
+		pdfmark_set_dialogue_callback(choices_process_pdfmark_dialogue);
 		pdfmark_open_dialogue(&pdfmark, pointer);
 		break;
 	}
@@ -318,7 +318,7 @@ static void choices_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_selec
 		version_process_menu(&version, popup_version, selection);
 		version_fill_field(w, CHOICE_ICON_VERSION, &version);
 	} else if (menu == popup_optimize) {
-		optimize_set_dialogue_callback(process_choices_optimize_dialogue);
+		optimize_set_dialogue_callback(choices_process_optimize_dialogue);
 		optimize_process_menu(&optimization, popup_version, selection);
 		optimize_fill_field(w, CHOICE_ICON_OPTIMIZE, &optimization);
 	}
@@ -375,7 +375,7 @@ static osbool handle_choices_icon_drop(wimp_message *message)
  * dialogue.
  */
 
-static void process_choices_encrypt_dialogue(void)
+static void choices_process_encrypt_dialogue(void)
 {
 	extern global_windows		windows;
 
@@ -389,7 +389,7 @@ static void process_choices_encrypt_dialogue(void)
  * dialogue.
  */
 
-static void process_choices_pdfmark_dialogue(void)
+static void choices_process_pdfmark_dialogue(void)
 {
 	extern global_windows		windows;
 
@@ -403,7 +403,7 @@ static void process_choices_pdfmark_dialogue(void)
  * dialogue.
  */
 
-static void process_choices_optimize_dialogue(void)
+static void choices_process_optimize_dialogue(void)
 {
 	extern global_windows		windows;
 
