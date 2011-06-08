@@ -42,6 +42,7 @@
 
 #include "bookmark.h"
 #include "encrypt.h"
+#include "ihelp.h"
 #include "main.h"
 #include "menus.h"
 #include "optimize.h"
