@@ -68,16 +68,6 @@ static void	main_parse_command_line(int argc, char *argv[]);
 static osbool	main_message_quit(wimp_message *message);
 static osbool	main_message_prequit(wimp_message *message);
 
-static void	mouse_click_handler(wimp_pointer *);
-static void	key_press_handler(wimp_key *key);
-static void	menu_selection_handler(wimp_selection *);
-
-
-/*
- *Declare the global variables that are used.
- */
-
-int			global_bookmark_dialogue_location;
 
 /*
  * Cross file global variables
@@ -103,7 +93,7 @@ int main(int argc, char *argv[])
 	terminate_bookmarks();
 	msgs_close_file();
 	wimp_close_down(main_task_handle);
-	remove_all_remaining_conversions();
+	convert_remove_all_remaining_conversions();
 
 	return 0;
 }
@@ -134,8 +124,8 @@ static void main_poll_loop(void)
 			switch (reason) {
 			case wimp_NULL_REASON_CODE:
 				popup_test_and_close(poll_time);
-				check_for_ps_file();
-				check_for_pending_files();
+				convert_check_for_ps_file();
+				convert_check_for_pending_files();
 				poll_time += config_int_read("PollDelay");
 				break;
 
@@ -145,18 +135,6 @@ static void main_poll_loop(void)
 
 			case wimp_CLOSE_WINDOW_REQUEST:
 				wimp_close_window(blk.close.w);
-				break;
-
-			case wimp_MOUSE_CLICK:
-				mouse_click_handler(&(blk.pointer));
-				break;
-
-			case wimp_KEY_PRESSED:
-				key_press_handler(&(blk.key));
-				break;
-
-			case wimp_MENU_SELECTION:
-				menu_selection_handler(&(blk.selection));
 				break;
 			}
 		}
@@ -302,7 +280,7 @@ static void main_initialise(void)
 	optimize_initialise();
 	pdfmark_initialise();
 	initialise_iconbar();
-	initialise_conversion();
+	convert_initialise();
 	initialise_bookmarks();
 
 	url_initialise();
@@ -350,175 +328,12 @@ static osbool main_message_quit(wimp_message *message)
 
 static osbool main_message_prequit(wimp_message *message)
 {
-	if (!bookmark_files_unsaved() && !pending_files_in_queue())
+	if (!bookmark_files_unsaved() && !convert_pending_files_in_queue())
 		return TRUE;
 
 	message->your_ref = message->my_ref;
 	wimp_send_message(wimp_USER_MESSAGE_ACKNOWLEDGE, message, message->sender);
 
 	return TRUE;
-}
-
-
-
-
-
-
-
-
-
-
-/* ==================================================================================================================
- * Mouse click handler
- *
- * NB: This only handles mouse events that are not processed by Event Lib callbacks!
- */
-
-static void mouse_click_handler (wimp_pointer *pointer)
-{
-  extern global_windows windows;
-
-  /* Save PDF Window. */
-
-  if (pointer->w == windows.save_pdf)
-  {
-    switch ((int) pointer->i)
-    {
-      case SAVE_PDF_ICON_FILE:
-        if (pointer->buttons == wimp_DRAG_SELECT)
-        {
-          start_save_window_drag(DRAG_SAVE_PDF);
-        }
-        break;
-
-      case SAVE_PDF_ICON_OK:
-        if (pointer->buttons == wimp_CLICK_SELECT)
-        {
-          immediate_window_save ();
-        }
-        break;
-
-      case SAVE_PDF_ICON_CANCEL:
-        if (pointer->buttons == wimp_CLICK_SELECT)
-        {
-          cancel_conversion ();
-        }
-        break;
-
-      case SAVE_PDF_ICON_QUEUE:
-        if (pointer->buttons == wimp_CLICK_SELECT)
-        {
-          conversion_dialogue_queue ();
-          wimp_close_window (windows.save_pdf);
-        }
-        break;
-
-      case SAVE_PDF_ICON_VERSION_MENU:
-        open_convert_version_menu (pointer, windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD);
-        break;
-
-      case SAVE_PDF_ICON_OPT_MENU:
-        optimize_set_dialogue_callback(process_convert_optimize_dialogue);
-        open_convert_optimize_menu (pointer, windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD);
-        break;
-
-      case SAVE_PDF_ICON_ENCRYPT_MENU:
-        encrypt_set_dialogue_callback(process_convert_encrypt_dialogue);
-        open_convert_encrypt_dialogue (pointer);
-        break;
-
-      case SAVE_PDF_ICON_PDFMARK_MENU:
-        pdfmark_set_dialogue_callback(process_convert_pdfmark_dialogue);
-        open_convert_pdfmark_dialogue (pointer);
-        break;
-
-      case SAVE_PDF_ICON_BOOKMARK_MENU:
-        global_bookmark_dialogue_location = BOOKMARK_SAVE;
-        open_convert_bookmark_menu(pointer, windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD);
-        break;
-    }
-  }
-
-  /* Queue window. */
-
-  else if (pointer->w == windows.queue)
-  {
-    switch ((int) pointer->i)
-    {
-      case QUEUE_ICON_CLOSE:
-        close_queue_window ();
-        break;
-
-      case QUEUE_ICON_CREATE:
-        close_queue_window ();
-        start_held_conversion ();
-        break;
-    }
-  }
-}
-
-/* ==================================================================================================================
- * Keypress handler
- *
- * NB: This only handles key events that are not processed by Event Lib callbacks!
- */
-
-static void key_press_handler (wimp_key *key)
-{
-  extern global_windows windows;
-
-
-  /* Save PDF window */
-
-  if (key->w == windows.save_pdf)
-  {
-    switch (key->c)
-    {
-      case wimp_KEY_RETURN:
-        immediate_window_save ();
-        break;
-
-      case wimp_KEY_ESCAPE:
-        cancel_conversion ();
-        break;
-
-      default:
-        wimp_process_key (key->c);
-        break;
-    }
-  }
-}
-
-/* ==================================================================================================================
- * Menu selection handler
- */
-
-static void menu_selection_handler (wimp_selection *selection)
-{
-	wimp_pointer		pointer;
-	wimp_menu		*old_menu;
-
-	extern global_menus	menus;
-
-
-	/* Store the mouse status before decoding the menu. */
-
-	wimp_get_pointer_info(&pointer);
-	old_menu = menus.menu_up;
-
-	/* Decode the individual menus. */
-
-	if (menus.menu_up == menus.params)
-		decode_param_menu(selection, &pointer);
-	else if (menus.menu_up == menus.bookmarks_list)
-		process_convert_bookmark_menu(selection);
-
-	/* If Adjust was used, reopen the menu.  If the menu block has moved,
-	 * the menu is just closed -- this might be because the block has
-	 * had to be grown in malloc().
-	 */
-
-	if (pointer.buttons == wimp_CLICK_ADJUST && old_menu == menus.menu_up)
-		wimp_create_menu(menus.menu_up, 0, 0);
 }
 

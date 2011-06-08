@@ -116,8 +116,7 @@ static void iconbar_click_handler(wimp_pointer *pointer)
 		break;
 
 	case wimp_CLICK_ADJUST:
-		open_queue_window(pointer); /* Call this first so that the pane is sized before we try and set its extent. */
-		rebuild_queue_index();
+		convert_open_queue_window(pointer);
 		break;
 	}
 }
@@ -135,7 +134,7 @@ static void iconbar_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 {
 	extern global_menus	menus;
 
-	shade_menu_item(menus.icon_bar, ICONBAR_MENU_CHOICES, pdf_conversion_in_progress());
+	shade_menu_item(menus.icon_bar, ICONBAR_MENU_CHOICES, convert_pdf_conversion_in_progress());
 }
 
 
@@ -159,16 +158,15 @@ static void iconbar_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 		break;
 
 	case ICONBAR_MENU_QUEUE:
-		open_queue_window(&pointer); /* Call this first so that the pane is sized before we try and set its extent. */
- 		rebuild_queue_index();
- 		break;
+		convert_open_queue_window(&pointer);
+  		break;
 
  	case ICONBAR_MENU_CHOICES:
  		choices_open_window(&pointer);
  		break;
 
  	case ICONBAR_MENU_QUIT:
-		if (!bookmark_files_unsaved() && !pending_files_in_queue())
+		if (!bookmark_files_unsaved() && !convert_pending_files_in_queue())
 			main_quit_flag = TRUE;
 		break;
 	}

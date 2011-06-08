@@ -164,8 +164,8 @@ void terminate_bookmarks(void);
 /* PDF Creation Interface */
 
 void initialise_bookmark_settings(bookmark_params *params);
-void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon);
 void process_bookmark_menu(bookmark_params *params, wimp_selection *selection);
+wimp_menu *build_bookmark_menu(bookmark_params *params);
 int load_and_select_bookmark_file(bookmark_params *params, char *filename);
 void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params);
 int bookmark_data_available(bookmark_params *params);

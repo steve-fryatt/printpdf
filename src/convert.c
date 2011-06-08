@@ -1,6 +1,6 @@
 /* PrintPDF - convert.c
  *
- * (C) Stephen Fryatt, 2005
+ * (C) Stephen Fryatt, 2005-2011
  */
 
 /* ANSI C header files */
@@ -43,6 +43,7 @@
 #include "bookmark.h"
 #include "encrypt.h"
 #include "main.h"
+#include "menus.h"
 #include "optimize.h"
 #include "pdfmark.h"
 #include "pmenu.h"
@@ -51,32 +52,138 @@
 #include "windows.h"
 #include "dataxfer.h"
 
+
+#define MAX_QUEUE_NAME 32
+#define MAX_FILENAME 512
+#define MAX_DISPLAY_NAME 64
+
+#define QUEUE_ICON_HEIGHT 48
+
+/* Conversion progress stages. */
+
+#define CONVERSION_STOPPED     0
+#define CONVERSION_STARTING    1
+#define CONVERSION_PS2PS       2
+#define CONVERSION_PS2PDF      3
+
+/* Save PDF Window icons. */
+
+#define SAVE_PDF_ICON_OK             0
+#define SAVE_PDF_ICON_CANCEL         1
+#define SAVE_PDF_ICON_NAME           2
+#define SAVE_PDF_ICON_FILE           3
+#define SAVE_PDF_ICON_VERSION_MENU   4
+#define SAVE_PDF_ICON_VERSION_FIELD  5
+#define SAVE_PDF_ICON_OPT_MENU       7
+#define SAVE_PDF_ICON_OPT_FIELD      8
+#define SAVE_PDF_ICON_PREPROCESS     10
+#define SAVE_PDF_ICON_ENCRYPT_MENU   11
+#define SAVE_PDF_ICON_ENCRYPT_FIELD  12
+#define SAVE_PDF_ICON_QUEUE          14
+#define SAVE_PDF_ICON_PDFMARK_MENU   15
+#define SAVE_PDF_ICON_PDFMARK_FIELD  16
+#define SAVE_PDF_ICON_USERFILE       18
+#define SAVE_PDF_ICON_BOOKMARK_MENU  20
+#define SAVE_PDF_ICON_BOOKMARK_FIELD 21
+
+/* Defer queue window icons. */
+
+#define QUEUE_ICON_PANE   0
+#define QUEUE_ICON_CLOSE  1
+#define QUEUE_ICON_CREATE 2
+
+#define QUEUE_PANE_INCLUDE 0
+#define QUEUE_PANE_FILE    1
+#define QUEUE_PANE_DELETE  2
+
+/* Queue entry types. */
+
+#define PENDING_ATTENTION 1
+#define BEING_PROCESSED   2
+#define HELD_IN_QUEUE     3
+#define DISCARDED         4
+#define DELETED           5
+
+
+typedef struct queued_file {
+	char			filename[MAX_QUEUE_NAME];
+	char			display_name[MAX_DISPLAY_NAME];
+	int			object_type;
+	int			include;
+
+	struct queued_file	*next;
+} queued_file;
+
+typedef struct conversion_params {
+	char			input_filename[MAX_FILENAME];
+	char			output_filename[MAX_FILENAME];
+	char			pdfmark_userfile[MAX_FILENAME];
+
+	int			preprocess_in_ps2ps;
+} conversion_params;
+
 /* ****************************************************************************
  * Function Prototypes
  * ****************************************************************************/
 
+static void		convert_start_held_conversion(void);
+static void		convert_open_save_dialogue(void);
+static void		convert_save_dialogue_queue(void);
+
+static osbool		convert_handle_save_icon_drop(wimp_message *message);
+
+static osbool		convert_progress(conversion_params *params);
+static osbool		convert_launch_ps2ps(char *file_out);
+static osbool		convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file);
+static void		convert_cancel_conversion(void);
+
+static void		convert_save_click_handler(wimp_pointer *pointer);
+static osbool		convert_save_keypress_handler(wimp_key *key);
+static void		convert_save_menu_prepare_handler(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
+static void		convert_save_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+
+static void		convert_process_pdfmark_dialogue(void);
+static void		convert_process_encrypt_dialogue(void);
+static void		convert_process_optimize_dialogue(void);
+
+static void		convert_remove_current_conversion(void);
+static void		convert_remove_deleted_files(void);
+static void		convert_remove_first_conversion(void);
+
 /* Defer queue manipulation. */
 
-void			redraw_queue_pane(wimp_draw *redraw);
-void			queue_pane_click(wimp_pointer *pointer);
-void			terminate_queue_entry_drag(wimp_dragged *drag, void *data);
+static void		convert_close_queue_window(void);
+static void		convert_rebuild_queue_index(void);
+static void		convert_reorder_queue_from_index(void);
 
-static osbool		check_for_conversion_end(wimp_message *message);
+static void		convert_queue_pane_redraw_handler(wimp_draw *redraw);
+static void		convert_queue_click_handler(wimp_pointer *pointer);
+static void		convert_queue_pane_click_handler(wimp_pointer *pointer);
+static void		convert_start_queue_entry_drag(int line);
+static void		convert_terminate_queue_entry_drag(wimp_dragged *drag, void *data);
+
+static osbool		convert_check_for_conversion_end(wimp_message *message);
+
+static void		convert_decode_queue_pane_help(char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons);
 
 /* ==================================================================================================================
  * Global variables.
  */
 
 static queued_file	*queue = NULL;
-static int		conversion_in_progress = FALSE;
-static int		files_pending_attention = TRUE;
+static osbool		conversion_in_progress = FALSE;
+static osbool		files_pending_attention = TRUE;
 static wimp_t		conversion_task = 0;
 
 static queued_file	**queue_redraw_list = NULL;
 static int		queue_redraw_lines = 0;
 
-static int		dragging_sprite;
+static osbool		dragging_sprite;
 static int		dragging_start_line;
+
+static wimp_menu	*popup_version;
+static wimp_menu	*popup_optimize;
+static wimp_menu	*popup_bookmark;
 
 /* Conversion parameters. */
 
@@ -86,9 +193,7 @@ static version_params	version;
 static pdfmark_params	pdfmark;
 static bookmark_params	bookmark;
 
-/* ==================================================================================================================
- * Initialisation
- */
+
 
 /**
  * Test for the presence of the queue directory, and create it if it is not already there.
@@ -99,18 +204,12 @@ static bookmark_params	bookmark;
  * Also set up the conversion parameters for the first time, for each of the modules.
  */
 
-void initialise_conversion(void)
+void convert_initialise(void)
 {
 	char			*queue_dir;
 	fileswitch_object_type	type;
-
 	extern global_windows	windows;
-
-
-	/* Set handlers for the queue window. */
-
-	event_add_window_redraw_event(windows.queue_pane, redraw_queue_pane);
-	event_add_window_mouse_event(windows.queue_pane, queue_pane_click);
+	extern global_menus	menus;
 
 	/* Set up the queue directory */
 
@@ -135,248 +234,234 @@ void initialise_conversion(void)
 	pdfmark_initialise_settings(&pdfmark);
 	initialise_bookmark_settings(&bookmark);
 
+	/* \TODO -- The interface for getting menu and window handles needs improved. */
+
+	popup_version = menus.version_popup;
+	popup_optimize = menus.optimize_popup;
+
+	ihelp_add_window (windows.queue_pane, "QueuePane", convert_decode_queue_pane_help);
+
 	/* Register event handlers. */
 
-	event_add_message_handler(message_TASK_CLOSE_DOWN, EVENT_MESSAGE_INCOMING, check_for_conversion_end);
+	event_add_window_mouse_event(windows.save_pdf, convert_save_click_handler);
+	event_add_window_key_event(windows.save_pdf, convert_save_keypress_handler);
+	event_add_window_menu_prepare(windows.save_pdf, convert_save_menu_prepare_handler);
+	event_add_window_menu_selection(windows.save_pdf, convert_save_menu_selection_handler);
+
+	event_add_window_icon_popup(windows.save_pdf, SAVE_PDF_ICON_VERSION_MENU, popup_version, -1);
+	event_add_window_icon_popup(windows.save_pdf, SAVE_PDF_ICON_OPT_MENU, popup_optimize, -1);
+	event_add_window_icon_popup(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_MENU, popup_bookmark, -1);
+
+	event_add_window_mouse_event(windows.queue, convert_queue_click_handler);
+	event_add_window_redraw_event(windows.queue_pane, convert_queue_pane_redraw_handler);
+	event_add_window_mouse_event(windows.queue_pane, convert_queue_pane_click_handler);
+
+	event_add_message_handler(message_TASK_CLOSE_DOWN, EVENT_MESSAGE_INCOMING, convert_check_for_conversion_end);
+	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, convert_handle_save_icon_drop);
 }
 
-/* ==================================================================================================================
- * Queueing files.
- */
 
-/* Check the location of the 'print file' to see if one has appeared.  If it has, add it to the file queue.
+/**
+ * Check the location of the 'print file' to see if one has appeared.  If it
+ * has, add it to the file queue.
  *
  * Called from NULL poll events.
  */
 
-void check_for_ps_file (void)
+void convert_check_for_ps_file(void)
 {
-  fileswitch_object_type type;
-  int                    size;
-  char                   check_file[512];
+	fileswitch_object_type		type;
+	int				size;
+	char				check_file[512];
 
-  sprintf (check_file, "%s.printout/ps", config_str_read("FileQueue"));
+	snprintf(check_file, sizeof(check_file), "%s.printout/ps", config_str_read("FileQueue"));
 
-  xosfile_read_stamped_no_path(check_file, &type, NULL, NULL, &size, NULL, NULL);
+	xosfile_read_stamped_no_path(check_file, &type, NULL, NULL, &size, NULL, NULL);
 
-  if (type == fileswitch_IS_FILE && size > 0)
-  {
-    if (queue_ps_file (check_file))
-    {
-      xosfile_delete (check_file, NULL, NULL, NULL, NULL, NULL);
-    }
-  }
+	if (type == fileswitch_IS_FILE && size > 0 && convert_queue_ps_file(check_file))
+		xosfile_delete(check_file, NULL, NULL, NULL, NULL, NULL);
 
-  /* Handle PDFMaker jobs, for compatibility with R-Comp's system.  If PDFMaker: is set up, check
-   * to see if there is a job file called PS on the path.
-   */
+	/* Handle PDFMaker jobs, for compatibility with R-Comp's system.  If PDFMaker: is set up, check
+	 * to see if there is a job file called PS on the path.
+	 */
 
-  os_read_var_val_size ("PDFMaker$Path", 0, 0, &size, NULL);
+	os_read_var_val_size("PDFMaker$Path", 0, 0, &size, NULL);
 
-  if (size != 0)
-  {
-    strcpy (check_file, "PDFMaker:PS");
+	if (size != 0) {
+		strcpy(check_file, "PDFMaker:PS");
 
-    xosfile_read_stamped_no_path(check_file, &type, NULL, NULL, &size, NULL, NULL);
+		xosfile_read_stamped_no_path(check_file, &type, NULL, NULL, &size, NULL, NULL);
 
-    if (type == fileswitch_IS_FILE && size > 0)
-    {
-      if (queue_ps_file (check_file))
-      {
-        xosfile_delete (check_file, NULL, NULL, NULL, NULL, NULL);
-      }
-    }
-  }
+		if (type == fileswitch_IS_FILE && size > 0 && convert_queue_ps_file (check_file))
+			xosfile_delete (check_file, NULL, NULL, NULL, NULL, NULL);
+	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-/* Take the file specified, copy it with a timestamp and add it to the queue of files.
+/**
+ * Take the file specified, copy it with a timestamp and add it to the queue of files.
+ *
+ * \param *filename		The file to copy.
+ * \return			TRUE if successful; else FALSE.
  */
 
-int queue_ps_file (char *filename)
+osbool convert_queue_ps_file(char *filename)
 {
-  queued_file *new, **list = NULL;
-  char        queued_filename[512];
-  os_error    *error;
-  os_fw       file;
+	queued_file		*new, **list = NULL;
+	char			queued_filename[512];
+	os_error		*error;
+	os_fw			file;
 
-  /* Try and open the file, to see if it is already open.  If we fail for any reason, return with an error to
-   * show that the queuing failed.
-   */
+	/* Try and open the file, to see if it is already open.  If we fail for any reason, return with an error to
+	 * show that the queuing failed.
+	 */
 
-  error = xosfind_openupw (osfind_NO_PATH, filename, NULL, &file);
+	error = xosfind_openupw(osfind_NO_PATH, filename, NULL, &file);
 
-  if (error != NULL || file == 0)
-  {
-    return (0);
-  }
+	if (error != NULL || file == 0)
+		return FALSE;
 
-  osfind_closew (file);
+	osfind_closew(file);
 
-  /* Allocate memory and copy the file on to the queue. */
+	/* Allocate memory and copy the file on to the queue. */
 
-  new = malloc (sizeof (queued_file));
+	new = malloc(sizeof(queued_file));
 
-  if (new != NULL)
-  {
-    sprintf (new->filename, "%x", (int) os_read_monotonic_time ());
-    *(new->display_name) = '\0';
-    new->object_type = PENDING_ATTENTION;
-    new->next = NULL;
+	if (new == NULL)
+		return FALSE;
 
-    list = &queue;
+	sprintf(new->filename, "%x", (int) os_read_monotonic_time());
+	*(new->display_name) = '\0';
+	new->object_type = PENDING_ATTENTION;
+	new->next = NULL;
 
-    while (*list != NULL)
-    {
-      list = &((*list)->next);
-    }
+	list = &queue;
 
-    *list = new;
+	while (*list != NULL)
+		list = &((*list)->next);
 
-    sprintf (queued_filename, "%s.%s", config_str_read("FileQueue"), new->filename);
-    error = xosfscontrol_copy (filename, queued_filename, osfscontrol_COPY_FORCE, 0, 0, 0, 0, NULL);
+	*list = new;
 
-    if (error != NULL)
-    {
-      *list = NULL;
-      free (new);
-      return (0);
-    }
-    else
-    {
-      files_pending_attention = TRUE;
-    }
-  }
+	snprintf(queued_filename, sizeof(queued_filename), "%s.%s", config_str_read("FileQueue"), new->filename);
+	error = xosfscontrol_copy(filename, queued_filename, osfscontrol_COPY_FORCE, 0, 0, 0, 0, NULL);
 
-  return (1);
+	if (error != NULL) {
+		*list = NULL;
+		free(new);
+		return FALSE;
+	}
+
+	files_pending_attention = TRUE;
+
+	return TRUE;
 }
 
-/* ==================================================================================================================
- * Starting conversions
- */
 
-/* Test to see if there is a file queued and no conversion taking place.  If these are both true, select the next
+/**
+ * Test to see if there is a file queued and no conversion taking place.  If these are both true, select the next
  * pending file in the queue and open the Save PDF dialogue.
  *
  * Called from NULL poll events.
  */
 
-void check_for_pending_files (void)
+void convert_check_for_pending_files (void)
 {
-  queued_file  *list;
+	queued_file		*list;
+	extern global_windows	windows;
 
-  extern global_windows windows;
+	/* We can't start a conversion if:
+	 *
+	 * - The Choices window is open (the options menus would get confused)
+	 * - There is a conversion in progress
+	 * - There isn't anything to convert (Duh!)
+	 */
 
+	if (window_is_open(windows.choices) || conversion_in_progress || !files_pending_attention || queue == NULL)
+		return;
 
-  /* We can't start a conversion if:
-   *
-   * - The Choices window is open (the options menus would get confused)
-   * - There is a conversion in progress
-   * - There isn't anything to convert (Duh!)
-   */
+	list = queue;
 
-  if (!window_is_open (windows.choices) && !conversion_in_progress && files_pending_attention && queue != NULL)
-  {
-    list = queue;
+	files_pending_attention = FALSE;
+	conversion_in_progress = FALSE;
 
-    files_pending_attention = FALSE;
-    conversion_in_progress = FALSE;
+	/* Scan thtough the queue.  The first file PENDING_ATTENTION is turned into BEING_PROCESSED.  If there are
+	 * more files PENDING_ATTENTION, this is reflected in the files_pending_attention flag to save re-scanning
+	 * the queue each NULL Poll.
+	 */
 
-    /* Scan thtough the queue.  The first file PENDING_ATTENTION is turned into BEING_PROCESSED.  If there are
-     * more files PENDING_ATTENTION, this is reflected in the files_pending_attention flag to save re-scanning
-     * the queue each NULL Poll.
-     */
+	while (list != NULL) {
+		if (list->object_type == PENDING_ATTENTION) {
+			if (!conversion_in_progress) {
+				list->object_type = BEING_PROCESSED;
+				conversion_in_progress = TRUE;
+			} else {
+				files_pending_attention = TRUE;
+			}
+		}
 
-    while (list != NULL)
-    {
-      if (list->object_type == PENDING_ATTENTION)
-      {
-        if (!conversion_in_progress)
-        {
-          list->object_type = BEING_PROCESSED;
-          conversion_in_progress = TRUE;
-        }
-        else
-        {
-          files_pending_attention = TRUE;
-        }
-      }
-      list = list->next;
-    }
+		list = list->next;
+	}
 
-    /* If a file was found to convert, open the Save PDF dialogue. */
+	/* If a file was found to convert, open the Save PDF dialogue. */
 
-    if (conversion_in_progress)
-    {
-      open_conversion_dialogue ();
-    }
-  }
+	if (conversion_in_progress)
+		convert_open_save_dialogue();
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-/* Start a conversion on files held in the deferred queue.  This is called by a user action, probably clicking
- * Convert in the queue dialogue.
+/**
+ * Start a conversion on files held in the deferred queue.  This is
+ * called by a user action, probably clicking Convert in the queue dialogue.
  */
 
-void start_held_conversion (void)
+static void convert_start_held_conversion(void)
 {
-  queued_file  *list;
+	queued_file		*list;
+	extern global_windows	windows;
 
-  extern global_windows windows;
+	/* We can't start a conversion if:
+	 *
+	 * - The Choices window is open (the options menus would get confused)
+	 * - There is a conversion in progress
+	 */
 
+	if (window_is_open(windows.choices) || conversion_in_progress || queue == NULL)
+		return;
 
-  /* We can't start a conversion if:
-   *
-   * - The Choices window is open (the options menus would get confused)
-   * - There is a conversion in progress
-   */
+	list = queue;
 
-  if (!window_is_open (windows.choices) && !conversion_in_progress && queue != NULL)
-  {
-    list = queue;
+	files_pending_attention = FALSE;
+	conversion_in_progress = FALSE;
 
-    files_pending_attention = FALSE;
-    conversion_in_progress = FALSE;
+	/* Scan thtough the queue.  The any files HELD_IN_QUEUE are turned into BEING_PROCESSED.  If there are
+	 * files PENDING_ATTENTION, this is reflected in the files_pending_attention flag to save re-scanning
+	 * the queue each NULL Poll.
+	 */
 
-    /* Scan thtough the queue.  The any files HELD_IN_QUEUE are turned into BEING_PROCESSED.  If there are
-     * files PENDING_ATTENTION, this is reflected in the files_pending_attention flag to save re-scanning
-     * the queue each NULL Poll.
-     */
+	while (list != NULL) {
+		if (list->object_type == PENDING_ATTENTION)
+			files_pending_attention = TRUE;
 
-    while (list != NULL)
-    {
-      if (list->object_type == PENDING_ATTENTION)
-      {
-        files_pending_attention = TRUE;
-      }
-      if (list->object_type == HELD_IN_QUEUE && list->include == TRUE)
-      {
-        list->object_type = BEING_PROCESSED;
-        conversion_in_progress = TRUE;
-      }
-      list = list->next;
-    }
+		if (list->object_type == HELD_IN_QUEUE && list->include == TRUE) {
+			list->object_type = BEING_PROCESSED;
+			conversion_in_progress = TRUE;
+		}
 
-    /* If a file or files were found to convert, open the Save PDF dialogue. */
+		list = list->next;
+	}
 
-    if (conversion_in_progress)
-    {
-      open_conversion_dialogue ();
-    }
-  }
+	/* If a file or files were found to convert, open the Save PDF dialogue. */
+
+	if (conversion_in_progress)
+		convert_open_save_dialogue();
 }
 
-/* ==================================================================================================================
- * Handling Save PDF dialogue
- */
 
 /**
  * Open the Save PDF dialogue on screen, at the pointer.
  */
 
-void open_conversion_dialogue(void)
+static void convert_open_save_dialogue(void)
 {
 	wimp_pointer		pointer;
 
@@ -407,101 +492,100 @@ void open_conversion_dialogue(void)
 	put_caret_at_end(windows.save_pdf, SAVE_PDF_ICON_NAME);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-/* Handle the closure of the file save dialogue following a successful data xfer protocol or similar.
+/**
+ * Handle the closure of the file save dialogue following a successful data xfer protocol or similar.
  * The settings are retrieved, and a conversion process is started.
+ *
+ * \param *output_file		The file to save the PDF as.
  */
 
-void conversion_dialogue_end (char *output_file)
+void convert_save_dialogue_end(char *output_file)
 {
-  conversion_params params;
+	conversion_params	params;
+	extern global_windows	windows;
 
-  extern global_windows windows;
+	/* Sort out the filenames. */
 
-  /* Sort out the filenames. */
+	terminate_ctrl_str(output_file);
 
-  terminate_ctrl_str (output_file);
+	strcpy(params.output_filename, output_file);
+	strcpy(indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_NAME), output_file);
 
-  strcpy (params.output_filename, output_file);
-  strcpy (indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), output_file);
+	/* Read and store the options from the window. */
 
-  /* Read and store the options from the window. */
+	params.preprocess_in_ps2ps = read_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS);
+	ctrl_strcpy(params.pdfmark_userfile, indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_USERFILE));
 
-  params.preprocess_in_ps2ps = read_icon_selected (windows.save_pdf, SAVE_PDF_ICON_PREPROCESS);
-  ctrl_strcpy (params.pdfmark_userfile, indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE));
+	/* Launch the conversion process. */
 
-  /* Launch the conversion process. */
+	conversion_in_progress = convert_progress(&params);
 
-  conversion_in_progress = conversion_progress (&params);
-
-  if (!conversion_in_progress)
-  {
-    conversion_task = 0;
-    conversion_in_progress = FALSE;
-    remove_current_conversion ();
-  }
+	if (!conversion_in_progress) {
+		conversion_task = 0;
+		conversion_in_progress = FALSE;
+		convert_remove_current_conversion();
+	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-/* Handle the closure of the file save dialogue, following a click on the Queue icon.  Any files in the queue being
- * processed are changed to HELD_IN_QUEUE.
+/**
+ * Handle the closure of the file save dialogue, following a click on the
+ * Queue icon.  Any files in the queue being processed are changed to
+ * HELD_IN_QUEUE.
  */
 
-void conversion_dialogue_queue (void)
+static void convert_save_dialogue_queue(void)
 {
-  char        *leafname, filename[MAX_FILENAME];
-  queued_file *list;
+	char			*leafname, filename[MAX_FILENAME];
+	queued_file		*list;
+	extern global_windows	windows;
 
-  extern global_windows windows;
+	/* Sort out the filenames. */
 
+	ctrl_strcpy(filename, indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_NAME));
+	leafname = find_leafname(filename);
 
-  /* Sort out the filenames. */
+	list = queue;
 
-  ctrl_strcpy (filename, indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME));
-  leafname = find_leafname (filename);
+	while (list != NULL) {
+		if (list->object_type == BEING_PROCESSED) {
+			list->object_type = HELD_IN_QUEUE;
 
-  list = queue;
+			strcpy(list->display_name, leafname);
+			(list->display_name)[MAX_DISPLAY_NAME-1] = '\0';
 
-  while (list != NULL)
-  {
-    if (list->object_type == BEING_PROCESSED)
-    {
-      list->object_type = HELD_IN_QUEUE;
+			list->include = TRUE;
+		}
 
-      strcpy (list->display_name, leafname);
-      (list->display_name)[MAX_DISPLAY_NAME-1] = '\0';
+		list = list->next;
+	}
 
-      list->include = TRUE;
-    }
+	if (window_is_open (windows.queue)) {
+		convert_reorder_queue_from_index();
+		convert_rebuild_queue_index();
+		force_visible_window_redraw(windows.queue_pane);
+	}
 
-    list = list->next;
-  }
-
-  if (window_is_open (windows.queue))
-  {
-    reorder_queue_from_index ();
-    rebuild_queue_index ();
-    force_visible_window_redraw (windows.queue_pane);
-  }
-
-  conversion_in_progress = FALSE;
+	conversion_in_progress = FALSE;
 }
 
 
 /**
  * Process files being saved into the Create PDF window.
  *
- * \param  *dataload		The full dataload message block.
+ * \param *message		The associated Wimp message block.
+ * \return			TRUE to show the message was handled; else FALSE.
  */
 
-void handle_save_icon_drop(wimp_full_message_data_xfer *dataload)
+static osbool convert_handle_save_icon_drop(wimp_message *message)
 {
-	char			*extension, *leaf, path[256];
+	wimp_full_message_data_xfer	*dataload = (wimp_full_message_data_xfer *) message;
+	char				*extension, *leaf, path[256];
+	extern global_windows		windows;
 
-	extern global_windows	windows;
-
+	if (dataload->w != windows.save_pdf)
+		return FALSE;
 
 	if (dataload != NULL && dataload->w == windows.save_pdf && dataload->file_type == PRINTPDF_FILE_TYPE) {
 		if (!load_and_select_bookmark_file(&bookmark, dataload->file_name))
@@ -532,269 +616,241 @@ void handle_save_icon_drop(wimp_full_message_data_xfer *dataload)
 			break;
 		}
 	}
+
+	return TRUE;
 }
 
-/* ==================================================================================================================
- * Ghostscript conversion progress
- */
 
-/* Start or progress a conversion.
+/**
+ * Start or progress a conversion.
  *
- * This function maintains state between calls, so it can be called to move the conversion on from one stage to
- * the next as the child tasks terminate.
+ * This function maintains state between calls, so it can be called to move
+ * the conversion on from one stage to the next as the child tasks terminate.
+ *
+ * \param *params		The parameters for the conversion to be progressed.
+ * \return			TRUE if the conversion is complete; else FALSE.
  */
 
-int conversion_progress (conversion_params *params)
+static osbool convert_progress(conversion_params *params)
 {
-  static int             conversion_state = CONVERSION_STOPPED;
-  static char            output_file[MAX_FILENAME];
-  static char            pdfmark_file[MAX_FILENAME];
-  static int             preprocess_in_ps2ps;
+	static int		conversion_state = CONVERSION_STOPPED;
+	static char		output_file[MAX_FILENAME];
+	static char		pdfmark_file[MAX_FILENAME];
+	static int		preprocess_in_ps2ps;
 
-  char                   intermediate_file[MAX_FILENAME], *intermediate_leaf="inter";
-  queued_file            *list, *new, **end = NULL;
-  os_error               *err;
+	char			intermediate_file[MAX_FILENAME], *intermediate_leaf="inter";
+	queued_file		*list, *new, **end = NULL;
+	os_error		*err;
 
-  /* If conversion parameters have been passed in and the conversion is stopped, reset and start a new process.
-   */
+	/* If conversion parameters have been passed in and the conversion is stopped, reset and start a new process.
+	 */
 
-  if (conversion_state == CONVERSION_STOPPED && params != NULL)
-  {
-    strcpy (output_file, params->output_filename);
-    strcpy (pdfmark_file, params->pdfmark_userfile);
+	if (conversion_state == CONVERSION_STOPPED && params != NULL) {
+		strcpy(output_file, params->output_filename);
+		strcpy(pdfmark_file, params->pdfmark_userfile);
 
-    preprocess_in_ps2ps = params->preprocess_in_ps2ps;
+		preprocess_in_ps2ps = params->preprocess_in_ps2ps;
 
-    conversion_state = CONVERSION_STARTING;
-  }
+		conversion_state = CONVERSION_STARTING;
+	}
 
-  /* The state machine to handle the steps in the process. */
+	/* The state machine to handle the steps in the process. */
 
-  switch (conversion_state)
-  {
-    case CONVERSION_STARTING:
-      err = xosfile_create (output_file, 0xdeaddead, 0xdeaddead, 0);
+	switch (conversion_state) {
+	case CONVERSION_STARTING:
+		err = xosfile_create(output_file, 0xdeaddead, 0xdeaddead, 0);
 
-      if (err == NULL)
-      {
-        if (preprocess_in_ps2ps)
-        {
-          sprintf (intermediate_file, "%s.%s", config_str_read("FileQueue"), intermediate_leaf);
-          conversion_state = (launch_ps2ps (intermediate_file)) ? CONVERSION_STOPPED : CONVERSION_PS2PS;
-        }
-        else
-        {
-          conversion_state = (launch_ps2pdf (output_file, pdfmark_file)) ? CONVERSION_STOPPED : CONVERSION_PS2PDF;
-        }
-      }
-      else
-      {
-        wimp_msgtrans_error_report ("FOpenFailed");
-        conversion_state = CONVERSION_STOPPED;
-      }
-      break;
+		if (err == NULL) {
+			if (preprocess_in_ps2ps) {
+				sprintf(intermediate_file, "%s.%s", config_str_read("FileQueue"), intermediate_leaf);
+				conversion_state = (convert_launch_ps2ps(intermediate_file)) ? CONVERSION_PS2PS : CONVERSION_STOPPED;
+			} else {
+				conversion_state = (convert_launch_ps2pdf(output_file, pdfmark_file)) ? CONVERSION_PS2PDF : CONVERSION_STOPPED;
+			}
+		} else {
+			wimp_msgtrans_error_report("FOpenFailed");
+			conversion_state = CONVERSION_STOPPED;
+		}
+		break;
 
-    case CONVERSION_PS2PS:
-      list = queue;
+	case CONVERSION_PS2PS:
+		list = queue;
 
-      while (list != NULL)
-      {
-        if (list->object_type == BEING_PROCESSED)
-        {
-          list->object_type = DISCARDED;
-        }
+		while (list != NULL) {
+			if (list->object_type == BEING_PROCESSED)
+				list->object_type = DISCARDED;
 
-        end = &(list->next);
+			end = &(list->next);
+			list = list->next;
+		}
 
-        list = list->next;
-      }
+		new = malloc (sizeof (queued_file));
 
-      new = malloc (sizeof (queued_file));
+		if (new != NULL) {
+			strcpy(new->filename, intermediate_leaf);
+			*(new->display_name) = '\0';
+			new->object_type = BEING_PROCESSED;
+			new->next = NULL;
 
-      if (new != NULL)
-      {
-        strcpy (new->filename, intermediate_leaf);
-        *(new->display_name) = '\0';
-        new->object_type = BEING_PROCESSED;
-        new->next = NULL;
+			if (end != NULL)
+				*end = new;
 
-        if (end != NULL)
-        {
-          *end = new;
-        }
+			conversion_state = (convert_launch_ps2pdf(output_file, pdfmark_file)) ? CONVERSION_PS2PDF : CONVERSION_STOPPED;
+		} else {
+			conversion_state = CONVERSION_STOPPED;
+		}
+		break;
 
-        conversion_state = (launch_ps2pdf (output_file, pdfmark_file)) ? CONVERSION_STOPPED : CONVERSION_PS2PDF;
-      }
-      else
-      {
-        conversion_state = CONVERSION_STOPPED;
-      }
+	case CONVERSION_PS2PDF:
+			osfile_set_type(output_file, 0xadf);
 
-      break;
+			if (config_opt_read ("PopUpAfter"))
+				popup_open(config_int_read("PopUpTime"));
 
-    case CONVERSION_PS2PDF:
-      osfile_set_type (output_file, 0xadf);
+			conversion_state = CONVERSION_STOPPED;
+			break;
+	}
 
-      if (config_opt_read ("PopUpAfter"))
-      {
-        popup_open(config_int_read("PopUpTime"));
-      }
-      conversion_state = CONVERSION_STOPPED;
-      break;
-  }
+	/* Exit, signalling true if the process has ended. */
 
-  /* Exit, signalling true if the process has ended. */
-
-  return (conversion_state != CONVERSION_STOPPED);
+	return (conversion_state != CONVERSION_STOPPED) ? TRUE : FALSE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-/* Launch ps2ps.
+/**
+ * Launch ps2ps on the files listed in the file queue, outputting the resulting
+ * PS file to the given filename.
+ *
+ * \param *file_out		The name of the output file to save to.
+ * \return			TRUE if the conversion starts; else FALSE.
  */
 
-int launch_ps2ps (char *file_out)
+static osbool convert_launch_ps2ps(char *file_out)
 {
-  char        command[1024], taskname[32];
-  queued_file *list;
+	char		command[1024], taskname[32];
+	queued_file	*list;
+	FILE		*param_file;
+	os_error	*error = NULL;
 
-  FILE        *param_file;
-  os_error    *error = NULL;
+	msgs_lookup("ChildTaskName", taskname, sizeof(taskname));
 
-  msgs_lookup ("ChildTaskName", taskname, sizeof (taskname));
+	param_file = fopen(config_str_read("ParamFile"), "w");
 
-  param_file = fopen (config_str_read("ParamFile"), "w");
-  if (param_file != NULL)
-  {
-    /* Write all the conversion options and filename details to the gs parameters file. */
+	if (param_file != NULL) {
+		/* Write all the conversion options and filename details to the gs parameters file. */
 
-    fprintf (param_file, "-dSAFER -q -dNOPAUSE -dBATCH -sDEVICE=pswrite -sOutputFile=%s", file_out);
+		fprintf(param_file, "-dSAFER -q -dNOPAUSE -dBATCH -sDEVICE=pswrite -sOutputFile=%s", file_out);
 
-    list = queue;
+		list = queue;
 
-    while (list != NULL)
-    {
-      if (list->object_type == BEING_PROCESSED)
-      {
-        fprintf (param_file, " %s.%s", config_str_read("FileQueue"), list->filename);
-      }
+		while (list != NULL) {
+			if (list->object_type == BEING_PROCESSED)
+				fprintf(param_file, " %s.%s", config_str_read("FileQueue"), list->filename);
 
-      list = list->next;
-    }
+			list = list->next;
+		}
 
-    fclose (param_file);
+		fclose(param_file);
 
-    /* Write all the taskwindow command line details to the command string. */
+		/* Write all the taskwindow command line details to the command string. */
 
-    sprintf (command,
-             "TaskWindow \"gs @%s\" %dk -name \"%s\" -quit",
-             config_str_read("ParamFile"), config_int_read("TaskMemory"), taskname);
+		snprintf(command, sizeof(command), "TaskWindow \"gs @%s\" %dk -name \"%s\" -quit",
+				config_str_read("ParamFile"), config_int_read("TaskMemory"), taskname);
 
-    /* Launch the conversion task. */
+		/* Launch the conversion task. */
 
-    error = xwimp_start_task (command, &conversion_task);
-  }
+		error = xwimp_start_task(command, &conversion_task);
+	}
 
-  return (error != NULL || conversion_task == 0);
+	return (error == NULL && conversion_task != 0) ? TRUE : FALSE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-/* Launch ps2pdf, using the file at the top of the queue and the filename retrieved from the Save dialogue.
+/**
+ * Launch ps2pdf, using the file at the top of the queue and the filename retrieved from the Save dialogue.
  * This will either be at a drag end, or as a result of the user clicking 'OK' on a full filename.
  *
  * To get around command line length restrictions on RISC OS 3.x, we dump the bulk of the parameters into a file
  * in PipeFS and pass this in to gs as a parameters file using the @ parameter.
+ *
+ * \param *file_out		The file to save the PDF as.
+ * \param *user_pdfmark_file	A user-supplied PDFMark file's pathname, if required.
+ * \return			TRUE if the conversion started; else FALSE.
  */
 
-int launch_ps2pdf (char *file_out, char *user_pdfmark_file)
+static osbool convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file)
 {
-  char        command[1024], taskname[32], encrypt_buf[1024], optimize_buf[1024], version_buf[1024];
-  queued_file *list;
+	char		command[1024], taskname[32], encrypt_buf[1024], optimize_buf[1024], version_buf[1024];
+	queued_file	*list;
+	FILE		*param_file, *pdfmark_file;
+	os_error	*error = NULL;
 
-  FILE         *param_file, *pdfmark_file;
-  os_error     *error = NULL;
+	msgs_lookup("ChildTaskName", taskname, sizeof(taskname));
 
-  msgs_lookup ("ChildTaskName", taskname, sizeof (taskname));
+	param_file = fopen(config_str_read("ParamFile"), "w");
+	if (param_file != NULL) {
+		/* Generate a PDFMark file if necessary. */
 
-  param_file = fopen (config_str_read("ParamFile"), "w");
-  if (param_file != NULL)
-  {
-    /* Generate a PDFMark file if necessary. */
+		if (pdfmark_data_available(&pdfmark) || bookmark_data_available(&bookmark)) {
+			pdfmark_file = fopen (config_str_read ("PDFMarkFile"), "w");
 
-    if (pdfmark_data_available(&pdfmark) || bookmark_data_available(&bookmark))
-    {
-      pdfmark_file = fopen (config_str_read ("PDFMarkFile"), "w");
+			if (pdfmark_file != NULL) {
+				pdfmark_write_docinfo_file(pdfmark_file, &pdfmark);
+				write_pdfmark_out_file(pdfmark_file, &bookmark);
 
-      if (pdfmark_file != NULL)
-      {
-        pdfmark_write_docinfo_file(pdfmark_file, &pdfmark);
-        write_pdfmark_out_file(pdfmark_file, &bookmark);
+				fclose(pdfmark_file);
+			}
+		}
 
-        fclose(pdfmark_file);
-      }
-    }
+		/* Write all the conversion options and filename details to the gs parameters file. */
 
-    /* Write all the conversion options and filename details to the gs parameters file. */
+		version_build_params(version_buf, sizeof(version_buf), &version);
+		optimize_build_params(optimize_buf, sizeof(optimize_buf), &optimization);
+		encryption_build_params(encrypt_buf, sizeof(encrypt_buf), &encryption, version.standard_version >= 2);
 
-    version_build_params(version_buf, sizeof(version_buf), &version);
-    optimize_build_params(optimize_buf, sizeof(optimize_buf), &optimization);
-    encryption_build_params(encrypt_buf, sizeof(encrypt_buf), &encryption, version.standard_version >= 2);
+		fprintf(param_file, "-dSAFER %s%s%s -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite "
+				"-sOutputFile=%s -c .setpdfwrite save pop -f",
+				version_buf, optimize_buf, encrypt_buf, file_out);
 
-    fprintf (param_file,
-             "-dSAFER %s%s%s"
-             "-q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite "
-             "-sOutputFile=%s -c .setpdfwrite save pop -f",
-             version_buf, optimize_buf, encrypt_buf, file_out);
+		list = queue;
 
-    list = queue;
+		while (list != NULL) {
+			if (list->object_type == BEING_PROCESSED)
+				fprintf(param_file, " %s.%s", config_str_read("FileQueue"), list->filename);
 
-    while (list != NULL)
-    {
-      if (list->object_type == BEING_PROCESSED)
-      {
-        fprintf (param_file, " %s.%s", config_str_read("FileQueue"), list->filename);
-      }
+			list = list->next;
+		}
 
-      list = list->next;
-    }
+		/* If there is a PDFMark file, pass that in too. */
 
-    if (osfile_read_stamped_no_path (config_str_read ("PDFMarkFile"), NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
-    {
-      /* If there is a PDFMark file, pass that in too. */
+		if (osfile_read_stamped_no_path (config_str_read("PDFMarkFile"), NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
+			fprintf(param_file, " %s", config_str_read("PDFMarkFile"));
 
-      fprintf (param_file, " %s", config_str_read ("PDFMarkFile"));
-    }
+		/* If there is a PDFMark User File, pass that in too. */
 
-    if (*user_pdfmark_file != '\0' &&
-            osfile_read_stamped_no_path (user_pdfmark_file, NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
-   {
-      /* If there is a PDFMark User File, pass that in too. */
+		if (*user_pdfmark_file != '\0' &&
+				osfile_read_stamped_no_path(user_pdfmark_file, NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
+			fprintf (param_file, " %s", user_pdfmark_file);
 
-      fprintf (param_file, " %s", user_pdfmark_file);
-    }
+		fclose(param_file);
 
-    fclose (param_file);
+		/* Write all the taskwindow command line details to the command string. */
 
-    /* Write all the taskwindow command line details to the command string. */
+		snprintf(command, sizeof(command), "TaskWindow \"gs @%s\" %dk -name \"%s\" -quit",
+				config_str_read("ParamFile"), config_int_read("TaskMemory"), taskname);
 
-    sprintf (command,
-             "TaskWindow \"gs @%s\" %dk -name \"%s\" -quit",
-             config_str_read("ParamFile"), config_int_read("TaskMemory"), taskname);
+		#ifdef DEBUG
+		debug_printf("Command (length %d): '%s'", strlen(command), command);
+		#endif
 
-    #ifdef DEBUG
-    debug_printf ("Command (length %d): '%s'", strlen(command), command);
-    #endif
+		/* Launch the conversion task. */
 
-    /* Launch the conversion task. */
+		error = xwimp_start_task(command, &conversion_task);
+	}
 
-    error = xwimp_start_task (command, &conversion_task);
-  }
-
-  return (error != NULL || conversion_task == 0);
+	return (error == NULL && conversion_task != 0) ? TRUE : FALSE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
 /**
  * Process Message_TaskCloseDown, to see if the task that ended had the same task handle as the current
@@ -807,33 +863,34 @@ int launch_ps2pdf (char *file_out, char *user_pdfmark_file)
  * \return			FALSE to allow other claimants to see the message.
  */
 
-static osbool check_for_conversion_end(wimp_message *message)
+static osbool convert_check_for_conversion_end(wimp_message *message)
 {
-	if (message != NULL && message->sender == conversion_task && !conversion_progress(NULL)) {
+	if (message != NULL && message->sender == conversion_task && !convert_progress(NULL)) {
 		conversion_task = 0;
 		conversion_in_progress = CONVERSION_STOPPED;
-		remove_current_conversion ();
+		convert_remove_current_conversion();
 	}
 
 	return FALSE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-/* Called to cancel the conversion that is being set up.  Reset the flags, close the window and remove the item from
- * the queue.
+/**
+ * Called to cancel the conversion that is being set up.  Reset the flags,
+ * close the window and remove the item from the queue.
  */
 
-void cancel_conversion (void)
+static void convert_cancel_conversion(void)
 {
-  extern global_windows windows;
+	extern global_windows		windows;
 
-  wimp_close_window (windows.save_pdf);
-  conversion_task = 0;
-  conversion_in_progress = FALSE;
+	wimp_close_window(windows.save_pdf);
+	conversion_task = 0;
+	conversion_in_progress = FALSE;
 
-  remove_current_conversion ();
+	convert_remove_current_conversion();
 }
+
 
 /**
  * Called by modules to ask the converion system to re-validate its parameters.
@@ -847,590 +904,642 @@ void convert_validate_params(void)
 		fill_bookmark_field(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
 }
 
-/* ==================================================================================================================
- * Handle pop-up menus from the dialogue.
- */
-
-void open_convert_version_menu (wimp_pointer *pointer, wimp_w window, wimp_i icon)
-{
-  //version_open_menu (&version, pointer, window, icon, PARAM_MENU_CONVERT_VERSION);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void process_convert_version_menu (wimp_selection *selection)
-{
-  extern global_windows windows;
-
-  //version_process_menu (&version, selection);
-
-  //version_fill_field (windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void open_convert_optimize_menu (wimp_pointer *pointer, wimp_w window, wimp_i icon)
-{
-  //optimize_open_menu(&optimization, pointer, window, icon, PARAM_MENU_CONVERT_OPTIMIZE);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void process_convert_optimize_menu (wimp_selection *selection)
-{
-  extern global_windows windows;
-
-  //optimize_process_menu(&optimization, selection);
-
-  optimize_fill_field (windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
-}
 
 /**
- * Open the bookmark pop-up menu in the save window.
- */
-
-void open_convert_bookmark_menu(wimp_pointer *pointer, wimp_w window, wimp_i icon)
-{
-	open_bookmark_menu(&bookmark, pointer, window, icon);
-}
-
-/**
- * Process menu selections from the bookmark pop-up in the save window.
- */
-
-void process_convert_bookmark_menu(wimp_selection *selection)
-{
-	extern global_windows	windows;
-
-	process_bookmark_menu(&bookmark, selection);
-	fill_bookmark_field(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
-}
-
-/* ==================================================================================================================
- * Handle Encryption and Optimization dialogues.
- */
-
-void open_convert_pdfmark_dialogue (wimp_pointer *pointer)
-{
-  pdfmark_open_dialogue (&pdfmark, pointer);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void process_convert_pdfmark_dialogue (void)
-{
-  extern global_windows windows;
-
-  pdfmark_process_dialogue (&pdfmark);
-
-  pdfmark_fill_field (windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void open_convert_encrypt_dialogue (wimp_pointer *pointer)
-{
-  encrypt_open_dialogue (&encryption, version.standard_version >= 2, pointer);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void process_convert_encrypt_dialogue (void)
-{
-  extern global_windows windows;
-
-  encrypt_process_dialogue (&encryption);
-
-  encrypt_fill_field (windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void process_convert_optimize_dialogue (void)
-{
-  extern global_windows windows;
-
-  optimize_process_dialogue (&optimization);
-
-  optimize_fill_field (windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
-}
-
-/* ==================================================================================================================
- * Dequeueing files.
- */
-
-/* Remove the current item or items from the queue, deleting them from the Scrap directory.
- */
-
-void remove_current_conversion (void)
-{
-  queued_file           **list, *old;
-  char                  old_file[512];
-
-  list = &queue;
-
-  while (*list != NULL)
-  {
-    if ((*list)->object_type == BEING_PROCESSED || (*list)->object_type == DISCARDED)
-    {
-      old = (*list);
-      sprintf (old_file, "%s.%s", config_str_read("FileQueue"), old->filename);
-      xosfile_delete (old_file, NULL, NULL, NULL, NULL, NULL);
-
-      *list = ((*list)->next);
-
-      free (old);
-    }
-    else
-    {
-      list = &((*list)->next);
-    }
-  }
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-/* Remove deleted items from the queue, deleting them from the Scrap directory.
- */
-
-void remove_deleted_files (void)
-{
-  queued_file           **list, *old;
-  char                  old_file[512];
-
-  list = &queue;
-
-  while (*list != NULL)
-  {
-    if ((*list)->object_type == DELETED)
-    {
-      old = (*list);
-      sprintf (old_file, "%s.%s", config_str_read("FileQueue"), old->filename);
-      xosfile_delete (old_file, NULL, NULL, NULL, NULL, NULL);
-
-      *list = ((*list)->next);
-
-      free (old);
-    }
-    else
-    {
-      list = &((*list)->next);
-    }
-  }
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-/* Remove the first item from the queue, deleting it from the Scrap directory.
- */
-
-void remove_first_conversion (void)
-{
-  queued_file           *old;
-  char                  old_file[512];
-
-  old = queue;
-  sprintf (old_file, "%s.%s", config_str_read("FileQueue"), old->filename);
-  xosfile_delete (old_file, NULL, NULL, NULL, NULL, NULL);
-
-  queue = old->next;
-  free (old);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-/* Remove all the items from the queue, and delete their files.
- */
-
-void remove_all_remaining_conversions (void)
-{
-  while (queue != NULL)
-  {
-    remove_first_conversion ();
-  }
-}
-
-/* ==================================================================================================================
- * External interfaces
- */
-
-/* Return an indication that a conversion is underway. */
-
-int pdf_conversion_in_progress (void)
-{
-  return (conversion_in_progress);
-}
-
-/**
- * Test for queued files and ask the user if they need to be saved.
+ * Process mouse clicks in the Save PDF dialogue.
  *
- * \return			1 if there are files to be saved; else 0.
+ * \param *pointer		The mouse event block to handle.
  */
 
-int pending_files_in_queue(void)
+static void convert_save_click_handler(wimp_pointer *pointer)
+{
+	extern global_windows		windows;
+
+	if (pointer == NULL)
+		return;
+
+	switch ((int) pointer->i) {
+	case SAVE_PDF_ICON_FILE:
+		if (pointer->buttons == wimp_DRAG_SELECT)
+			start_save_window_drag(DRAG_SAVE_PDF);
+		break;
+
+	case SAVE_PDF_ICON_OK:
+		if (pointer->buttons == wimp_CLICK_SELECT)
+			immediate_window_save();
+		break;
+
+	case SAVE_PDF_ICON_CANCEL:
+		if (pointer->buttons == wimp_CLICK_SELECT)
+			convert_cancel_conversion();
+		break;
+
+	case SAVE_PDF_ICON_QUEUE:
+		if (pointer->buttons == wimp_CLICK_SELECT) {
+			convert_save_dialogue_queue();
+			wimp_close_window(windows.save_pdf);
+		}
+		break;
+
+	case SAVE_PDF_ICON_ENCRYPT_MENU:
+		encrypt_set_dialogue_callback(convert_process_encrypt_dialogue);
+		encrypt_open_dialogue(&encryption, version.standard_version >= 2, pointer);
+		break;
+
+	case SAVE_PDF_ICON_PDFMARK_MENU:
+		pdfmark_set_dialogue_callback(convert_process_pdfmark_dialogue);
+		pdfmark_open_dialogue(&pdfmark, pointer);
+		break;
+		break;
+	}
+}
+
+
+/**
+ * Process keypresses in the Save PDF window.
+ *
+ * \param *key		The keypress event block to handle.
+ * \return		TRUE if the event was handled; else FALSE.
+ */
+
+static osbool convert_save_keypress_handler(wimp_key *key)
+{
+	if (key == NULL)
+		return FALSE;
+
+	switch (key->c) {
+	case wimp_KEY_RETURN:
+		immediate_window_save();
+		break;
+
+	case wimp_KEY_ESCAPE:
+		convert_cancel_conversion();
+		break;
+
+	default:
+		return FALSE;
+		break;
+	}
+
+	return TRUE;
+}
+
+
+
+/**
+ * Process menu prepare events in the Save PDF window.
+ *
+ * \param w		The handle of the owning window.
+ * \param *menu		The menu handle.
+ * \param *pointer	The pointer position, or NULL for a re-open.
+ */
+
+static void convert_save_menu_prepare_handler(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
+{
+	if (menu == popup_version)
+		version_set_menu(&version, popup_version);
+	else if (menu == popup_optimize)
+		optimize_set_menu(&optimization, popup_optimize);
+	else if (menu == popup_bookmark) {
+		popup_bookmark = build_bookmark_menu(&bookmark);
+		event_set_menu_block(popup_bookmark);
+	}
+}
+
+
+/**
+ * Process menu selection events in the Save PDF window.
+ *
+ * \param w		The handle of the owning window.
+ * \param *menu		The menu handle.
+ * \param *selection	The menu selection details.
+ */
+
+static void convert_save_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_selection *selection)
+{
+	if (menu == popup_version) {
+		version_process_menu(&version, popup_version, selection);
+		version_fill_field(w, SAVE_PDF_ICON_VERSION_FIELD, &version);
+	} else if (menu == popup_optimize) {
+		optimize_set_dialogue_callback(convert_process_optimize_dialogue);
+		optimize_process_menu(&optimization, popup_version, selection);
+		optimize_fill_field(w, SAVE_PDF_ICON_OPT_FIELD, &optimization);
+	} else if (menu == popup_bookmark) {
+		process_bookmark_menu(&bookmark, selection);
+		fill_bookmark_field(w, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
+	}
+}
+
+
+/**
+ * Callback to respond to clicks on the OK button of the PDFMark
+ * dialogue.
+ */
+
+static void convert_process_pdfmark_dialogue(void)
+{
+	extern global_windows		windows;
+
+	pdfmark_process_dialogue(&pdfmark);
+	pdfmark_fill_field(windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
+}
+
+
+/**
+ * Callback to respond to clicks on the OK button of the encryption
+ * dialogue.
+ */
+
+static void convert_process_encrypt_dialogue(void)
+{
+	extern global_windows		windows;
+
+	encrypt_process_dialogue(&encryption);
+	encrypt_fill_field(windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
+}
+
+
+/**
+ * Callback to respond to clicks on the OK button of the optimization
+ * dialogue.
+ */
+
+static void convert_process_optimize_dialogue(void)
+{
+	extern global_windows windows;
+
+	optimize_process_dialogue(&optimization);
+	optimize_fill_field(windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
+}
+
+
+/**
+ * Remove the current item or items from the queue, deleting them from the
+ * Scrap directory.
+ */
+
+static void convert_remove_current_conversion(void)
+{
+	queued_file		**list, *old;
+	char			old_file[512];
+
+	list = &queue;
+
+	while (*list != NULL) {
+		if ((*list)->object_type == BEING_PROCESSED || (*list)->object_type == DISCARDED) {
+			old = (*list);
+			snprintf(old_file, sizeof(old_file), "%s.%s", config_str_read("FileQueue"), old->filename);
+			xosfile_delete(old_file, NULL, NULL, NULL, NULL, NULL);
+
+			*list = ((*list)->next);
+
+			free(old);
+		} else {
+			list = &((*list)->next);
+		}
+	}
+}
+
+
+/**
+ * Remove deleted items from the queue, deleting them from the Scrap directory.
+ */
+
+static void convert_remove_deleted_files(void)
+{
+	queued_file	**list, *old;
+	char		old_file[512];
+
+	list = &queue;
+
+	while (*list != NULL) {
+		if ((*list)->object_type == DELETED) {
+			old = (*list);
+			snprintf(old_file, sizeof(old_file), "%s.%s", config_str_read("FileQueue"), old->filename);
+			xosfile_delete(old_file, NULL, NULL, NULL, NULL, NULL);
+
+			*list = ((*list)->next);
+
+			free(old);
+		} else {
+			list = &((*list)->next);
+		}
+	}
+}
+
+
+/**
+ * Remove the first item from the queue, deleting it from the Scrap directory.
+ */
+
+void convert_remove_first_conversion(void)
+{
+	queued_file	*old;
+	char		old_file[512];
+
+	old = queue;
+	snprintf(old_file, sizeof(old_file), "%s.%s", config_str_read("FileQueue"), old->filename);
+	xosfile_delete(old_file, NULL, NULL, NULL, NULL, NULL);
+
+	queue = old->next;
+	free(old);
+}
+
+
+/**
+ * Remove all the items from the queue, and delete their files.
+ */
+
+void convert_remove_all_remaining_conversions(void)
+{
+	while (queue != NULL)
+		convert_remove_first_conversion();
+}
+
+
+/**
+ * Return an indication that a conversion is underway.
+ *
+ * \return		TRUE if a conversion is in progress; else FALSE.
+ */
+
+osbool convert_pdf_conversion_in_progress(void)
+{
+	return conversion_in_progress;
+}
+
+
+/**
+ * Return an indication of whether any queued files are left.
+ *
+ * \return			TRUE if there are files to be saved; else FALSE.
+ */
+
+osbool convert_pending_files_in_queue(void)
 {
 	int		button = -1;
 
 	if (queue != NULL)
 		button = wimp_msgtrans_question_report("PendingJobs", "PendingJobsB");
 
-	return (button == 2);
+	return (button == 2) ? TRUE : FALSE;
 }
 
-/* ==================================================================================================================
- * Defer queue manipulation
+
+/**
+ * Open the queue dialogue at the pointer.
+ *
+ * \param *pointer		The wimp pointer data.
  */
 
-void open_queue_window (wimp_pointer *pointer)
+void convert_open_queue_window(wimp_pointer *pointer)
 {
-  extern global_windows windows;
+	extern global_windows		windows;
 
-  open_pane_dialogue_centred_at_pointer (windows.queue, windows.queue_pane, QUEUE_ICON_PANE, 40, pointer);
+	open_pane_dialogue_centred_at_pointer(windows.queue, windows.queue_pane, QUEUE_ICON_PANE, 40, pointer);
+	convert_rebuild_queue_index();
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void close_queue_window (void)
-{
-  extern global_windows windows;
-
-  reorder_queue_from_index ();
-  remove_deleted_files ();
-  wimp_close_window (windows.queue);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-/* We need to fix this so that memory allocation is done correctly.
- * This code should also resize the queue window pane.
+/**
+ * Close the queue dialogue.
  */
 
-void rebuild_queue_index (void)
+static void convert_close_queue_window(void)
 {
-  wimp_window_state state;
-  os_box            extent;
-  queued_file       *list;
-  int               length, visible_extent, new_extent, new_scroll;
+	extern global_windows		windows;
 
-  extern global_windows windows;
-
-
-  /* Get the length of the queue. */
-
-  length = 0;
-  list = queue;
-
-  while (list != NULL)
-  {
-    length++;
-    list = list->next;
-  }
-
-  /* If there is already a redraw list, free it... */
-
-  if (queue_redraw_list != NULL)
-  {
-    free (queue_redraw_list);
-  }
-
-  /* ... and then allocate memory to store all the entries. */
-
-  queue_redraw_list = (queued_file **) malloc (length * sizeof(queued_file **));
-
-  /* Populate the list. */
-
-  list = queue;
-  queue_redraw_lines = 0;
-
-  while (list != NULL)
-  {
-    if (list->object_type == HELD_IN_QUEUE || list->object_type == DELETED)
-    {
-      queue_redraw_list[queue_redraw_lines++] = list;
-    }
-
-    list = list->next;
-  }
-
-  /* Set the window extent. */
-
-  state.w = windows.queue_pane;
-  wimp_get_window_state (&state);
-
-  visible_extent = state.yscroll + (state.visible.y0 - state.visible.y1);
-
-  new_extent = -QUEUE_ICON_HEIGHT * length;
-
-  if (new_extent > (state.visible.y0 - state.visible.y1))
-  {
-    new_extent = state.visible.y0 - state.visible.y1;
-  }
-
-  if (new_extent > visible_extent)
-  {
-    /* Calculate the required new scroll offset.  If this is greater than zero, the current window is too
-     * big and will need shrinking down.  Otherwise, just set the new scroll offset.
-     */
-
-    new_scroll = new_extent - (state.visible.y0 - state.visible.y1);
-
-    if (new_scroll > 0)
-    {
-      state.visible.y0 += new_scroll;
-      state.yscroll = 0;
-    }
-    else
-    {
-      state.yscroll = new_scroll;
-    }
-
-    wimp_open_window ((wimp_open *) &state);
-  }
-
-  extent.x0 = 0;
-  extent.y1 = 0;
-  extent.x1 = state.visible.x1 - state.visible.x0;
-  extent.y0 = new_extent;
-
-  wimp_set_extent (windows.queue_pane, &extent);
+	convert_reorder_queue_from_index();
+	convert_remove_deleted_files();
+	wimp_close_window(windows.queue);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-/* Re-order the linked list so that entries from the queue appear in the same order that they do in the
- * queue list window.
+/**
+ * Rebuild the queue dialogue index from the queue data and resize the
+ * dialogue pane to suit.
+ *
+ * \TODO -- We need to fix this so that memory allocation is done correctly.
+ *          This code should also resize the queue window pane.
  */
 
-void reorder_queue_from_index (void)
+static void convert_rebuild_queue_index(void)
 {
-  queued_file **list = NULL;
-  int         line;
+	wimp_window_state	state;
+	os_box			extent;
+	queued_file		*list;
+	int			length, visible_extent, new_extent, new_scroll;
+	extern global_windows	windows;
 
-  if(queue_redraw_lines > 0)
-  {
-    for (line=queue_redraw_lines - 1; line >= 0; line--)
-    {
-      list = &queue;
+	/* Get the length of the queue. */
 
-      while (*list != NULL && *list != queue_redraw_list[line])
-      {
-        list = &((*list)->next);
-      }
+	length = 0;
+	list = queue;
 
-      if (*list != NULL)
-      {
-        *list = (*list)->next;
-        (queue_redraw_list[line])->next = queue;
-        queue = queue_redraw_list[line];
-      }
-    }
-  }
+	while (list != NULL) {
+		length++;
+		list = list->next;
+	}
+
+	/* If there is already a redraw list, free it... */
+
+	if (queue_redraw_list != NULL)
+		free(queue_redraw_list);
+
+	/* ... and then allocate memory to store all the entries. */
+
+	queue_redraw_list = (queued_file **) malloc(length * sizeof(queued_file **));
+
+	/* Populate the list. */
+
+	list = queue;
+	queue_redraw_lines = 0;
+
+	while (list != NULL) {
+		if (list->object_type == HELD_IN_QUEUE || list->object_type == DELETED)
+			queue_redraw_list[queue_redraw_lines++] = list;
+
+		list = list->next;
+	}
+
+	/* Set the window extent. */
+
+	state.w = windows.queue_pane;
+	wimp_get_window_state(&state);
+
+	visible_extent = state.yscroll + (state.visible.y0 - state.visible.y1);
+
+	new_extent = -QUEUE_ICON_HEIGHT * length;
+
+	if (new_extent > (state.visible.y0 - state.visible.y1))
+		new_extent = state.visible.y0 - state.visible.y1;
+
+	if (new_extent > visible_extent) {
+		/* Calculate the required new scroll offset.  If this is greater than zero, the current window is too
+		 * big and will need shrinking down.  Otherwise, just set the new scroll offset.
+		 */
+
+		new_scroll = new_extent - (state.visible.y0 - state.visible.y1);
+
+		if (new_scroll > 0) {
+			state.visible.y0 += new_scroll;
+			state.yscroll = 0;
+		} else {
+			state.yscroll = new_scroll;
+		}
+
+		wimp_open_window((wimp_open *) &state);
+	}
+
+	extent.x0 = 0;
+	extent.y1 = 0;
+	extent.x1 = state.visible.x1 - state.visible.x0;
+	extent.y0 = new_extent;
+
+	wimp_set_extent(windows.queue_pane, &extent);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void redraw_queue_pane (wimp_draw *redraw)
+/**
+ * Re-order the linked list so that entries from the queue appear in the same
+ * order that they do in the queue list window.
+ */
+
+static void convert_reorder_queue_from_index(void)
 {
-  int                ox, oy, top, base, y;
-  osbool             more;
-  wimp_icon          *icon;
+	queued_file	**list = NULL;
+	int		line;
 
-  extern global_windows windows;
+	if(queue_redraw_lines <= 0)
+		return;
 
+	for (line=queue_redraw_lines - 1; line >= 0; line--) {
+		list = &queue;
 
-  /* Perform the redraw if a window was found. */
+		while (*list != NULL && *list != queue_redraw_list[line])
+			list = &((*list)->next);
 
-  if (redraw->w == windows.queue_pane)
-  {
-    more = wimp_redraw_window (redraw);
-
-    ox = redraw->box.x0 - redraw->xscroll;
-    oy = redraw->box.y1 - redraw->yscroll;
-
-    icon = windows.queue_pane_def->icons;
-
-    while (more)
-    {
-      top = (oy - redraw->clip.y1) / QUEUE_ICON_HEIGHT;
-      if (top < 0)
-        top = 0;
-
-      base = (QUEUE_ICON_HEIGHT + (QUEUE_ICON_HEIGHT / 2) + oy - redraw->clip.y0) / QUEUE_ICON_HEIGHT;
-
-      for (y = top; y < queue_redraw_lines && y <= base; y++)
-      {
-        icon[QUEUE_PANE_INCLUDE].extent.y1 = -(y * QUEUE_ICON_HEIGHT);
-        icon[QUEUE_PANE_INCLUDE].extent.y0 = icon[QUEUE_PANE_INCLUDE].extent.y1 - QUEUE_ICON_HEIGHT;
-        icon[QUEUE_PANE_INCLUDE].data.indirected_sprite.id =
-                                 (osspriteop_id) (((queue_redraw_list[y])->include) ? "opton" : "optoff");
-        icon[QUEUE_PANE_INCLUDE].data.indirected_sprite.area = (osspriteop_area *) 1;
-        icon[QUEUE_PANE_INCLUDE].data.indirected_sprite.size = 12;
-
-        wimp_plot_icon (&(icon[QUEUE_PANE_INCLUDE]));
-
-        icon[QUEUE_PANE_FILE].extent.y1 = -(y * QUEUE_ICON_HEIGHT);
-        icon[QUEUE_PANE_FILE].extent.y0 = icon[QUEUE_PANE_FILE].extent.y1 - QUEUE_ICON_HEIGHT;
-        icon[QUEUE_PANE_FILE].data.indirected_text_and_sprite.text = (queue_redraw_list[y])->display_name;
-        icon[QUEUE_PANE_FILE].data.indirected_text_and_sprite.size = MAX_DISPLAY_NAME;
-
-        wimp_plot_icon (&(icon[QUEUE_PANE_FILE]));
-
-        icon[QUEUE_PANE_DELETE].extent.y1 = -(y * QUEUE_ICON_HEIGHT);
-        icon[QUEUE_PANE_DELETE].extent.y0 = icon[QUEUE_PANE_DELETE].extent.y1 - QUEUE_ICON_HEIGHT;
-        icon[QUEUE_PANE_DELETE].data.indirected_sprite.id =
-                  (osspriteop_id) (((queue_redraw_list[y])->object_type == DELETED) ? "del1" : "del0");
-        icon[QUEUE_PANE_DELETE].data.indirected_sprite.area = main_wimp_sprites;
-        icon[QUEUE_PANE_DELETE].data.indirected_sprite.size = 12;
-
-        wimp_plot_icon (&(icon[QUEUE_PANE_DELETE]));
-      }
-
-      more = wimp_get_rectangle (redraw);
-    }
-  }
+		if (*list != NULL) {
+			*list = (*list)->next;
+			(queue_redraw_list[line])->next = queue;
+			queue = queue_redraw_list[line];
+		}
+	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void queue_pane_click (wimp_pointer *pointer)
+/**
+ * Process redraw requests for the Queue dialogue pane.
+ *
+ * \param *redraw		The redraw event block to handle.
+ */
+
+static void convert_queue_pane_redraw_handler(wimp_draw *redraw)
 {
-  int               line, column, xpos;
-  wimp_window_state window;
-  wimp_icon          *icon;
+	int			ox, oy, top, base, y;
+	osbool			more;
+	wimp_icon		*icon;
+	extern global_windows	windows;
 
-  extern global_windows windows;
 
+	/* Perform the redraw if a window was found. */
 
-  window.w = pointer->w;
-  wimp_get_window_state (&window);
+	if (redraw->w != windows.queue_pane)
+		return;
 
-  icon = windows.queue_pane_def->icons;
+	more = wimp_redraw_window(redraw);
 
-  line = ((window.visible.y1 - pointer->pos.y) - window.yscroll) / QUEUE_ICON_HEIGHT;
+	ox = redraw->box.x0 - redraw->xscroll;
+	oy = redraw->box.y1 - redraw->yscroll;
 
-  if (line < 0 || line >= queue_redraw_lines)
-  {
-    line = -1;
-  }
+	icon = windows.queue_pane_def->icons;
 
-  column = -1;
+	while (more) {
+		top = (oy - redraw->clip.y1) / QUEUE_ICON_HEIGHT;
+		if (top < 0)
+			top = 0;
 
-  if (line > -1)
-  {
-    xpos = (pointer->pos.x - window.visible.x0) + window.xscroll;
+		base = (QUEUE_ICON_HEIGHT + (QUEUE_ICON_HEIGHT / 2) + oy - redraw->clip.y0) / QUEUE_ICON_HEIGHT;
 
-    if (icon[QUEUE_PANE_INCLUDE].extent.x0 <= xpos && icon[QUEUE_PANE_INCLUDE].extent.x1 >= xpos)
-    {
-      column = QUEUE_PANE_INCLUDE;
-    }
-    else if (icon[QUEUE_PANE_FILE].extent.x0 <= xpos && icon[QUEUE_PANE_FILE].extent.x1 >= xpos)
-    {
-      column = QUEUE_PANE_FILE;
-    }
-    else if (icon[QUEUE_PANE_DELETE].extent.x0 <= xpos && icon[QUEUE_PANE_DELETE].extent.x1 >= xpos)
-    {
-      column = QUEUE_PANE_DELETE;
-    }
-  }
+		for (y = top; y < queue_redraw_lines && y <= base; y++) {
+			icon[QUEUE_PANE_INCLUDE].extent.y1 = -(y * QUEUE_ICON_HEIGHT);
+			icon[QUEUE_PANE_INCLUDE].extent.y0 = icon[QUEUE_PANE_INCLUDE].extent.y1 - QUEUE_ICON_HEIGHT;
+			icon[QUEUE_PANE_INCLUDE].data.indirected_sprite.id =
+					(osspriteop_id) (((queue_redraw_list[y])->include) ? "opton" : "optoff");
+			icon[QUEUE_PANE_INCLUDE].data.indirected_sprite.area = (osspriteop_area *) 1;
+			icon[QUEUE_PANE_INCLUDE].data.indirected_sprite.size = 12;
 
-  if (pointer->buttons == wimp_CLICK_SELECT && column == QUEUE_PANE_INCLUDE && line != -1)
-  {
-    (queue_redraw_list[line])->include = !(queue_redraw_list[line])->include;
-    wimp_force_redraw (pointer->w,
-                       icon[QUEUE_PANE_INCLUDE].extent.x0, -((line + 1)* QUEUE_ICON_HEIGHT),
-                       icon[QUEUE_PANE_INCLUDE].extent.x1, -(line * QUEUE_ICON_HEIGHT));
-  }
-  else if (pointer->buttons == wimp_CLICK_SELECT && column == QUEUE_PANE_DELETE && line != -1)
-  {
-    if ((queue_redraw_list[line])->object_type == HELD_IN_QUEUE)
-    {
-      (queue_redraw_list[line])->object_type = DELETED;
-    }
-    else
-    {
-      (queue_redraw_list[line])->object_type = HELD_IN_QUEUE;
-    }
-    wimp_force_redraw (pointer->w,
-                       icon[QUEUE_PANE_DELETE].extent.x0, -((line + 1)* QUEUE_ICON_HEIGHT),
-                       icon[QUEUE_PANE_DELETE].extent.x1, -(line * QUEUE_ICON_HEIGHT));
-  }
-  else if (pointer->buttons == wimp_DRAG_SELECT && column == QUEUE_PANE_FILE && line != -1)
-  {
-    start_queue_entry_drag (line);
-  }
+			wimp_plot_icon(&(icon[QUEUE_PANE_INCLUDE]));
+
+			icon[QUEUE_PANE_FILE].extent.y1 = -(y * QUEUE_ICON_HEIGHT);
+			icon[QUEUE_PANE_FILE].extent.y0 = icon[QUEUE_PANE_FILE].extent.y1 - QUEUE_ICON_HEIGHT;
+			icon[QUEUE_PANE_FILE].data.indirected_text_and_sprite.text = (queue_redraw_list[y])->display_name;
+			icon[QUEUE_PANE_FILE].data.indirected_text_and_sprite.size = MAX_DISPLAY_NAME;
+
+			wimp_plot_icon(&(icon[QUEUE_PANE_FILE]));
+
+			icon[QUEUE_PANE_DELETE].extent.y1 = -(y * QUEUE_ICON_HEIGHT);
+			icon[QUEUE_PANE_DELETE].extent.y0 = icon[QUEUE_PANE_DELETE].extent.y1 - QUEUE_ICON_HEIGHT;
+			icon[QUEUE_PANE_DELETE].data.indirected_sprite.id =
+					(osspriteop_id) (((queue_redraw_list[y])->object_type == DELETED) ? "del1" : "del0");
+			icon[QUEUE_PANE_DELETE].data.indirected_sprite.area = main_wimp_sprites;
+			icon[QUEUE_PANE_DELETE].data.indirected_sprite.size = 12;
+
+			wimp_plot_icon(&(icon[QUEUE_PANE_DELETE]));
+		}
+
+		more = wimp_get_rectangle (redraw);
+	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void start_queue_entry_drag(int line)
+/**
+ * Process mouse clicks in the Queue dialogue.
+ *
+ * \param *pointer		The mouse event block to handle.
+ */
+
+static void convert_queue_click_handler(wimp_pointer *pointer)
 {
-  wimp_window_state     window;
-  wimp_auto_scroll_info auto_scroll;
-  wimp_drag             drag;
-  int                   ox, oy;
+	extern global_windows		windows;
 
-  extern global_windows windows;
+	if (pointer == NULL)
+		return;
+
+	switch ((int) pointer->i) {
+	case QUEUE_ICON_CLOSE:
+		convert_close_queue_window();
+		break;
+
+	case QUEUE_ICON_CREATE:
+		convert_close_queue_window();
+		convert_start_held_conversion();
+		break;
+	}
+}
 
 
-  if (1)
-  {
-    /* Get the basic information about the window. */
+/**
+ * Process mouse clicks in the Queue dialogue pane.
+ *
+ * \param *pointer		The mouse event block to handle.
+ */
 
-    window.w = windows.queue_pane;
-    wimp_get_window_state (&window);
+static void convert_queue_pane_click_handler(wimp_pointer *pointer)
+{
+	int			line, column, xpos;
+	wimp_window_state	window;
+	wimp_icon		*icon;
+	extern global_windows	windows;
 
-    ox = window.visible.x0 - window.xscroll;
-    oy = window.visible.y1 - window.yscroll;
+	window.w = pointer->w;
+	wimp_get_window_state(&window);
 
-    /* Set up the drag parameters. */
+	icon = windows.queue_pane_def->icons;
 
-    drag.w = windows.queue_pane;
-    drag.type = wimp_DRAG_USER_FIXED;
+	line = ((window.visible.y1 - pointer->pos.y) - window.yscroll) / QUEUE_ICON_HEIGHT;
 
-    drag.initial.x0 = ox;
-    drag.initial.y0 = oy + -(line * QUEUE_ICON_HEIGHT + QUEUE_ICON_HEIGHT);
-    drag.initial.x1 = ox + (window.visible.x1 - window.visible.x0);
-    drag.initial.y1 = oy + -(line * QUEUE_ICON_HEIGHT);
+	if (line < 0 || line >= queue_redraw_lines)
+		line = -1;
 
-    drag.bbox.x0 = window.visible.x0;
-    drag.bbox.y0 = window.visible.y0;
-    drag.bbox.x1 = window.visible.x1;
-    drag.bbox.y1 = window.visible.y1;
+	column = -1;
 
-    /* Read CMOS RAM to see if solid drags are required. */
+	if (line > -1) {
+		xpos = (pointer->pos.x - window.visible.x0) + window.xscroll;
 
-    dragging_sprite = ((osbyte2 (osbyte_READ_CMOS, osbyte_CONFIGURE_DRAG_ASPRITE, 0) &
-                       osbyte_CONFIGURE_DRAG_ASPRITE_MASK) != 0);
+		if (icon[QUEUE_PANE_INCLUDE].extent.x0 <= xpos && icon[QUEUE_PANE_INCLUDE].extent.x1 >= xpos)
+			column = QUEUE_PANE_INCLUDE;
+		else if (icon[QUEUE_PANE_FILE].extent.x0 <= xpos && icon[QUEUE_PANE_FILE].extent.x1 >= xpos)
+			column = QUEUE_PANE_FILE;
+		else if (icon[QUEUE_PANE_DELETE].extent.x0 <= xpos && icon[QUEUE_PANE_DELETE].extent.x1 >= xpos)
+			column = QUEUE_PANE_DELETE;
+	}
 
-    if (0 && dragging_sprite) /* This is never used, though it could be... */
-    {
-      dragasprite_start (dragasprite_HPOS_CENTRE | dragasprite_VPOS_CENTRE | dragasprite_NO_BOUND |
-                         dragasprite_BOUND_POINTER | dragasprite_DROP_SHADOW, wimpspriteop_AREA,
-                         "", &(drag.initial), &(drag.bbox));
-    }
-    else
-    {
-      wimp_drag_box (&drag);
-    }
+	if (pointer->buttons == wimp_CLICK_SELECT && column == QUEUE_PANE_INCLUDE && line != -1) {
+		(queue_redraw_list[line])->include = !(queue_redraw_list[line])->include;
+		wimp_force_redraw(pointer->w,
+				icon[QUEUE_PANE_INCLUDE].extent.x0, -((line + 1)* QUEUE_ICON_HEIGHT),
+				icon[QUEUE_PANE_INCLUDE].extent.x1, -(line * QUEUE_ICON_HEIGHT));
+	} else if (pointer->buttons == wimp_CLICK_SELECT && column == QUEUE_PANE_DELETE && line != -1) {
+		if ((queue_redraw_list[line])->object_type == HELD_IN_QUEUE)
+			(queue_redraw_list[line])->object_type = DELETED;
+		else
+			(queue_redraw_list[line])->object_type = HELD_IN_QUEUE;
+		 wimp_force_redraw (pointer->w,
+				icon[QUEUE_PANE_DELETE].extent.x0, -((line + 1)* QUEUE_ICON_HEIGHT),
+				icon[QUEUE_PANE_DELETE].extent.x1, -(line * QUEUE_ICON_HEIGHT));
+	} else if (pointer->buttons == wimp_DRAG_SELECT && column == QUEUE_PANE_FILE && line != -1) {
+		convert_start_queue_entry_drag(line);
+	}
+}
 
-    /* Initialise the autoscroll. */
 
-    if (xos_swi_number_from_string ("Wimp_AutoScroll", NULL) == NULL)
-    {
-      auto_scroll.w = windows.queue_pane;
-      auto_scroll.pause_zone_sizes.x0 = 0;
-      auto_scroll.pause_zone_sizes.y0 = AUTO_SCROLL_MARGIN;
-      auto_scroll.pause_zone_sizes.x1 = 0;
-      auto_scroll.pause_zone_sizes.y1 = AUTO_SCROLL_MARGIN;
-      auto_scroll.pause_duration = 0;
-      auto_scroll.state_change = (void *) 1;
+/**
+ * Start dragging a line in the queue dialogue pane.
+ *
+ * \param		The line of the pane to be dragged.
+ */
 
-      wimp_auto_scroll (wimp_AUTO_SCROLL_ENABLE_VERTICAL, &auto_scroll);
-    }
+static void convert_start_queue_entry_drag(int line)
+{
+	wimp_window_state	window;
+	wimp_auto_scroll_info	auto_scroll;
+	wimp_drag		drag;
+	int			ox, oy;
+	extern global_windows	windows;
 
-    dragging_start_line = line;
-    event_set_drag_handler(terminate_queue_entry_drag, NULL, NULL);
-  }
+
+	/* Get the basic information about the window. */
+
+	window.w = windows.queue_pane;
+	wimp_get_window_state(&window);
+
+	ox = window.visible.x0 - window.xscroll;
+	oy = window.visible.y1 - window.yscroll;
+
+	/* Set up the drag parameters. */
+
+	drag.w = windows.queue_pane;
+	drag.type = wimp_DRAG_USER_FIXED;
+
+	drag.initial.x0 = ox;
+	drag.initial.y0 = oy + -(line * QUEUE_ICON_HEIGHT + QUEUE_ICON_HEIGHT);
+	drag.initial.x1 = ox + (window.visible.x1 - window.visible.x0);
+	drag.initial.y1 = oy + -(line * QUEUE_ICON_HEIGHT);
+
+	drag.bbox.x0 = window.visible.x0;
+	drag.bbox.y0 = window.visible.y0;
+	drag.bbox.x1 = window.visible.x1;
+	drag.bbox.y1 = window.visible.y1;
+
+	/* Read CMOS RAM to see if solid drags are required. */
+
+	dragging_sprite = ((osbyte2(osbyte_READ_CMOS, osbyte_CONFIGURE_DRAG_ASPRITE, 0) &
+			osbyte_CONFIGURE_DRAG_ASPRITE_MASK) != 0) ? TRUE : FALSE;
+
+	if (FALSE && dragging_sprite) /* This is never used, though it could be... */
+		dragasprite_start (dragasprite_HPOS_CENTRE | dragasprite_VPOS_CENTRE | dragasprite_NO_BOUND |
+				dragasprite_BOUND_POINTER | dragasprite_DROP_SHADOW, wimpspriteop_AREA,
+				"", &(drag.initial), &(drag.bbox));
+	else
+		wimp_drag_box(&drag);
+
+	/* Initialise the autoscroll. */
+
+	if (xos_swi_number_from_string("Wimp_AutoScroll", NULL) == NULL) {
+		auto_scroll.w = windows.queue_pane;
+		auto_scroll.pause_zone_sizes.x0 = 0;
+		auto_scroll.pause_zone_sizes.y0 = AUTO_SCROLL_MARGIN;
+		auto_scroll.pause_zone_sizes.x1 = 0;
+		auto_scroll.pause_zone_sizes.y1 = AUTO_SCROLL_MARGIN;
+		auto_scroll.pause_duration = 0;
+		auto_scroll.state_change = (void *) 1;
+
+		wimp_auto_scroll(wimp_AUTO_SCROLL_ENABLE_VERTICAL, &auto_scroll);
+	}
+
+	dragging_start_line = line;
+	event_set_drag_handler(convert_terminate_queue_entry_drag, NULL, NULL);
 }
 
 /**
@@ -1440,7 +1549,7 @@ void start_queue_entry_drag(int line)
  * \param  *data		NULL (unused).
  */
 
-void terminate_queue_entry_drag(wimp_dragged *drag, void *data)
+static void convert_terminate_queue_entry_drag(wimp_dragged *drag, void *data)
 {
 	wimp_pointer		pointer;
 	wimp_window_state	window;
@@ -1486,86 +1595,88 @@ void terminate_queue_entry_drag(wimp_dragged *drag, void *data)
 	force_visible_window_redraw (windows.queue_pane);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void decode_queue_pane_help (char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons)
+/**
+ * Callback to decode interactive help in the queue dialogue pane window.
+ *
+ * \param  *buffer			Buffer to take the help token.
+ * \param  w				The wimp window handle.
+ * \param  i				The wimp icon handle.
+ * \param  pos				The pointer coordinates.
+ * \param  buttons			The mouse button state.
+ */
+
+static void convert_decode_queue_pane_help(char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons)
 {
-  int                 xpos, ypos, column;
-  wimp_window_state   window;
-  wimp_icon           *icon;
-  extern global_windows windows;
+	int			xpos, ypos, column;
+	wimp_window_state	window;
+	wimp_icon		*icon;
+	extern global_windows	windows;
 
+	icon = windows.queue_pane_def->icons;
 
-  icon = windows.queue_pane_def->icons;
+	*buffer = '\0';
+	column = 0;
 
-  *buffer = '\0';
-  column = 0;
+	window.w = w;
+	wimp_get_window_state(&window);
 
-  window.w = w;
-  wimp_get_window_state (&window);
+	xpos = (pos.x - window.visible.x0) + window.xscroll;
+	ypos = (window.visible.y1 - pos.y) - window.yscroll;
 
-  xpos = (pos.x - window.visible.x0) + window.xscroll;
-  ypos = (window.visible.y1 - pos.y) - window.yscroll;
+	if (ypos / QUEUE_ICON_HEIGHT < queue_redraw_lines) {
+		if (icon[QUEUE_PANE_INCLUDE].extent.x0 <= xpos && icon[QUEUE_PANE_INCLUDE].extent.x1 >= xpos)
+			column = QUEUE_PANE_INCLUDE;
+		else if (icon[QUEUE_PANE_FILE].extent.x0 <= xpos && icon[QUEUE_PANE_FILE].extent.x1 >= xpos)
+			column = QUEUE_PANE_FILE;
+		else if (icon[QUEUE_PANE_DELETE].extent.x0 <= xpos && icon[QUEUE_PANE_DELETE].extent.x1 >= xpos)
+			column = QUEUE_PANE_DELETE;
 
-  if (ypos / QUEUE_ICON_HEIGHT < queue_redraw_lines)
-  {
-    if (icon[QUEUE_PANE_INCLUDE].extent.x0 <= xpos && icon[QUEUE_PANE_INCLUDE].extent.x1 >= xpos)
-    {
-      column = QUEUE_PANE_INCLUDE;
-    }
-    else if (icon[QUEUE_PANE_FILE].extent.x0 <= xpos && icon[QUEUE_PANE_FILE].extent.x1 >= xpos)
-    {
-      column = QUEUE_PANE_FILE;
-    }
-    else if (icon[QUEUE_PANE_DELETE].extent.x0 <= xpos && icon[QUEUE_PANE_DELETE].extent.x1 >= xpos)
-    {
-      column = QUEUE_PANE_DELETE;
-    }
-
-    sprintf (buffer, "Col%d", column);
-  }
+		sprintf(buffer, "Col%d", column);
+	}
 }
 
 
 
-
-void traverse_queue (void)
+#ifdef DEBUG
+static void traverse_queue(void)
 {
-  queued_file *list;
-  char        status[100];
+	queued_file		*list;
+	char			status[100];
 
-  list = queue;
+	list = queue;
 
-  debug_printf ("\\BQueue Contents");
+	debug_printf("\\BQueue Contents");
 
-  while (list != NULL)
-  {
-    switch (list->object_type)
-    {
-      case PENDING_ATTENTION:
-        sprintf (status, "Pending");
-        break;
+	while (list != NULL) {
+		switch (list->object_type) {
+		case PENDING_ATTENTION:
+			sprintf(status, "Pending");
+			break;
 
-      case BEING_PROCESSED:
-        sprintf (status, "Process");
-        break;
+		case BEING_PROCESSED:
+			sprintf(status, "Process");
+			break;
 
-      case HELD_IN_QUEUE:
-        sprintf (status, "Held");
-        break;
+		case HELD_IN_QUEUE:
+			sprintf(status, "Held");
+			break;
 
-      case DISCARDED:
-        sprintf (status, "Discard");
-        break;
+		case DISCARDED:
+			sprintf(status, "Discard");
+			break;
 
-      case DELETED:
-        sprintf (status, "Deleted");
-        break;
-    }
+		case DELETED:
+			sprintf(status, "Deleted");
+			break;
+		}
 
-    debug_printf ("%7s %15s %s", status, list->filename, list->display_name);
+		debug_printf("%7s %15s %s", status, list->filename, list->display_name);
 
-    list = list->next;
-  }
-  debug_printf ("\\rEnd of queue");
+		list = list->next;
+	}
+
+	debug_printf("\\rEnd of queue");
 }
+#endif
+

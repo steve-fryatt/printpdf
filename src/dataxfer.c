@@ -203,7 +203,7 @@ static int drag_end_save_pdf(char *filename)
 {
 	extern global_windows		windows;
 
-	conversion_dialogue_end(filename);
+	convert_save_dialogue_end(filename);
 	wimp_close_window(windows.save_pdf);
 
 	return 0;
@@ -230,7 +230,7 @@ int immediate_window_save(void)
 		return 1;
 	}
 
-	conversion_dialogue_end(filename);
+	convert_save_dialogue_end(filename);
 
 	wimp_close_window(windows.save_pdf);
 
@@ -326,7 +326,7 @@ static osbool message_data_load_reply(wimp_message *message)
 
 			sprintf(queue_file, "%s.printout/ps", config_str_read("FileQueue"));
 			if (strcmp(queue_file, dataload->file_name) != 0)
-				queue_ps_file(dataload->file_name);
+				convert_queue_ps_file(dataload->file_name);
 			break;
 		case PRINTPDF_FILE_TYPE:
 			load_bookmark_file(dataload->file_name);
@@ -342,9 +342,6 @@ static osbool message_data_load_reply(wimp_message *message)
 		if (error != NULL)
 			wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
 
-		handled = TRUE;
-	} else if (dataload->w == windows.save_pdf) {
-		handle_save_icon_drop(dataload);
 		handled = TRUE;
 	}
 

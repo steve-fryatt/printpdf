@@ -223,7 +223,7 @@ void load_window_templates (char *template_file, osspriteop_area *sprites)
   {
     window_def->icon_count = 0;
     windows.queue_pane = wimp_create_window (window_def);
-    ihelp_add_window (windows.queue_pane, "QueuePane", decode_queue_pane_help);
+    /* Interactive help is added in the convert module initialisation. */
 
     windows.queue_pane_def = window_def;
   }

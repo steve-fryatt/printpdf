@@ -1,10 +1,10 @@
 /* PrintPDF - pmenu.h
  *
- * (c) Stephen Fryatt, 2007
+ * (c) Stephen Fryatt, 2007-2011
  */
 
-#ifndef _PRINTPDF_PMENU
-#define _PRINTPDF_PMENU
+#ifndef PRINTPDF_PMENU
+#define PRINTPDF_PMENU
 
 /* ==================================================================================================================
  * Static constants
@@ -27,12 +27,7 @@
  * Function prototypes.
  */
 
-wimp_menu *build_param_menu (char *param_list, int ident, int current);
-
-int param_menu_ident (void);
-
 char *param_menu_entry (char *buffer, char* param_list, int entry);
 
-int param_menu_len (char *param_list);
-
 #endif
+

@@ -53,8 +53,6 @@
 
 /* PDF Creation Interface */
 
-wimp_menu	*build_bookmark_menu(bookmark_params *params);
-
 /* Bookmark Block Management */
 
 bookmark_block	*create_bookmark_block(void);
@@ -193,30 +191,6 @@ void terminate_bookmarks(void)
 void initialise_bookmark_settings(bookmark_params *params)
 {
 	params->bookmarks = NULL;
-}
-
-
-/**
- * Create and open the bookmark list pop-up menu.
- *
- * \param  *params		The associated bookmark parameters.
- * \param  *pointer		The pointer details of the click.
- * \param  window		The window in which the pop-up resides.
- * \param  icon			The icon to which the pop-up is attached.
- */
-
-void open_bookmark_menu(bookmark_params *params, wimp_pointer *pointer, wimp_w window, wimp_i icon)
-{
-	wimp_menu		*menu;
-
-	extern global_menus	menus;
-
-	params->bookmarks = find_bookmark_block(params->bookmarks);
-
-	menu = build_bookmark_menu(params);
-
-	if (menu != NULL)
-		menus.menu_up = create_popup_menu(menu, pointer);
 }
 
 

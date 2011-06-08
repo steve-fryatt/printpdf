@@ -1,6 +1,6 @@
 /* PrintPDF - menus.c
  *
- * (C) Stephen Fryatt, 2005
+ * (C) Stephen Fryatt, 2005-2011
  */
 
 /* ANSI C header files */
@@ -103,8 +103,6 @@ char *get_current_menu_name(char *buffer)
 
 	if (menus.menu_up == menus.icon_bar)
 		strcpy(buffer, "IconBarMenu");
-	else if (menus.menu_up == menus.params)
-		strcpy(buffer, "ParamsMenu");
 	else if (menus.menu_up == menus.bookmarks)
 		strcpy(buffer, "BookmarkMenu");
 	else if (menus.menu_up == menus.bookmarks_list)
@@ -113,49 +111,3 @@ char *get_current_menu_name(char *buffer)
 	return (buffer);
 }
 
-/* ==================================================================================================================
- * Parameter menus
- */
-
-void open_param_menu (wimp_pointer *pointer, wimp_w window, wimp_i icon)
-{
-  extern global_menus menus;
-
-  popup_window = window;
-  popup_icon = icon;
-
-  menus.menu_up = create_popup_menu (menus.params, pointer);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-/* Decode the menu selections. */
-
-void decode_param_menu (wimp_selection *selection, wimp_pointer *pointer)
-{
-  switch (param_menu_ident ())
-  {
-    case PARAM_MENU_DEFAULT:
-/*      set_param_value (popup_name, selection->items[0]); */
-/*      read_param_name (indirected_icon_text (popup_window, popup_icon), popup_name); */
-/*      wimp_set_icon_state (popup_window, popup_icon, 0, 0); */
-/*      build_param_menu (popup_name, PARAM_MENU_DEFAULT); */
-      break;
-
-    case PARAM_MENU_CONVERT_OPTIMIZE:
-//      process_convert_optimize_menu (selection);
-      break;
-
-    case PARAM_MENU_CONVERT_VERSION:
-//      process_convert_version_menu (selection);
-      break;
-
-    case PARAM_MENU_CHOICES_OPTIMIZE:
-//      process_choices_optimize_menu (selection);
-      break;
-
-    case PARAM_MENU_CHOICES_VERSION:
-//      process_choices_version_menu (selection);
-      break;
-  }
-}
