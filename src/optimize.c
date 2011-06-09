@@ -108,7 +108,7 @@ static osbool	optimize_keypress_handler(wimp_key *key);
 
 static int	optimize_tick_menu(optimize_params *params);
 static void	optimize_open_dialogue(optimize_params *params, wimp_pointer *pointer);
-static void	optimize_shade_dialogue(void);
+static bool	optimize_shade_dialogue(wimp_pointer *pointer);
 
 static char	*optimize_true_false(osbool value);
 static char	*optimize_depth_text(char *buffer, int value);
@@ -127,6 +127,30 @@ void optimize_initialise(void)
 
 	event_add_window_mouse_event(windows.optimization, optimize_click_handler);
 	event_add_window_key_event(windows.optimization, optimize_keypress_handler);
+
+	event_add_window_icon_click(windows.optimization, OPTIMIZE_ICON_COLOUR_DOWNSAMPLE, optimize_shade_dialogue);
+	event_add_window_icon_click(windows.optimization, OPTIMIZE_ICON_GREY_DOWNSAMPLE, optimize_shade_dialogue);
+	event_add_window_icon_click(windows.optimization, OPTIMIZE_ICON_MONO_DOWNSAMPLE, optimize_shade_dialogue);
+	event_add_window_icon_click(windows.optimization, OPTIMIZE_ICON_COLOUR_ENCODE, optimize_shade_dialogue);
+	event_add_window_icon_click(windows.optimization, OPTIMIZE_ICON_GREY_ENCODE, optimize_shade_dialogue);
+	event_add_window_icon_click(windows.optimization, OPTIMIZE_ICON_MONO_ENCODE, optimize_shade_dialogue);
+
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_COLOUR_SUBSAMPLE);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_GREY_SUBSAMPLE);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_MONO_SUBSAMPLE);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_COLOUR_AVERAGE);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_GREY_AVERAGE);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_MONO_AVERAGE);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_COLOUR_DCT);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_GREY_DCT);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_MONO_CCITT);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_COLOUR_FLATE);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_GREY_FLATE);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_MONO_FLATE);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_MONO_RUNLENGTH);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_ROTATE_NONE);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_ROTATE_ALL);
+	event_add_window_icon_radio(windows.optimization, OPTIMIZE_ICON_ROTATE_PAGE);
 }
 
 
@@ -382,35 +406,6 @@ static void optimize_click_handler(wimp_pointer *pointer)
 	case OPTIMIZE_ICON_MONO_DEPTH_DOWN:
 		optimize_update_depth_icon(OPTIMIZE_ICON_MONO_DEPTH, (pointer->buttons == wimp_CLICK_ADJUST) ? 1 : -1);
 		break;
-
-	case OPTIMIZE_ICON_COLOUR_DOWNSAMPLE:
-	case OPTIMIZE_ICON_GREY_DOWNSAMPLE:
-	case OPTIMIZE_ICON_MONO_DOWNSAMPLE:
-	case OPTIMIZE_ICON_COLOUR_ENCODE:
-	case OPTIMIZE_ICON_GREY_ENCODE:
-	case OPTIMIZE_ICON_MONO_ENCODE:
-		optimize_shade_dialogue();
-		break;
-
-	case OPTIMIZE_ICON_COLOUR_SUBSAMPLE:
-	case OPTIMIZE_ICON_GREY_SUBSAMPLE:
-	case OPTIMIZE_ICON_MONO_SUBSAMPLE:
-	case OPTIMIZE_ICON_COLOUR_AVERAGE:
-	case OPTIMIZE_ICON_GREY_AVERAGE:
-	case OPTIMIZE_ICON_MONO_AVERAGE:
-	case OPTIMIZE_ICON_COLOUR_DCT:
-	case OPTIMIZE_ICON_GREY_DCT:
-	case OPTIMIZE_ICON_MONO_CCITT:
-	case OPTIMIZE_ICON_COLOUR_FLATE:
-	case OPTIMIZE_ICON_GREY_FLATE:
-	case OPTIMIZE_ICON_MONO_FLATE:
-	case OPTIMIZE_ICON_MONO_RUNLENGTH:
-	case OPTIMIZE_ICON_ROTATE_NONE:
-	case OPTIMIZE_ICON_ROTATE_ALL:
-	case OPTIMIZE_ICON_ROTATE_PAGE:
-		if (pointer->buttons == wimp_CLICK_ADJUST)
-			set_icon_selected(pointer->w, pointer->i, TRUE);
-		break;
 	}
 }
 
@@ -512,7 +507,7 @@ static void optimize_open_dialogue(optimize_params *params, wimp_pointer *pointe
 	optimize_depth_text(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_GREY_DEPTH), downsample_grey_depth);
 	optimize_depth_text(indirected_icon_text(windows.optimization, OPTIMIZE_ICON_COLOUR_DEPTH), downsample_colour_depth);
 
-	optimize_shade_dialogue();
+	optimize_shade_dialogue(NULL);
 
 	open_transient_window_centred_at_pointer(windows.optimization, pointer);
 }
@@ -594,46 +589,57 @@ void optimize_process_dialogue(optimize_params *params)
 /**
  * Update the shading in the optimization dialogue, based on the current icon
  * selections
+ *
+ * \param: *pointer		The wimp pointer event data for the click.
+ * \return			TRUE to show the event was handled; else FALSE.
  */
 
-static void optimize_shade_dialogue(void)
+static bool optimize_shade_dialogue(wimp_pointer *pointer)
 {
 	extern global_windows		windows;
 
-	set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_COLOUR_DOWNSAMPLE, 11,
-			OPTIMIZE_ICON_COLOUR_SUBSAMPLE, OPTIMIZE_ICON_COLOUR_AVERAGE,
-			OPTIMIZE_ICON_COLOUR_RESOLUTION, OPTIMIZE_ICON_COLOUR_RESOLUTION_UP,
-			OPTIMIZE_ICON_COLOUR_RESOLUTION_DOWN, OPTIMIZE_ICON_COLOUR_THRESHOLD,
-			OPTIMIZE_ICON_COLOUR_THRESHOLD_UP, OPTIMIZE_ICON_COLOUR_THRESHOLD_DOWN,
-			OPTIMIZE_ICON_COLOUR_DEPTH, OPTIMIZE_ICON_COLOUR_DEPTH_UP,
-			OPTIMIZE_ICON_COLOUR_DEPTH_DOWN);
+	if (pointer == NULL || pointer->i == OPTIMIZE_ICON_COLOUR_DOWNSAMPLE)
+		set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_COLOUR_DOWNSAMPLE, 11,
+				OPTIMIZE_ICON_COLOUR_SUBSAMPLE, OPTIMIZE_ICON_COLOUR_AVERAGE,
+				OPTIMIZE_ICON_COLOUR_RESOLUTION, OPTIMIZE_ICON_COLOUR_RESOLUTION_UP,
+				OPTIMIZE_ICON_COLOUR_RESOLUTION_DOWN, OPTIMIZE_ICON_COLOUR_THRESHOLD,
+				OPTIMIZE_ICON_COLOUR_THRESHOLD_UP, OPTIMIZE_ICON_COLOUR_THRESHOLD_DOWN,
+				OPTIMIZE_ICON_COLOUR_DEPTH, OPTIMIZE_ICON_COLOUR_DEPTH_UP,
+				OPTIMIZE_ICON_COLOUR_DEPTH_DOWN);
 
-	set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_GREY_DOWNSAMPLE, 11,
-			OPTIMIZE_ICON_GREY_SUBSAMPLE, OPTIMIZE_ICON_GREY_AVERAGE,
-			OPTIMIZE_ICON_GREY_RESOLUTION, OPTIMIZE_ICON_GREY_RESOLUTION_UP,
-			OPTIMIZE_ICON_GREY_RESOLUTION_DOWN, OPTIMIZE_ICON_GREY_THRESHOLD,
-			OPTIMIZE_ICON_GREY_THRESHOLD_UP, OPTIMIZE_ICON_GREY_THRESHOLD_DOWN,
-			OPTIMIZE_ICON_GREY_DEPTH, OPTIMIZE_ICON_GREY_DEPTH_UP,
-			OPTIMIZE_ICON_GREY_DEPTH_DOWN);
+	if (pointer == NULL || pointer->i == OPTIMIZE_ICON_GREY_DOWNSAMPLE)
+		set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_GREY_DOWNSAMPLE, 11,
+				OPTIMIZE_ICON_GREY_SUBSAMPLE, OPTIMIZE_ICON_GREY_AVERAGE,
+				OPTIMIZE_ICON_GREY_RESOLUTION, OPTIMIZE_ICON_GREY_RESOLUTION_UP,
+				OPTIMIZE_ICON_GREY_RESOLUTION_DOWN, OPTIMIZE_ICON_GREY_THRESHOLD,
+				OPTIMIZE_ICON_GREY_THRESHOLD_UP, OPTIMIZE_ICON_GREY_THRESHOLD_DOWN,
+				OPTIMIZE_ICON_GREY_DEPTH, OPTIMIZE_ICON_GREY_DEPTH_UP,
+				OPTIMIZE_ICON_GREY_DEPTH_DOWN);
 
-	set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_MONO_DOWNSAMPLE, 11,
-			OPTIMIZE_ICON_MONO_SUBSAMPLE, OPTIMIZE_ICON_MONO_AVERAGE,
-			OPTIMIZE_ICON_MONO_RESOLUTION, OPTIMIZE_ICON_MONO_RESOLUTION_UP,
-			OPTIMIZE_ICON_MONO_RESOLUTION_DOWN, OPTIMIZE_ICON_MONO_THRESHOLD,
-			OPTIMIZE_ICON_MONO_THRESHOLD_UP, OPTIMIZE_ICON_MONO_THRESHOLD_DOWN,
-			OPTIMIZE_ICON_MONO_DEPTH, OPTIMIZE_ICON_MONO_DEPTH_UP,
-			OPTIMIZE_ICON_MONO_DEPTH_DOWN);
+	if (pointer == NULL || pointer->i == OPTIMIZE_ICON_MONO_DOWNSAMPLE)
+		set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_MONO_DOWNSAMPLE, 11,
+				OPTIMIZE_ICON_MONO_SUBSAMPLE, OPTIMIZE_ICON_MONO_AVERAGE,
+				OPTIMIZE_ICON_MONO_RESOLUTION, OPTIMIZE_ICON_MONO_RESOLUTION_UP,
+				OPTIMIZE_ICON_MONO_RESOLUTION_DOWN, OPTIMIZE_ICON_MONO_THRESHOLD,
+				OPTIMIZE_ICON_MONO_THRESHOLD_UP, OPTIMIZE_ICON_MONO_THRESHOLD_DOWN,
+				OPTIMIZE_ICON_MONO_DEPTH, OPTIMIZE_ICON_MONO_DEPTH_UP,
+				OPTIMIZE_ICON_MONO_DEPTH_DOWN);
 
-	set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_COLOUR_ENCODE, 2,
-			OPTIMIZE_ICON_COLOUR_DCT, OPTIMIZE_ICON_COLOUR_FLATE);
+	if (pointer == NULL || pointer->i == OPTIMIZE_ICON_COLOUR_ENCODE)
+		set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_COLOUR_ENCODE, 2,
+				OPTIMIZE_ICON_COLOUR_DCT, OPTIMIZE_ICON_COLOUR_FLATE);
 
-	set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_GREY_ENCODE, 2,
-			OPTIMIZE_ICON_GREY_DCT, OPTIMIZE_ICON_GREY_FLATE);
+	if (pointer == NULL || pointer->i == OPTIMIZE_ICON_GREY_ENCODE)
+		set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_GREY_ENCODE, 2,
+				OPTIMIZE_ICON_GREY_DCT, OPTIMIZE_ICON_GREY_FLATE);
 
-	set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_MONO_ENCODE, 3,
-			OPTIMIZE_ICON_MONO_CCITT, OPTIMIZE_ICON_MONO_FLATE, OPTIMIZE_ICON_MONO_RUNLENGTH);
+	if (pointer == NULL || pointer->i == OPTIMIZE_ICON_MONO_ENCODE)
+		set_icons_shaded_when_radio_off(windows.optimization, OPTIMIZE_ICON_MONO_ENCODE, 3,
+				OPTIMIZE_ICON_MONO_CCITT, OPTIMIZE_ICON_MONO_FLATE, OPTIMIZE_ICON_MONO_RUNLENGTH);
 
 	replace_caret_in_window(windows.optimization);
+
+	return TRUE;
 }
 
 
