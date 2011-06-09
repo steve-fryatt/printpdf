@@ -139,7 +139,7 @@ void version_build_params(char *buffer, size_t len, version_params *params)
 {
 	char		level[100];
 
-	param_menu_entry(level, "VersionList", params->standard_version);
+	pmenu_list_entry(level, "VersionList", params->standard_version);
 
 	*buffer = '\0';
 

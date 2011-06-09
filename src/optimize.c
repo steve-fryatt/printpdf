@@ -687,7 +687,7 @@ void optimize_build_params(char *buffer, size_t len, optimize_params *params)
 	extras = "";
 
 	if (params->standard_preset != -1) {
-		param_menu_entry(settings, "OptimizationList", params->standard_preset);
+		pmenu_list_entry(settings, "OptimizationList", params->standard_preset);
 
 		switch (params->standard_preset) {
 		case 2:
@@ -699,13 +699,13 @@ void optimize_build_params(char *buffer, size_t len, optimize_params *params)
 	} else {
 		end = settings;
 
-		end = param_menu_entry(pointers[0] = end, "DownsampleList", params->downsample_colour_type);
-		end = param_menu_entry(pointers[1] = end, "DownsampleList", params->downsample_grey_type);
-		end = param_menu_entry(pointers[2] = end, "DownsampleList", params->downsample_mono_type);
-		end = param_menu_entry(pointers[3] = end, "EncodeList1", params->encode_colour_type);
-		end = param_menu_entry(pointers[4] = end, "EncodeList1", params->encode_grey_type);
-		end = param_menu_entry(pointers[5] = end, "EncodeList2", params->encode_mono_type);
-		end = param_menu_entry(pointers[6] = end, "AutoPageRotateList", params->auto_page_rotation);
+		end = pmenu_list_entry(pointers[0] = end, "DownsampleList", params->downsample_colour_type);
+		end = pmenu_list_entry(pointers[1] = end, "DownsampleList", params->downsample_grey_type);
+		end = pmenu_list_entry(pointers[2] = end, "DownsampleList", params->downsample_mono_type);
+		end = pmenu_list_entry(pointers[3] = end, "EncodeList1", params->encode_colour_type);
+		end = pmenu_list_entry(pointers[4] = end, "EncodeList1", params->encode_grey_type);
+		end = pmenu_list_entry(pointers[5] = end, "EncodeList2", params->encode_mono_type);
+		end = pmenu_list_entry(pointers[6] = end, "AutoPageRotateList", params->auto_page_rotation);
 
 	snprintf(buffer, len, "-dDownsampleColorImages=%s -dDownsampleGrayImages=%s -dDownsampleMonoImages=%s "
 			"-dColorImageDownsampleType=%s -dGrayImageDownsampleType=%s -dMonoImageDownsampleType=%s "

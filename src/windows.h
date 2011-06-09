@@ -1,10 +1,10 @@
 /* PrintPDF - windows.h
  *
- * (c) Stephen Fryatt, 2005
+ * (c) Stephen Fryatt, 2005-2011
  */
 
-#ifndef _PRINTPDF_WINDOWS
-#define _PRINTPDF_WINDOWS
+#ifndef PRINTPDF_WINDOWS
+#define PRINTPDF_WINDOWS
 
 /* ==================================================================================================================
  * Static constants
@@ -52,3 +52,4 @@ extern global_windows	windows;
 void load_window_templates (char *template_file, osspriteop_area *sprites);
 
 #endif
+

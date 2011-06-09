@@ -1,6 +1,6 @@
 /* PrintPDF - windows.c
  *
- * (C) Stephen Fryatt, 2005
+ * (C) Stephen Fryatt, 2005-2011
  */
 
 /* ANSI C header files */
