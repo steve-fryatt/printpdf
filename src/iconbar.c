@@ -1,6 +1,6 @@
 /* PrintPDF - iconbar.c
  *
- * (C) Stephen Fryatt, 2005
+ * (C) Stephen Fryatt, 2005-2011
  */
 
 /* ANSI C header files */
@@ -30,27 +30,26 @@
 #include "main.h"
 #include "menus.h"
 
-/* *****************************************************************************
- * Function Prototypes
- * *****************************************************************************/
+
+/* Iconbar menu */
+
+#define ICONBAR_MENU_INFO 0
+#define ICONBAR_MENU_HELP 1
+#define ICONBAR_MENU_QUEUE 2
+#define ICONBAR_MENU_CHOICES 3
+#define ICONBAR_MENU_QUIT 4
+
 
 static void	iconbar_click_handler(wimp_pointer *pointer);
 static void	iconbar_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void	iconbar_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 
-/* ==================================================================================================================
- * Global variables.
- */
-
-/* ==================================================================================================================
- *
- */
 
 /**
- * Initialise the iconbar icon.
+ * Initialise the iconbar icon and its associated menus and dialogues.
  */
 
-void initialise_iconbar(void)
+void iconbar_initialise(void)
 {
 }
 
@@ -61,7 +60,7 @@ void initialise_iconbar(void)
  * \param new_state		TRUE to create an icon; FALSE to remove it.
  */
 
-void set_iconbar_icon(int new_state)
+void iconbar_set_icon(int new_state)
 {
 	static int		icon_present = FALSE;
 	static wimp_i		icon_handle = (wimp_i) -1;

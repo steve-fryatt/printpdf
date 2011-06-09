@@ -179,7 +179,7 @@ static void choices_read_window(void)
 
 	/* Make any immediate changes that depend on the choices. */
 
-	set_iconbar_icon(config_opt_read("IconBarIcon"));
+	iconbar_set_icon(config_opt_read("IconBarIcon"));
 }
 
 

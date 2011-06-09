@@ -279,7 +279,7 @@ static void main_initialise(void)
 	encrypt_initialise();
 	optimize_initialise();
 	pdfmark_initialise();
-	initialise_iconbar();
+	iconbar_initialise();
 	convert_initialise();
 	initialise_bookmarks();
 
@@ -287,7 +287,7 @@ static void main_initialise(void)
 
 	/* Create an icon-bar icon. */
 
-	set_iconbar_icon(config_opt_read("IconBarIcon") && (main_quit_flag == FALSE));
+	iconbar_set_icon(config_opt_read("IconBarIcon") && (main_quit_flag == FALSE));
 
 	hourglass_off();
 }

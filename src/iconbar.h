@@ -1,35 +1,26 @@
 /* PrintPDF - iconbar.h
  *
- * (c) Stephen Fryatt, 2005
+ * (c) Stephen Fryatt, 2005-2011
  */
 
-#ifndef _PRINTPDF_ICONBAR
-#define _PRINTPDF_ICONBAR
+#ifndef PRINTPDF_ICONBAR
+#define PRINTPDF_ICONBAR
 
-/* ==================================================================================================================
- * Static constants
+
+/**
+ * Initialise the iconbar icon and its associated menus and dialogues.
  */
 
-/* Iconbar menu */
+void iconbar_initialise(void);
 
-#define ICONBAR_MENU_INFO 0
-#define ICONBAR_MENU_HELP 1
-#define ICONBAR_MENU_QUEUE 2
-#define ICONBAR_MENU_CHOICES 3
-#define ICONBAR_MENU_QUIT 4
 
-/* ==================================================================================================================
- * Data structures
+/**
+ * Create or delete the icon on the iconbar, as appropriate.
+ *
+ * \param new_state		TRUE to create an icon; FALSE to remove it.
  */
 
-/* ==================================================================================================================
- * Function prototypes.
- */
-
-void initialise_iconbar(void);
-
-/* Handle the iconbar icon. */
-
-void set_iconbar_icon(int new_state);
+void iconbar_set_icon(int new_state);
 
 #endif
+
