@@ -42,5 +42,14 @@ void choices_initialise(void);
 
 void choices_open_window(wimp_pointer *pointer);
 
+
+/**
+ * Identify whether the Choices window is currently open.
+ *
+ * \return		TRUE if the window is open; else FALSE.
+ */
+
+osbool choices_window_is_open(void);
+
 #endif
 

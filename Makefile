@@ -100,7 +100,7 @@ READMEHDR := Header
 MENUSRC := menudef
 
 OBJS := bookmark.o choices.o convert.o dataxfer.o encrypt.o ihelp.o iconbar.o main.o \
-        menus.o optimize.o pdfmark.o pmenu.o popup.o taskman.o version.o windows.o
+        optimize.o pdfmark.o pmenu.o popup.o taskman.o templates.o version.o
 
 
 # Build everything, but don't package it for release.

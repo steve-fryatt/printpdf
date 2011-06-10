@@ -30,9 +30,9 @@
 
 #include "pdfmark.h"
 
-#include "menus.h"
+#include "ihelp.h"
 #include "pmenu.h"
-#include "windows.h"
+#include "templates.h"
 
 
 /* PDFMark Window icons. */
@@ -83,6 +83,7 @@ static char latin1_to_pdfdocencoding[] = {
 	0370, 0371, 0372, 0373, 0374, 0375, 0376, 0377
 };
 
+static wimp_w	pdfmark_window = NULL;
 
 static void	(*pdfmark_dialogue_close_callback)(void) = NULL;
 
@@ -99,10 +100,11 @@ static void		pdfmark_shade_dialogue(void);
 
 void pdfmark_initialise(void)
 {
-	extern global_windows		windows;
+	pdfmark_window = templates_create_window("PDFMark");
+	ihelp_add_window(pdfmark_window, "PDFMark", NULL);
 
-	event_add_window_mouse_event(windows.pdfmark, pdfmark_click_handler);
-	event_add_window_key_event(windows.pdfmark, pdfmark_keypress_handler);
+	event_add_window_mouse_event(pdfmark_window, pdfmark_click_handler);
+	event_add_window_key_event(pdfmark_window, pdfmark_keypress_handler);
 }
 
 
@@ -158,8 +160,6 @@ void pdfmark_set_dialogue_callback(void (*callback)(void))
 
 static void pdfmark_click_handler(wimp_pointer *pointer)
 {
-	extern global_windows		windows;
-
 	if (pointer == NULL)
 		return;
 
@@ -216,18 +216,14 @@ static osbool pdfmark_keypress_handler(wimp_key *key)
 
 void pdfmark_open_dialogue(pdfmark_params *params, wimp_pointer *pointer)
 {
-	extern global_windows		windows;
-
-	/* Set the dialogue icons. */
-
-	strcpy(indirected_icon_text(windows.pdfmark, PDFMARK_ICON_TITLE), params->title);
-	strcpy(indirected_icon_text(windows.pdfmark, PDFMARK_ICON_AUTHOR), params->author);
-	strcpy(indirected_icon_text(windows.pdfmark, PDFMARK_ICON_SUBJECT), params->subject);
-	strcpy(indirected_icon_text(windows.pdfmark, PDFMARK_ICON_KEYWORDS), params->keywords);
+	strcpy(indirected_icon_text(pdfmark_window, PDFMARK_ICON_TITLE), params->title);
+	strcpy(indirected_icon_text(pdfmark_window, PDFMARK_ICON_AUTHOR), params->author);
+	strcpy(indirected_icon_text(pdfmark_window, PDFMARK_ICON_SUBJECT), params->subject);
+	strcpy(indirected_icon_text(pdfmark_window, PDFMARK_ICON_KEYWORDS), params->keywords);
 
 	pdfmark_shade_dialogue();
 
-	open_transient_window_centred_at_pointer(windows.pdfmark, pointer);
+	open_transient_window_centred_at_pointer(pdfmark_window, pointer);
 }
 
 
@@ -240,12 +236,10 @@ void pdfmark_open_dialogue(pdfmark_params *params, wimp_pointer *pointer)
 
 void pdfmark_process_dialogue(pdfmark_params *params)
 {
-	extern global_windows		windows;
-
-	strcpy(params->title, indirected_icon_text(windows.pdfmark, PDFMARK_ICON_TITLE));
-	strcpy(params->author, indirected_icon_text(windows.pdfmark, PDFMARK_ICON_AUTHOR));
-	strcpy(params->subject, indirected_icon_text(windows.pdfmark, PDFMARK_ICON_SUBJECT));
-	strcpy(params->keywords, indirected_icon_text(windows.pdfmark, PDFMARK_ICON_KEYWORDS));
+	strcpy(params->title, indirected_icon_text(pdfmark_window, PDFMARK_ICON_TITLE));
+	strcpy(params->author, indirected_icon_text(pdfmark_window, PDFMARK_ICON_AUTHOR));
+	strcpy(params->subject, indirected_icon_text(pdfmark_window, PDFMARK_ICON_SUBJECT));
+	strcpy(params->keywords, indirected_icon_text(pdfmark_window, PDFMARK_ICON_KEYWORDS));
 
 	wimp_create_menu((wimp_menu *) -1, 0, 0);
 }
@@ -258,9 +252,7 @@ void pdfmark_process_dialogue(pdfmark_params *params)
 
 static void pdfmark_shade_dialogue(void)
 {
-	extern global_windows		windows;
-
-	replace_caret_in_window(windows.pdfmark);
+	replace_caret_in_window(pdfmark_window);
 }
 
 

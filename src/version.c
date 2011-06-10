@@ -25,9 +25,8 @@
 
 #include "version.h"
 
-#include "menus.h"
 #include "pmenu.h"
-#include "windows.h"
+#include "templates.h"
 
 
 #define VERSION_MENU_LENGTH 3

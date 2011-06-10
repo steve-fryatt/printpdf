@@ -37,7 +37,7 @@
 #include "choices.h"
 #include "convert.h"
 #include "main.h"
-#include "windows.h"
+#include "templates.h"
 
 /* ==================================================================================================================
  * Global variables.
@@ -55,11 +55,12 @@ static int	dragging_sprite = 0;
 
 static int	drag_type = 0;
 
+static char	*drag_save_leafname = NULL;
+
 /**
  * Function prototypes.
  */
 
-static int		drag_end_save_pdf(char *filename);
 static void		terminate_user_drag(wimp_dragged *drag, void *data);
 static osbool		message_data_save_reply(wimp_message *message);
 static osbool		message_data_save_ack_reply(wimp_message *message);
@@ -84,44 +85,29 @@ void dataxfer_initialise(void)
  * Start dragging the icon from the save dialogue.  Called in response to an attempt to drag the icon.
  *
  * \param type		The drag type to start.
+ * \param w		The window where the drag is starting.
+ * \param i		The icon to be dragged.
+ * \param *filename	The filename to be used as a starting point.
  */
 
-void start_save_window_drag(int type)
+void start_save_window_drag(int type, wimp_w w, wimp_i i, char *filename)
 {
 	wimp_window_state	window;
 	wimp_icon_state		icon;
 	wimp_drag		drag;
 	int			ox, oy;
 
-	extern global_windows	windows;
-
-
 	/* Get the basic information about the window and icon. */
 
-	switch (type) {
-	case DRAG_SAVE_PDF:
-		window.w = windows.save_pdf;
-		break;
-	case DRAG_SAVE_SAVEAS:
-		window.w = windows.save_as;
-		break;
-	}
+	window.w = w;
 	wimp_get_window_state (&window);
 
 	ox = window.visible.x0 - window.xscroll;
 	oy = window.visible.y1 - window.yscroll;
 
 	icon.w = window.w;
-	switch (type) {
-	case DRAG_SAVE_PDF:
-		icon.i = SAVE_PDF_ICON_FILE;
-		break;
-	case DRAG_SAVE_SAVEAS:
-		icon.i = SAVEAS_ICON_FILE;
-		break;
-	}
+	icon.i = i;
 	wimp_get_icon_state (&icon);
-
 
 	/* Set up the drag parameters. */
 
@@ -151,6 +137,8 @@ void start_save_window_drag(int type)
 	else
 		wimp_drag_box (&drag);
 
+	drag_save_leafname = find_leafname(filename);
+
 	drag_type = type;
 	event_set_drag_handler(terminate_user_drag, NULL, NULL);
 }
@@ -168,9 +156,6 @@ void start_save_window_drag(int type)
 static void terminate_user_drag(wimp_dragged *drag, void *data)
 {
 	wimp_pointer		pointer;
-	char			*leafname;
-
-	extern global_windows	windows;
 
 	if (dragging_sprite)
 		dragasprite_stop ();
@@ -179,62 +164,12 @@ static void terminate_user_drag(wimp_dragged *drag, void *data)
 
 	switch (drag_type) {
 	case DRAG_SAVE_PDF:
-		leafname = find_leafname (indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_NAME));
-		send_start_data_save_function (pointer.w, pointer.i, pointer.pos, 0, drag_end_save_pdf, 0, PDF_FILE_TYPE, leafname);
+		send_start_data_save_function(pointer.w, pointer.i, pointer.pos, 0, drag_end_save_pdf, 0, PDF_FILE_TYPE, drag_save_leafname);
 		break;
 	case DRAG_SAVE_SAVEAS:
-		leafname = find_leafname (indirected_icon_text(windows.save_as, SAVEAS_ICON_NAME));
-		send_start_data_save_function (pointer.w, pointer.i, pointer.pos, 0, drag_end_save_saveas, 0, PRINTPDF_FILE_TYPE, leafname);
+		send_start_data_save_function(pointer.w, pointer.i, pointer.pos, 0, drag_end_save_saveas, 0, PRINTPDF_FILE_TYPE, drag_save_leafname);
 		break;
 	}
-}
-
-
-
-/**
- * Callback handler for DataSave completion on PDF save drags: start the
- * conversion using the filename returned.
- *
- * \param *filename		The filename returned by the DataSave protocol.
- * \return			0 if the save was started OK.
- */
-
-static int drag_end_save_pdf(char *filename)
-{
-	extern global_windows		windows;
-
-	convert_save_dialogue_end(filename);
-	wimp_close_window(windows.save_pdf);
-
-	return 0;
-}
-
-
-/**
- * Try to save in response to a click on 'OK' in the Save dialogue.
- *
- * \return 		0 if the process completed OK.
- */
-
-int immediate_window_save(void)
-{
-	char			*filename;
-	extern global_windows	windows;
-
-	filename = indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_NAME);
-
-	/* Test if the filename is valid. */
-
-	if (strchr (filename, '.') == NULL) {
-		wimp_msgtrans_info_report("DragSave");
-		return 1;
-	}
-
-	convert_save_dialogue_end(filename);
-
-	wimp_close_window(windows.save_pdf);
-
-	return 0;
 }
 
 
@@ -312,9 +247,6 @@ static osbool message_data_load_reply(wimp_message *message)
 	os_error			*error;
 	char				queue_file[512];
 	osbool				handled = FALSE;
-
-	extern global_windows		windows;
-
 
 	if (dataload->w == wimp_ICON_BAR &&
 			(dataload->file_type == PS_FILE_TYPE || dataload->file_type == PRINTPDF_FILE_TYPE)) {

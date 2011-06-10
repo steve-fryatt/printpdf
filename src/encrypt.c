@@ -26,8 +26,9 @@
 
 #include "encrypt.h"
 
+#include "ihelp.h"
 #include "pmenu.h"
-#include "windows.h"
+#include "templates.h"
 
 
 /* Encryption Window icons. */
@@ -68,6 +69,9 @@
 #define ACCESS_REV3_PRINTFULL		0x800
 
 
+static wimp_w	encrypt_window2 = NULL;
+static wimp_w	encrypt_window3 = NULL;
+
 static void	(*encrypt_dialogue_close_callback)(void) = NULL;
 
 
@@ -82,13 +86,15 @@ static void		encrypt_shade_dialogue(wimp_w window);
 
 void encrypt_initialise(void)
 {
-	extern global_windows		windows;
+	encrypt_window2 = templates_create_window("Security2");
+	ihelp_add_window(encrypt_window2, "Security2", NULL);
+	event_add_window_mouse_event(encrypt_window2, encrypt_click_handler);
+	event_add_window_key_event(encrypt_window2, encrypt_keypress_handler);
 
-	event_add_window_mouse_event(windows.security2, encrypt_click_handler);
-	event_add_window_key_event(windows.security2, encrypt_keypress_handler);
-
-	event_add_window_mouse_event(windows.security3, encrypt_click_handler);
-	event_add_window_key_event(windows.security3, encrypt_keypress_handler);
+	encrypt_window3 = templates_create_window("Security3");
+	ihelp_add_window(encrypt_window3, "Security3", NULL);
+	event_add_window_mouse_event(encrypt_window3, encrypt_click_handler);
+	event_add_window_key_event(encrypt_window3, encrypt_keypress_handler);
 }
 
 
@@ -158,8 +164,6 @@ void encrypt_set_dialogue_callback(void (*callback)(void))
 
 static void encrypt_click_handler(wimp_pointer *pointer)
 {
-	extern global_windows		windows;
-
 	if (pointer == NULL)
 		return;
 
@@ -221,10 +225,8 @@ static osbool encrypt_keypress_handler(wimp_key *key)
 void encrypt_open_dialogue(encrypt_params *params, osbool extended_opts, wimp_pointer *pointer)
 {
 	wimp_w				encrypt_win;
-	extern global_windows		windows;
 
-
-	encrypt_win = (extended_opts) ? windows.security3 : windows.security2;
+	encrypt_win = (extended_opts) ? encrypt_window3 : encrypt_window2;
 
 	strcpy(indirected_icon_text(encrypt_win, ENCRYPT_ICON_OWNER_PW), params->owner_password);
 	strcpy(indirected_icon_text(encrypt_win, ENCRYPT_ICON_ACCESS_PW), params->access_password);
@@ -258,14 +260,13 @@ void encrypt_process_dialogue(encrypt_params *params)
 {
 	osbool				extended_opts;
 	wimp_w				encrypt_win;
-	extern global_windows		windows;
 
 
-	if (window_is_open(windows.security2)) {
-		encrypt_win = windows.security2;
+	if (window_is_open(encrypt_window2)) {
+		encrypt_win = encrypt_window2;
 		extended_opts = FALSE;
 	} else {
-		encrypt_win = windows.security3;
+		encrypt_win = encrypt_window3;
 		extended_opts = TRUE;
 	}
 
@@ -301,7 +302,6 @@ static void encrypt_shade_dialogue(wimp_w window)
 	osbool			changed, new_state;
 	int			max_icon, icon;
 	wimp_w			encrypt_win;
-	extern global_windows	windows;
 
 	changed = FALSE;
 
@@ -309,12 +309,12 @@ static void encrypt_shade_dialogue(wimp_w window)
 		encrypt_win = window;
 
 		shaded = (strlen(indirected_icon_text(encrypt_win, ENCRYPT_ICON_OWNER_PW)) == 0);
-		max_icon = (encrypt_win == windows.security3) ? ENCRYPT_ICON_ASSEMBLY : ENCRYPT_ICON_FORMS;
+		max_icon = (encrypt_win == encrypt_window3) ? ENCRYPT_ICON_ASSEMBLY : ENCRYPT_ICON_FORMS;
 
 		changed = TRUE;
 	} else {
-		if (window_is_open(windows.security2)) {
-			encrypt_win = windows.security2;
+		if (window_is_open(encrypt_window2)) {
+			encrypt_win = encrypt_window2;
 			new_state = (strlen(indirected_icon_text(encrypt_win, ENCRYPT_ICON_OWNER_PW)) == 0);
 			max_icon = ENCRYPT_ICON_SHADE_MAX2;
 
@@ -322,8 +322,8 @@ static void encrypt_shade_dialogue(wimp_w window)
 				shaded = new_state;
 				changed = TRUE;
 			}
-		} else if (window_is_open(windows.security3)) {
-			encrypt_win = windows.security3;
+		} else if (window_is_open(encrypt_window3)) {
+			encrypt_win = encrypt_window3;
 			new_state = (strlen(indirected_icon_text(encrypt_win, ENCRYPT_ICON_OWNER_PW)) == 0);
 			max_icon = ENCRYPT_ICON_SHADE_MAX3;
 

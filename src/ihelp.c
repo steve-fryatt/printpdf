@@ -29,7 +29,7 @@
 
 #include "ihelp.h"
 
-#include "menus.h"
+#include "templates.h"
 
 /* #include "mainmenu.h" */
 
@@ -249,7 +249,7 @@ static char *ihelp_get_text(char *buffer, wimp_w window, wimp_i icon, os_coord p
 		/* The list will be null if this isn't a menu belonging to us (or it isn't a menu at all...). */
 
 		if (menu_selection.items[0] != -1) {
-			snprintf(token, sizeof(token), "Help.%s.", get_current_menu_name (icon_name));
+			snprintf(token, sizeof(token), "Help.%s.", templates_get_current_menu_name(icon_name));
 
 			for (i=0; menu_selection.items[i] != -1; i++) {
 				snprintf(icon_name, IHELP_INAME_LEN, "%02x", menu_selection.items[i]);

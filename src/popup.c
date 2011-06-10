@@ -21,10 +21,12 @@
 
 #include "popup.h"
 
-#include "windows.h"
+#include "ihelp.h"
+#include "templates.h"
 
 static int	popup_is_open = FALSE;
 static os_t	popup_close_time = 0;
+static wimp_w	popup_window = NULL;
 
 
 static void	popup_click_handler(wimp_pointer *pointer);
@@ -37,7 +39,9 @@ static void	popup_close(void);
 
 void popup_initialise(void)
 {
-	event_add_window_mouse_event(windows.popup, popup_click_handler);
+	popup_window = templates_create_window("PopUp");
+	ihelp_add_window(popup_window, "PopUp", NULL);
+	event_add_window_mouse_event(popup_window, popup_click_handler);
 }
 
 
@@ -79,7 +83,7 @@ static void popup_close(void)
 	if (popup_is_open == FALSE)
 		return;
 
-	wimp_close_window(windows.popup);
+	wimp_close_window(popup_window);
 
 	popup_close_time = 0;
 	popup_is_open = FALSE;
@@ -98,5 +102,5 @@ void popup_open(int open_time)
 	popup_is_open = TRUE;
 	popup_close_time = os_read_monotonic_time() + open_time;
 
-	open_window_centred_on_screen(windows.popup);
+	open_window_centred_on_screen(popup_window);
 }

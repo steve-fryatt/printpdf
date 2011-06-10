@@ -41,17 +41,17 @@
 #include "convert.h"
 
 #include "bookmark.h"
+#include "choices.h"
+#include "dataxfer.h"
 #include "encrypt.h"
 #include "ihelp.h"
 #include "main.h"
-#include "menus.h"
 #include "optimize.h"
 #include "pdfmark.h"
 #include "pmenu.h"
 #include "popup.h"
+#include "templates.h"
 #include "version.h"
-#include "windows.h"
-#include "dataxfer.h"
 
 
 #define MAX_QUEUE_NAME 32
@@ -142,6 +142,7 @@ static void		convert_save_click_handler(wimp_pointer *pointer);
 static osbool		convert_save_keypress_handler(wimp_key *key);
 static void		convert_save_menu_prepare_handler(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void		convert_save_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static osbool		convert_immediate_window_save(void);
 
 static void		convert_process_pdfmark_dialogue(void);
 static void		convert_process_encrypt_dialogue(void);
@@ -194,6 +195,10 @@ static version_params	version;
 static pdfmark_params	pdfmark;
 static bookmark_params	bookmark;
 
+static wimp_w		convert_savepdf_window = NULL;
+static wimp_w		convert_queue_window = NULL;
+static wimp_w		convert_queue_pane = NULL;
+static wimp_window	*convert_queue_pane_def = NULL;
 
 
 /**
@@ -209,8 +214,6 @@ void convert_initialise(void)
 {
 	char			*queue_dir;
 	fileswitch_object_type	type;
-	extern global_windows	windows;
-	extern global_menus	menus;
 
 	/* Set up the queue directory */
 
@@ -223,11 +226,44 @@ void convert_initialise(void)
 	else if (type != fileswitch_IS_DIR)
 		wimp_msgtrans_error_report("NoQueueDir");
 
+	/* Create the windows and menus. */
+
+	popup_version = templates_get_menu(TEMPLATES_MENU_VERSION);
+	popup_optimize = templates_get_menu(TEMPLATES_MENU_OPTIMIZATION);
+
+	convert_savepdf_window = templates_create_window("SavePDF");
+	ihelp_add_window(convert_savepdf_window, "SavePDF", NULL);
+
+	event_add_window_mouse_event(convert_savepdf_window, convert_save_click_handler);
+	event_add_window_key_event(convert_savepdf_window, convert_save_keypress_handler);
+	event_add_window_menu_prepare(convert_savepdf_window, convert_save_menu_prepare_handler);
+	event_add_window_menu_selection(convert_savepdf_window, convert_save_menu_selection_handler);
+
+	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_VERSION_MENU, popup_version, -1);
+	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_OPT_MENU, popup_optimize, -1);
+	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_MENU, popup_bookmark, -1);
+
+	convert_queue_window = templates_create_window("Queue");
+	ihelp_add_window(convert_queue_window, "Queue", NULL);
+
+	event_add_window_mouse_event(convert_queue_window, convert_queue_click_handler);
+
+	convert_queue_pane_def = templates_load_window("QueuePane");
+	convert_queue_pane_def->icon_count = 0;
+	convert_queue_pane = wimp_create_window(convert_queue_pane_def);
+	ihelp_add_window(convert_queue_pane, "QueuePane", convert_decode_queue_pane_help);
+
+	event_add_window_redraw_event(convert_queue_pane, convert_queue_pane_redraw_handler);
+	event_add_window_mouse_event(convert_queue_pane, convert_queue_pane_click_handler);
+
+	event_add_message_handler(message_TASK_CLOSE_DOWN, EVENT_MESSAGE_INCOMING, convert_check_for_conversion_end);
+	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, convert_handle_save_icon_drop);
+
 	/* Initialise the options. */
 
-	strcpy (indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_NAME), config_str_read("FileName"));
-	strcpy (indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_USERFILE), config_str_read("PDFMarkUserFile"));
-	set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, config_opt_read("PreProcess"));
+	strcpy(indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_NAME), config_str_read("FileName"));
+	strcpy(indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), config_str_read("PDFMarkUserFile"));
+	set_icon_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS, config_opt_read("PreProcess"));
 
 	encrypt_initialise_settings(&encryption);
 	optimize_initialise_settings(&optimization);
@@ -235,30 +271,6 @@ void convert_initialise(void)
 	pdfmark_initialise_settings(&pdfmark);
 	initialise_bookmark_settings(&bookmark);
 
-	/* \TODO -- The interface for getting menu and window handles needs improved. */
-
-	popup_version = menus.version_popup;
-	popup_optimize = menus.optimize_popup;
-
-	ihelp_add_window (windows.queue_pane, "QueuePane", convert_decode_queue_pane_help);
-
-	/* Register event handlers. */
-
-	event_add_window_mouse_event(windows.save_pdf, convert_save_click_handler);
-	event_add_window_key_event(windows.save_pdf, convert_save_keypress_handler);
-	event_add_window_menu_prepare(windows.save_pdf, convert_save_menu_prepare_handler);
-	event_add_window_menu_selection(windows.save_pdf, convert_save_menu_selection_handler);
-
-	event_add_window_icon_popup(windows.save_pdf, SAVE_PDF_ICON_VERSION_MENU, popup_version, -1);
-	event_add_window_icon_popup(windows.save_pdf, SAVE_PDF_ICON_OPT_MENU, popup_optimize, -1);
-	event_add_window_icon_popup(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_MENU, popup_bookmark, -1);
-
-	event_add_window_mouse_event(windows.queue, convert_queue_click_handler);
-	event_add_window_redraw_event(windows.queue_pane, convert_queue_pane_redraw_handler);
-	event_add_window_mouse_event(windows.queue_pane, convert_queue_pane_click_handler);
-
-	event_add_message_handler(message_TASK_CLOSE_DOWN, EVENT_MESSAGE_INCOMING, convert_check_for_conversion_end);
-	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, convert_handle_save_icon_drop);
 }
 
 
@@ -368,7 +380,6 @@ osbool convert_queue_ps_file(char *filename)
 void convert_check_for_pending_files (void)
 {
 	queued_file		*list;
-	extern global_windows	windows;
 
 	/* We can't start a conversion if:
 	 *
@@ -377,7 +388,7 @@ void convert_check_for_pending_files (void)
 	 * - There isn't anything to convert (Duh!)
 	 */
 
-	if (window_is_open(windows.choices) || conversion_in_progress || !files_pending_attention || queue == NULL)
+	if (choices_window_is_open() || conversion_in_progress || !files_pending_attention || queue == NULL)
 		return;
 
 	list = queue;
@@ -418,7 +429,6 @@ void convert_check_for_pending_files (void)
 static void convert_start_held_conversion(void)
 {
 	queued_file		*list;
-	extern global_windows	windows;
 
 	/* We can't start a conversion if:
 	 *
@@ -426,7 +436,7 @@ static void convert_start_held_conversion(void)
 	 * - There is a conversion in progress
 	 */
 
-	if (window_is_open(windows.choices) || conversion_in_progress || queue == NULL)
+	if (choices_window_is_open() || conversion_in_progress || queue == NULL)
 		return;
 
 	list = queue;
@@ -466,14 +476,12 @@ static void convert_open_save_dialogue(void)
 {
 	wimp_pointer		pointer;
 
-	extern global_windows	windows;
-
 	/* Set up and open the conversion window. */
 
 	if (config_opt_read ("ResetParams")) {
-		strcpy(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), config_str_read ("FileName"));
-		strcpy(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_USERFILE), config_str_read ("PDFMarkUserFile"));
-		set_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS, config_opt_read ("PreProcess"));
+		strcpy(indirected_icon_text (convert_savepdf_window, SAVE_PDF_ICON_NAME), config_str_read ("FileName"));
+		strcpy(indirected_icon_text (convert_savepdf_window, SAVE_PDF_ICON_USERFILE), config_str_read ("PDFMarkUserFile"));
+		set_icon_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS, config_opt_read ("PreProcess"));
 		encrypt_initialise_settings(&encryption);
 		optimize_initialise_settings(&optimization);
 		version_initialise_settings(&version);
@@ -481,16 +489,16 @@ static void convert_open_save_dialogue(void)
 		initialise_bookmark_settings(&bookmark);
 	}
 
-	version_fill_field(windows.save_pdf, SAVE_PDF_ICON_VERSION_FIELD, &version);
-	optimize_fill_field(windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
-	encrypt_fill_field(windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
-	pdfmark_fill_field(windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
-	fill_bookmark_field(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
+	version_fill_field(convert_savepdf_window, SAVE_PDF_ICON_VERSION_FIELD, &version);
+	optimize_fill_field(convert_savepdf_window, SAVE_PDF_ICON_OPT_FIELD, &optimization);
+	encrypt_fill_field(convert_savepdf_window, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
+	pdfmark_fill_field(convert_savepdf_window, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
+	fill_bookmark_field(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
 
 	wimp_get_pointer_info(&pointer);
 
-	open_window_centred_at_pointer(windows.save_pdf, &pointer);
-	put_caret_at_end(windows.save_pdf, SAVE_PDF_ICON_NAME);
+	open_window_centred_at_pointer(convert_savepdf_window, &pointer);
+	put_caret_at_end(convert_savepdf_window, SAVE_PDF_ICON_NAME);
 }
 
 
@@ -504,19 +512,18 @@ static void convert_open_save_dialogue(void)
 void convert_save_dialogue_end(char *output_file)
 {
 	conversion_params	params;
-	extern global_windows	windows;
 
 	/* Sort out the filenames. */
 
 	terminate_ctrl_str(output_file);
 
 	strcpy(params.output_filename, output_file);
-	strcpy(indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_NAME), output_file);
+	strcpy(indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_NAME), output_file);
 
 	/* Read and store the options from the window. */
 
-	params.preprocess_in_ps2ps = read_icon_selected(windows.save_pdf, SAVE_PDF_ICON_PREPROCESS);
-	ctrl_strcpy(params.pdfmark_userfile, indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_USERFILE));
+	params.preprocess_in_ps2ps = read_icon_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS);
+	ctrl_strcpy(params.pdfmark_userfile, indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_USERFILE));
 
 	/* Launch the conversion process. */
 
@@ -540,11 +547,10 @@ static void convert_save_dialogue_queue(void)
 {
 	char			*leafname, filename[MAX_FILENAME];
 	queued_file		*list;
-	extern global_windows	windows;
 
 	/* Sort out the filenames. */
 
-	ctrl_strcpy(filename, indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_NAME));
+	ctrl_strcpy(filename, indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_NAME));
 	leafname = find_leafname(filename);
 
 	list = queue;
@@ -562,10 +568,10 @@ static void convert_save_dialogue_queue(void)
 		list = list->next;
 	}
 
-	if (window_is_open (windows.queue)) {
+	if (window_is_open (convert_queue_window)) {
 		convert_reorder_queue_from_index();
 		convert_rebuild_queue_index();
-		force_visible_window_redraw(windows.queue_pane);
+		force_visible_window_redraw(convert_queue_pane);
 	}
 
 	conversion_in_progress = FALSE;
@@ -583,15 +589,14 @@ static osbool convert_handle_save_icon_drop(wimp_message *message)
 {
 	wimp_full_message_data_xfer	*dataload = (wimp_full_message_data_xfer *) message;
 	char				*extension, *leaf, path[256];
-	extern global_windows		windows;
 
-	if (dataload->w != windows.save_pdf)
+	if (dataload->w != convert_savepdf_window)
 		return FALSE;
 
-	if (dataload != NULL && dataload->w == windows.save_pdf && dataload->file_type == PRINTPDF_FILE_TYPE) {
+	if (dataload != NULL && dataload->w == convert_savepdf_window && dataload->file_type == PRINTPDF_FILE_TYPE) {
 		if (!load_and_select_bookmark_file(&bookmark, dataload->file_name))
-			fill_bookmark_field(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
-	} else if (dataload != NULL && dataload->w == windows.save_pdf) {
+			fill_bookmark_field(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
+	} else if (dataload != NULL && dataload->w == convert_savepdf_window) {
 		switch (dataload->i) {
 		case SAVE_PDF_ICON_NAME:
 			strcpy(path, dataload->file_name);
@@ -601,7 +606,7 @@ static osbool convert_handle_save_icon_drop(wimp_message *message)
 			find_pathname(path);
 
 			if (strcmp_no_case(extension, "pdf") != 0) {
-				snprintf(indirected_icon_text (windows.save_pdf, SAVE_PDF_ICON_NAME), 256, "%s.%s/pdf", path, leaf);
+				snprintf(indirected_icon_text (convert_savepdf_window, SAVE_PDF_ICON_NAME), 256, "%s.%s/pdf", path, leaf);
 
 				replace_caret_in_window (dataload->w);
 				wimp_set_icon_state (dataload->w, dataload->i, 0, 0);
@@ -610,7 +615,7 @@ static osbool convert_handle_save_icon_drop(wimp_message *message)
 
 		case SAVE_PDF_ICON_USERFILE:
 			if (dataload->file_type == 0xfff) {
-				strcpy(indirected_icon_text(windows.save_pdf, SAVE_PDF_ICON_USERFILE), dataload->file_name);
+				strcpy(indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), dataload->file_name);
 				replace_caret_in_window(dataload->w);
 				wimp_set_icon_state(dataload->w, dataload->i, 0, 0);
 			}
@@ -883,9 +888,7 @@ static osbool convert_check_for_conversion_end(wimp_message *message)
 
 static void convert_cancel_conversion(void)
 {
-	extern global_windows		windows;
-
-	wimp_close_window(windows.save_pdf);
+	wimp_close_window(convert_savepdf_window);
 	conversion_task = 0;
 	conversion_in_progress = FALSE;
 
@@ -899,10 +902,8 @@ static void convert_cancel_conversion(void)
 
 void convert_validate_params(void)
 {
-	extern global_windows	windows;
-
 	if (bookmark_validate_params(&bookmark))
-		fill_bookmark_field(windows.save_pdf, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
+		fill_bookmark_field(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
 }
 
 
@@ -914,20 +915,19 @@ void convert_validate_params(void)
 
 static void convert_save_click_handler(wimp_pointer *pointer)
 {
-	extern global_windows		windows;
-
 	if (pointer == NULL)
 		return;
 
 	switch ((int) pointer->i) {
 	case SAVE_PDF_ICON_FILE:
 		if (pointer->buttons == wimp_DRAG_SELECT)
-			start_save_window_drag(DRAG_SAVE_PDF);
+			start_save_window_drag(DRAG_SAVE_PDF, convert_savepdf_window, SAVE_PDF_ICON_FILE,
+					indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_NAME));
 		break;
 
 	case SAVE_PDF_ICON_OK:
 		if (pointer->buttons == wimp_CLICK_SELECT)
-			immediate_window_save();
+			convert_immediate_window_save();
 		break;
 
 	case SAVE_PDF_ICON_CANCEL:
@@ -938,7 +938,7 @@ static void convert_save_click_handler(wimp_pointer *pointer)
 	case SAVE_PDF_ICON_QUEUE:
 		if (pointer->buttons == wimp_CLICK_SELECT) {
 			convert_save_dialogue_queue();
-			wimp_close_window(windows.save_pdf);
+			wimp_close_window(convert_savepdf_window);
 		}
 		break;
 
@@ -970,7 +970,7 @@ static osbool convert_save_keypress_handler(wimp_key *key)
 
 	switch (key->c) {
 	case wimp_KEY_RETURN:
-		immediate_window_save();
+		convert_immediate_window_save();
 		break;
 
 	case wimp_KEY_ESCAPE:
@@ -984,7 +984,6 @@ static osbool convert_save_keypress_handler(wimp_key *key)
 
 	return TRUE;
 }
-
 
 
 /**
@@ -1033,16 +1032,58 @@ static void convert_save_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_
 
 
 /**
+ * Try to save in response to a click on 'OK' in the Save dialogue.
+ *
+ * \return 		TRUE if the process completed OK; else FALSE.
+ */
+
+static osbool convert_immediate_window_save(void)
+{
+	char			*filename;
+
+	filename = indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_NAME);
+
+	/* Test if the filename is valid. */
+
+	if (strchr (filename, '.') == NULL) {
+		wimp_msgtrans_info_report("DragSave");
+		return FALSE;
+	}
+
+	convert_save_dialogue_end(filename);
+
+	wimp_close_window(convert_savepdf_window);
+
+	return TRUE;
+}
+
+
+/**
+ * Callback handler for DataSave completion on PDF save drags: start the
+ * conversion using the filename returned.
+ *
+ * \param *filename		The filename returned by the DataSave protocol.
+ * \return			0 if the save was started OK.
+ */
+
+int drag_end_save_pdf(char *filename)
+{
+	convert_save_dialogue_end(filename);
+	wimp_close_window(convert_savepdf_window);
+
+	return 0;
+}
+
+
+/**
  * Callback to respond to clicks on the OK button of the PDFMark
  * dialogue.
  */
 
 static void convert_process_pdfmark_dialogue(void)
 {
-	extern global_windows		windows;
-
 	pdfmark_process_dialogue(&pdfmark);
-	pdfmark_fill_field(windows.save_pdf, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
+	pdfmark_fill_field(convert_savepdf_window, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
 }
 
 
@@ -1053,10 +1094,8 @@ static void convert_process_pdfmark_dialogue(void)
 
 static void convert_process_encrypt_dialogue(void)
 {
-	extern global_windows		windows;
-
 	encrypt_process_dialogue(&encryption);
-	encrypt_fill_field(windows.save_pdf, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
+	encrypt_fill_field(convert_savepdf_window, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
 }
 
 
@@ -1067,10 +1106,8 @@ static void convert_process_encrypt_dialogue(void)
 
 static void convert_process_optimize_dialogue(void)
 {
-	extern global_windows windows;
-
 	optimize_process_dialogue(&optimization);
-	optimize_fill_field(windows.save_pdf, SAVE_PDF_ICON_OPT_FIELD, &optimization);
+	optimize_fill_field(convert_savepdf_window, SAVE_PDF_ICON_OPT_FIELD, &optimization);
 }
 
 
@@ -1195,9 +1232,7 @@ osbool convert_pending_files_in_queue(void)
 
 void convert_open_queue_window(wimp_pointer *pointer)
 {
-	extern global_windows		windows;
-
-	open_pane_dialogue_centred_at_pointer(windows.queue, windows.queue_pane, QUEUE_ICON_PANE, 40, pointer);
+	open_pane_dialogue_centred_at_pointer(convert_queue_window, convert_queue_pane, QUEUE_ICON_PANE, 40, pointer);
 	convert_rebuild_queue_index();
 }
 
@@ -1208,11 +1243,9 @@ void convert_open_queue_window(wimp_pointer *pointer)
 
 static void convert_close_queue_window(void)
 {
-	extern global_windows		windows;
-
 	convert_reorder_queue_from_index();
 	convert_remove_deleted_files();
-	wimp_close_window(windows.queue);
+	wimp_close_window(convert_queue_window);
 }
 
 
@@ -1230,7 +1263,6 @@ static void convert_rebuild_queue_index(void)
 	os_box			extent;
 	queued_file		*list;
 	int			length, visible_extent, new_extent, new_scroll;
-	extern global_windows	windows;
 
 	/* Get the length of the queue. */
 
@@ -1265,7 +1297,7 @@ static void convert_rebuild_queue_index(void)
 
 	/* Set the window extent. */
 
-	state.w = windows.queue_pane;
+	state.w = convert_queue_pane;
 	wimp_get_window_state(&state);
 
 	visible_extent = state.yscroll + (state.visible.y0 - state.visible.y1);
@@ -1297,7 +1329,7 @@ static void convert_rebuild_queue_index(void)
 	extent.x1 = state.visible.x1 - state.visible.x0;
 	extent.y0 = new_extent;
 
-	wimp_set_extent(windows.queue_pane, &extent);
+	wimp_set_extent(convert_queue_pane, &extent);
 }
 
 
@@ -1340,12 +1372,10 @@ static void convert_queue_pane_redraw_handler(wimp_draw *redraw)
 	int			ox, oy, top, base, y;
 	osbool			more;
 	wimp_icon		*icon;
-	extern global_windows	windows;
-
 
 	/* Perform the redraw if a window was found. */
 
-	if (redraw->w != windows.queue_pane)
+	if (redraw->w != convert_queue_pane)
 		return;
 
 	more = wimp_redraw_window(redraw);
@@ -1353,7 +1383,7 @@ static void convert_queue_pane_redraw_handler(wimp_draw *redraw)
 	ox = redraw->box.x0 - redraw->xscroll;
 	oy = redraw->box.y1 - redraw->yscroll;
 
-	icon = windows.queue_pane_def->icons;
+	icon = convert_queue_pane_def->icons;
 
 	while (more) {
 		top = (oy - redraw->clip.y1) / QUEUE_ICON_HEIGHT;
@@ -1402,8 +1432,6 @@ static void convert_queue_pane_redraw_handler(wimp_draw *redraw)
 
 static void convert_queue_click_handler(wimp_pointer *pointer)
 {
-	extern global_windows		windows;
-
 	if (pointer == NULL)
 		return;
 
@@ -1431,12 +1459,11 @@ static void convert_queue_pane_click_handler(wimp_pointer *pointer)
 	int			line, column, xpos;
 	wimp_window_state	window;
 	wimp_icon		*icon;
-	extern global_windows	windows;
 
 	window.w = pointer->w;
 	wimp_get_window_state(&window);
 
-	icon = windows.queue_pane_def->icons;
+	icon = convert_queue_pane_def->icons;
 
 	line = ((window.visible.y1 - pointer->pos.y) - window.yscroll) / QUEUE_ICON_HEIGHT;
 
@@ -1487,12 +1514,10 @@ static void convert_start_queue_entry_drag(int line)
 	wimp_auto_scroll_info	auto_scroll;
 	wimp_drag		drag;
 	int			ox, oy;
-	extern global_windows	windows;
-
 
 	/* Get the basic information about the window. */
 
-	window.w = windows.queue_pane;
+	window.w = convert_queue_pane;
 	wimp_get_window_state(&window);
 
 	ox = window.visible.x0 - window.xscroll;
@@ -1500,7 +1525,7 @@ static void convert_start_queue_entry_drag(int line)
 
 	/* Set up the drag parameters. */
 
-	drag.w = windows.queue_pane;
+	drag.w = convert_queue_pane;
 	drag.type = wimp_DRAG_USER_FIXED;
 
 	drag.initial.x0 = ox;
@@ -1528,7 +1553,7 @@ static void convert_start_queue_entry_drag(int line)
 	/* Initialise the autoscroll. */
 
 	if (xos_swi_number_from_string("Wimp_AutoScroll", NULL) == NULL) {
-		auto_scroll.w = windows.queue_pane;
+		auto_scroll.w = convert_queue_pane;
 		auto_scroll.pause_zone_sizes.x0 = 0;
 		auto_scroll.pause_zone_sizes.y0 = AUTO_SCROLL_MARGIN;
 		auto_scroll.pause_zone_sizes.x1 = 0;
@@ -1557,9 +1582,6 @@ static void convert_terminate_queue_entry_drag(wimp_dragged *drag, void *data)
 	int			line, i;
 	queued_file		*moved;
 
-	extern global_windows	windows;
-
-
 	/* Terminate the drag and end the autoscroll. */
 
 	if (xos_swi_number_from_string ("Wimp_AutoScroll", NULL) == NULL)
@@ -1572,7 +1594,7 @@ static void convert_terminate_queue_entry_drag(wimp_dragged *drag, void *data)
 
 	wimp_get_pointer_info (&pointer);
 
-	window.w = windows.queue_pane;
+	window.w = convert_queue_pane;
 	wimp_get_window_state (&window);
 
 	line = ((window.visible.y1 - pointer.pos.y) - window.yscroll) / QUEUE_ICON_HEIGHT;
@@ -1593,7 +1615,7 @@ static void convert_terminate_queue_entry_drag(wimp_dragged *drag, void *data)
 
 	queue_redraw_list[line] = moved;
 
-	force_visible_window_redraw (windows.queue_pane);
+	force_visible_window_redraw (convert_queue_pane);
 }
 
 
@@ -1612,9 +1634,8 @@ static void convert_decode_queue_pane_help(char *buffer, wimp_w w, wimp_i i, os_
 	int			xpos, ypos, column;
 	wimp_window_state	window;
 	wimp_icon		*icon;
-	extern global_windows	windows;
 
-	icon = windows.queue_pane_def->icons;
+	icon = convert_queue_pane_def->icons;
 
 	*buffer = '\0';
 	column = 0;

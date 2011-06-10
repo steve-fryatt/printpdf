@@ -30,18 +30,12 @@ void dataxfer_initialise(void);
  * Start dragging the icon from the save dialogue.  Called in response to an attempt to drag the icon.
  *
  * \param type		The drag type to start.
+ * \param w		The window where the drag is starting.
+ * \param i		The icon to be dragged.
+ * \param *filename	The filename to be used as a starting point.
  */
 
-void start_save_window_drag(int type);
-
-
-/**
- * Try to save in response to a click on 'OK' in the Save dialogue.
- *
- * \return 		0 if the process completed OK.
- */
-
-int immediate_window_save(void);
+void start_save_window_drag(int type, wimp_w w, wimp_i i, char *filename);
 
 #endif
 

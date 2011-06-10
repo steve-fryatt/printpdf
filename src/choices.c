@@ -30,13 +30,13 @@
 
 #include "encrypt.h"
 #include "iconbar.h"
+#include "ihelp.h"
 #include "main.h"
-#include "menus.h"
 #include "optimize.h"
 #include "pdfmark.h"
 #include "pmenu.h"
+#include "templates.h"
 #include "version.h"
-#include "windows.h"
 
 
 /* Global variables */
@@ -45,6 +45,8 @@ static encrypt_params		encryption;
 static optimize_params		optimization;
 static version_params		version;
 static pdfmark_params		pdfmark;
+
+static wimp_w			choices_window = NULL;
 
 static wimp_menu		*popup_version;
 static wimp_menu		*popup_optimize;
@@ -73,21 +75,19 @@ static void	choices_process_optimize_dialogue(void);
 
 void choices_initialise(void)
 {
-	extern global_windows		windows;
-	extern global_menus		menus;
+	popup_version = templates_get_menu(TEMPLATES_MENU_VERSION);
+	popup_optimize = templates_get_menu(TEMPLATES_MENU_OPTIMIZATION);
 
-	/* \TODO -- The interface for getting menu and window handles needs improved. */
+	choices_window = templates_create_window("Choices");
+	ihelp_add_window(choices_window, "Choices", NULL);
 
-	popup_version = menus.version_popup;
-	popup_optimize = menus.optimize_popup;
+	event_add_window_mouse_event(choices_window, choices_click_handler);
+	event_add_window_key_event(choices_window, choices_keypress_handler);
+	event_add_window_menu_prepare(choices_window, choices_menu_prepare_handler);
+	event_add_window_menu_selection(choices_window, choices_menu_selection_handler);
 
-	event_add_window_mouse_event(windows.choices, choices_click_handler);
-	event_add_window_key_event(windows.choices, choices_keypress_handler);
-	event_add_window_menu_prepare(windows.choices, choices_menu_prepare_handler);
-	event_add_window_menu_selection(windows.choices, choices_menu_selection_handler);
-
-	event_add_window_icon_popup(windows.choices, CHOICE_ICON_VERSION_MENU, popup_version, -1);
-	event_add_window_icon_popup(windows.choices, CHOICE_ICON_OPTIMIZE_MENU, popup_optimize, -1);
+	event_add_window_icon_popup(choices_window, CHOICE_ICON_VERSION_MENU, popup_version, -1);
+	event_add_window_icon_popup(choices_window, CHOICE_ICON_OPTIMIZE_MENU, popup_optimize, -1);
 	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, handle_choices_icon_drop);
 }
 
@@ -100,13 +100,11 @@ void choices_initialise(void)
 
 void choices_open_window(wimp_pointer *pointer)
 {
-	extern global_windows		windows;
-
 	choices_set_window();
 
-	open_window_centred_at_pointer(windows.choices, pointer);
+	open_window_centred_at_pointer(choices_window, pointer);
 
-	put_caret_at_end(windows.choices, CHOICE_ICON_DEFFILE);
+	put_caret_at_end(choices_window, CHOICE_ICON_DEFFILE);
 }
 
 
@@ -116,9 +114,7 @@ void choices_open_window(wimp_pointer *pointer)
 
 static void choices_close_window(void)
 {
-	extern global_windows		windows;
-
-	wimp_close_window(windows.choices);
+	wimp_close_window(choices_window);
 }
 
 
@@ -128,28 +124,24 @@ static void choices_close_window(void)
 
 static void choices_set_window(void)
 {
-	extern global_windows		windows;
-
-	/* Set the main window up. */
-
-	sprintf(indirected_icon_text(windows.choices, CHOICE_ICON_DEFFILE), "%s", config_str_read("FileName"));
+	sprintf(indirected_icon_text(choices_window, CHOICE_ICON_DEFFILE), "%s", config_str_read("FileName"));
 
 	encrypt_initialise_settings(&encryption);
 	optimize_initialise_settings(&optimization);
 	version_initialise_settings(&version);
 	pdfmark_initialise_settings(&pdfmark);
 
-	set_icon_selected(windows.choices, CHOICE_ICON_RESETEVERY, config_opt_read("ResetParams"));
-	set_icon_selected(windows.choices, CHOICE_ICON_IBAR, config_opt_read("IconBarIcon"));
-	set_icon_selected(windows.choices, CHOICE_ICON_POPUP, config_opt_read("PopUpAfter"));
-	set_icon_selected(windows.choices, CHOICE_ICON_PREPROCESS, config_opt_read("PreProcess"));
+	set_icon_selected(choices_window, CHOICE_ICON_RESETEVERY, config_opt_read("ResetParams"));
+	set_icon_selected(choices_window, CHOICE_ICON_IBAR, config_opt_read("IconBarIcon"));
+	set_icon_selected(choices_window, CHOICE_ICON_POPUP, config_opt_read("PopUpAfter"));
+	set_icon_selected(choices_window, CHOICE_ICON_PREPROCESS, config_opt_read("PreProcess"));
 
-	sprintf(indirected_icon_text (windows.choices, CHOICE_ICON_MEMORY), "%d", config_int_read("TaskMemory"));
+	sprintf(indirected_icon_text (choices_window, CHOICE_ICON_MEMORY), "%d", config_int_read("TaskMemory"));
 
-	version_fill_field(windows.choices, CHOICE_ICON_VERSION, &version);
-	optimize_fill_field(windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
-	encrypt_fill_field(windows.choices, CHOICE_ICON_ENCRYPT, &encryption);
-	pdfmark_fill_field(windows.choices, CHOICE_ICON_INFO, &pdfmark);
+	version_fill_field(choices_window, CHOICE_ICON_VERSION, &version);
+	optimize_fill_field(choices_window, CHOICE_ICON_OPTIMIZE, &optimization);
+	encrypt_fill_field(choices_window, CHOICE_ICON_ENCRYPT, &encryption);
+	pdfmark_fill_field(choices_window, CHOICE_ICON_INFO, &pdfmark);
 }
 
 
@@ -159,18 +151,16 @@ static void choices_set_window(void)
 
 static void choices_read_window(void)
 {
-	extern global_windows		windows;
-
 	/* Read the main window. */
 
-	config_str_set("FileName", indirected_icon_text(windows.choices, CHOICE_ICON_DEFFILE));
+	config_str_set("FileName", indirected_icon_text(choices_window, CHOICE_ICON_DEFFILE));
 
-	config_opt_set("ResetParams", read_icon_selected(windows.choices, CHOICE_ICON_RESETEVERY));
-	config_opt_set("IconBarIcon", read_icon_selected(windows.choices, CHOICE_ICON_IBAR));
-	config_opt_set("PopUpAfter", read_icon_selected(windows.choices, CHOICE_ICON_POPUP));
-	config_opt_set("PreProcess", read_icon_selected(windows.choices, CHOICE_ICON_PREPROCESS));
+	config_opt_set("ResetParams", read_icon_selected(choices_window, CHOICE_ICON_RESETEVERY));
+	config_opt_set("IconBarIcon", read_icon_selected(choices_window, CHOICE_ICON_IBAR));
+	config_opt_set("PopUpAfter", read_icon_selected(choices_window, CHOICE_ICON_POPUP));
+	config_opt_set("PreProcess", read_icon_selected(choices_window, CHOICE_ICON_PREPROCESS));
 
-	config_int_set("TaskMemory", atoi(indirected_icon_text(windows.choices, CHOICE_ICON_MEMORY)));
+	config_int_set("TaskMemory", atoi(indirected_icon_text(choices_window, CHOICE_ICON_MEMORY)));
 
 	version_save_settings(&version);
 	encrypt_save_settings(&encryption);
@@ -189,14 +179,12 @@ static void choices_read_window(void)
 
 static void choices_redraw_window(void)
 {
-	extern global_windows		windows;
+	wimp_set_icon_state(choices_window, CHOICE_ICON_DEFFILE, 0, 0);
+	wimp_set_icon_state(choices_window, CHOICE_ICON_VERSION, 0, 0);
+	wimp_set_icon_state(choices_window, CHOICE_ICON_OPTIMIZE, 0, 0);
+	wimp_set_icon_state(choices_window, CHOICE_ICON_MEMORY, 0, 0);
 
-	wimp_set_icon_state(windows.choices, CHOICE_ICON_DEFFILE, 0, 0);
-	wimp_set_icon_state(windows.choices, CHOICE_ICON_VERSION, 0, 0);
-	wimp_set_icon_state(windows.choices, CHOICE_ICON_OPTIMIZE, 0, 0);
-	wimp_set_icon_state(windows.choices, CHOICE_ICON_MEMORY, 0, 0);
-
-	replace_caret_in_window(windows.choices);
+	replace_caret_in_window(choices_window);
 }
 
 
@@ -208,8 +196,6 @@ static void choices_redraw_window(void)
 
 static void choices_click_handler(wimp_pointer *pointer)
 {
-	extern global_windows		windows;
-
 	if (pointer == NULL)
 		return;
 
@@ -337,13 +323,12 @@ static osbool handle_choices_icon_drop(wimp_message *message)
 	wimp_full_message_data_xfer	*datasave = (wimp_full_message_data_xfer *) message;
 
 	char				*extension, *leaf, path[256];
-	extern global_windows		windows;
 
 	/* If it isn't our window, don't claim the message as someone else
 	 * might want it.
 	 */
 
-	if (datasave == NULL || datasave->w != windows.choices)
+	if (datasave == NULL || datasave->w != choices_window)
 		return FALSE;
 
 	/* If it is our window, but not the icon we care about, claim
@@ -361,7 +346,7 @@ static osbool handle_choices_icon_drop(wimp_message *message)
 	leaf = lose_extension(path);
 	find_pathname(path);
 
-	sprintf(indirected_icon_text(windows.choices, CHOICE_ICON_DEFFILE), "%s.%s/pdf", path, leaf);
+	sprintf(indirected_icon_text(choices_window, CHOICE_ICON_DEFFILE), "%s.%s/pdf", path, leaf);
 
 	replace_caret_in_window(datasave->w);
 	wimp_set_icon_state(datasave->w, datasave->i, 0, 0);
@@ -377,10 +362,8 @@ static osbool handle_choices_icon_drop(wimp_message *message)
 
 static void choices_process_encrypt_dialogue(void)
 {
-	extern global_windows		windows;
-
 	encrypt_process_dialogue(&encryption);
-	encrypt_fill_field(windows.choices, CHOICE_ICON_ENCRYPT, &encryption);
+	encrypt_fill_field(choices_window, CHOICE_ICON_ENCRYPT, &encryption);
 }
 
 
@@ -391,10 +374,8 @@ static void choices_process_encrypt_dialogue(void)
 
 static void choices_process_pdfmark_dialogue(void)
 {
-	extern global_windows		windows;
-
 	pdfmark_process_dialogue(&pdfmark);
-	pdfmark_fill_field(windows.choices, CHOICE_ICON_INFO, &pdfmark);
+	pdfmark_fill_field(choices_window, CHOICE_ICON_INFO, &pdfmark);
 }
 
 
@@ -405,9 +386,19 @@ static void choices_process_pdfmark_dialogue(void)
 
 static void choices_process_optimize_dialogue(void)
 {
-	extern global_windows		windows;
-
 	optimize_process_dialogue(&optimization);
-	optimize_fill_field(windows.choices, CHOICE_ICON_OPTIMIZE, &optimization);
+	optimize_fill_field(choices_window, CHOICE_ICON_OPTIMIZE, &optimization);
+}
+
+
+/**
+ * Identify whether the Choices window is currently open.
+ *
+ * \return		TRUE if the window is open; else FALSE.
+ */
+
+osbool choices_window_is_open(void)
+{
+	return window_is_open(choices_window);
 }
 

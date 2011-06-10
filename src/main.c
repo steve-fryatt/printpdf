@@ -51,14 +51,13 @@
 #include "encrypt.h"
 #include "iconbar.h"
 #include "ihelp.h"
-#include "menus.h"
 #include "optimize.h"
 #include "pdfmark.h"
 #include "pmenu.h"
 #include "popup.h"
 #include "taskman.h"
+#include "templates.h"
 #include "version.h"
-#include "windows.h"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
@@ -255,6 +254,11 @@ static void main_initialise(void)
 
 	config_load();
 
+	/* Load the menu structure. */
+
+	snprintf(res_temp, sizeof(res_temp), "%s.Menus", resources);
+	templates_load_menus(res_temp);
+
 	/* Load the window templates. */
 
 	sprites = load_user_sprite_area("<PrintPDF$Dir>.Sprites");
@@ -262,12 +266,7 @@ static void main_initialise(void)
 	main_wimp_sprites = sprites;
 
 	snprintf(res_temp, sizeof(res_temp), "%s.Templates", resources);
-	load_window_templates(res_temp, sprites);
-
-	/* Load the menu structure. */
-
-	snprintf(res_temp, sizeof(res_temp), "%s.Menus", resources);
-	load_menu_definitions(res_temp);
+	templates_open(res_temp);
 
 	/* Initialise the individual modules. */
 
@@ -282,8 +281,9 @@ static void main_initialise(void)
 	iconbar_initialise();
 	convert_initialise();
 	initialise_bookmarks();
-
 	url_initialise();
+
+	templates_close();
 
 	/* Create an icon-bar icon. */
 

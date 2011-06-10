@@ -25,9 +25,9 @@
 #include "sflib/config.h"
 #include "sflib/icons.h"
 #include "sflib/general.h"
-#include "sflib/menus.h"
 #include "sflib/msgs.h"
 #include "sflib/string.h"
+#include "sflib/menus.h"
 #include "sflib/windows.h"
 #include "sflib/debug.h"
 #include "sflib/event.h"
@@ -41,10 +41,9 @@
 #include "dataxfer.h"
 #include "ihelp.h"
 #include "main.h"
-#include "menus.h"
 #include "pdfmark.h"
 #include "pmenu.h"
-#include "windows.h"
+#include "templates.h"
 
 
 /* ****************************************************************************
@@ -149,9 +148,21 @@ static int		untitled_number = 1;
 static bookmark_block	*bookmarks_edit = NULL;
 static char		*bookmarks_edit_buffer = NULL;
 
-static wimp_menu	*bookmarks_menu = NULL;
-static bookmark_block	**bookmarks_menu_links = NULL;
-static int		bookmarks_menu_size = 0;
+static wimp_menu	*bookmarks_list_menu = NULL;
+static bookmark_block	**bookmarks_list_menu_links = NULL;
+static int		bookmarks_list_menu_size = 0;
+
+static wimp_window	*bookmark_window_def = NULL;
+static wimp_window	*bookmark_pane_def = NULL;
+
+static wimp_w		bookmark_window_fileinfo = NULL;
+static wimp_w		bookmark_window_saveas = NULL;
+
+static wimp_menu	*bookmark_menu = NULL;
+static wimp_menu	*bookmark_menu_insert = NULL;
+static wimp_menu	*bookmark_menu_level = NULL;
+static wimp_menu	*bookmark_menu_view = NULL;
+
 
 /* ****************************************************************************
  * Bookmarks System Initialisation and Termination
@@ -163,6 +174,23 @@ static int		bookmarks_menu_size = 0;
 
 void initialise_bookmarks(void)
 {
+	bookmark_menu = templates_get_menu(TEMPLATES_MENU_BOOKMARKS);
+	bookmark_menu_insert = templates_get_menu(TEMPLATES_MENU_BOOKMARKS_INSERT);
+	bookmark_menu_view = templates_get_menu(TEMPLATES_MENU_BOOKMARKS_VIEW);
+	bookmark_menu_level = templates_get_menu(TEMPLATES_MENU_BOOKMARKS_LEVEL);
+
+	bookmark_window_fileinfo = templates_create_window("FileInfo");
+	templates_link_menu_dialogue("FileInfo", bookmark_window_fileinfo);
+	ihelp_add_window(bookmark_window_fileinfo, "FileInfo", NULL);
+
+	bookmark_window_saveas = templates_create_window("SaveAs");
+	templates_link_menu_dialogue("SaveAs", bookmark_window_saveas);
+	ihelp_add_window(bookmark_window_saveas, "SaveAs", NULL);
+
+	bookmark_window_def = templates_load_window("BMark");
+	bookmark_window_def->icon_count = 0;
+
+	bookmark_pane_def = templates_load_window("BMarkPane");
 }
 
 /**
@@ -204,8 +232,6 @@ void initialise_bookmark_settings(bookmark_params *params)
 void process_bookmark_menu(bookmark_params *params, wimp_selection *selection)
 {
 	bookmark_block		*bm;
-	extern global_menus	menus;
-
 
 	params->bookmarks = find_bookmark_block(params->bookmarks);
 
@@ -213,11 +239,9 @@ void process_bookmark_menu(bookmark_params *params, wimp_selection *selection)
 		bm = create_new_bookmark_window();
 		if (bm != NULL)
 			params->bookmarks = bm;
-	} else if (selection->items[0] > 0 && selection->items[0] < bookmarks_menu_size) {
-		params->bookmarks = bookmarks_menu_links[selection->items[0]];
+	} else if (selection->items[0] > 0 && selection->items[0] < bookmarks_list_menu_size) {
+		params->bookmarks = bookmarks_list_menu_links[selection->items[0]];
 	}
-
-	menus.menu_up = build_bookmark_menu(params);
 }
 
 
@@ -234,9 +258,6 @@ wimp_menu *build_bookmark_menu(bookmark_params *params)
 	int			count, item, width;
 	bookmark_block		*bm;
 
-	extern global_menus	menus;
-
-
 	params->bookmarks = find_bookmark_block(params->bookmarks);
 
 	/* Count up the entries; we need a menu length one greater, to allow
@@ -248,87 +269,85 @@ wimp_menu *build_bookmark_menu(bookmark_params *params)
 
 	/* (Re-)Allocate memory for the menu and block links. */
 
-	if (count != bookmarks_menu_size) {
-		if (bookmarks_menu != NULL)
-			free(bookmarks_menu);
-		if (bookmarks_menu_links != NULL)
-			free(bookmarks_menu_links);
+	if (count != bookmarks_list_menu_size) {
+		if (bookmarks_list_menu != NULL)
+			free(bookmarks_list_menu);
+		if (bookmarks_list_menu_links != NULL)
+			free(bookmarks_list_menu_links);
 
-		bookmarks_menu = (wimp_menu *) malloc(sizeof (wimp_menu_base) + sizeof (wimp_menu_entry) * count);
-		bookmarks_menu_links = (bookmark_block **) malloc(sizeof(bookmark_block) * count);
-		bookmarks_menu_size = count;
-
-		menus.bookmarks_list = bookmarks_menu;
+		bookmarks_list_menu = (wimp_menu *) malloc(sizeof (wimp_menu_base) + sizeof (wimp_menu_entry) * count);
+		bookmarks_list_menu_links = (bookmark_block **) malloc(sizeof(bookmark_block) * count);
+		bookmarks_list_menu_size = count;
 	}
 
 	/* If we got the memory, build the menu and links. */
 
-	if (bookmarks_menu != NULL && bookmarks_menu_links != NULL) {
-		msgs_lookup("BMListMenu", bookmarks_menu->title_data.text, 12);
+	if (bookmarks_list_menu != NULL && bookmarks_list_menu_links != NULL) {
+		msgs_lookup("BMListMenu", bookmarks_list_menu->title_data.text, 12);
 
 		item = 0;
 
-		bookmarks_menu->entries[item].menu_flags = wimp_MENU_SEPARATE;
-		bookmarks_menu->entries[item].sub_menu = (wimp_menu *) -1;
-		bookmarks_menu->entries[item].icon_flags = wimp_ICON_TEXT | wimp_ICON_FILLED |
+		bookmarks_list_menu->entries[item].menu_flags = wimp_MENU_SEPARATE;
+		bookmarks_list_menu->entries[item].sub_menu = (wimp_menu *) -1;
+		bookmarks_list_menu->entries[item].icon_flags = wimp_ICON_TEXT | wimp_ICON_FILLED |
 				wimp_COLOUR_BLACK << wimp_ICON_FG_COLOUR_SHIFT |
 				wimp_COLOUR_WHITE << wimp_ICON_BG_COLOUR_SHIFT;
-		msgs_lookup("BMNew", bookmarks_menu->entries[item].data.text, 12);
+		msgs_lookup("BMNew", bookmarks_list_menu->entries[item].data.text, 12);
 
-		bookmarks_menu_links[item] = NULL;
+		bookmarks_list_menu_links[item] = NULL;
 
-		width = strlen(bookmarks_menu->entries[item].data.text);
+		width = strlen(bookmarks_list_menu->entries[item].data.text);
 
 		item++;
 
-		bookmarks_menu->entries[item].menu_flags = (count > 2) ? wimp_MENU_SEPARATE : 0;
-		bookmarks_menu->entries[item].sub_menu = (wimp_menu *) -1;
-		bookmarks_menu->entries[item].icon_flags = wimp_ICON_TEXT | wimp_ICON_FILLED |
+		bookmarks_list_menu->entries[item].menu_flags = (count > 2) ? wimp_MENU_SEPARATE : 0;
+		bookmarks_list_menu->entries[item].sub_menu = (wimp_menu *) -1;
+		bookmarks_list_menu->entries[item].icon_flags = wimp_ICON_TEXT | wimp_ICON_FILLED |
 				wimp_COLOUR_BLACK << wimp_ICON_FG_COLOUR_SHIFT |
 				wimp_COLOUR_WHITE << wimp_ICON_BG_COLOUR_SHIFT;
-		msgs_lookup("None", bookmarks_menu->entries[item].data.text, 12);
+		msgs_lookup("None", bookmarks_list_menu->entries[item].data.text, 12);
 
-		bookmarks_menu_links[item] = NULL;
+		bookmarks_list_menu_links[item] = NULL;
 
 		if (params->bookmarks == NULL)
-			bookmarks_menu->entries[item].menu_flags |= wimp_MENU_TICKED;
+			bookmarks_list_menu->entries[item].menu_flags |= wimp_MENU_TICKED;
 
-		width = strlen(bookmarks_menu->entries[item].data.text);
+		width = strlen(bookmarks_list_menu->entries[item].data.text);
 
 		for (bm = bookmarks_list; bm != NULL; bm = bm->next) {
 			item++;
 
-			bookmarks_menu->entries[item].menu_flags = 0;
-			bookmarks_menu->entries[item].sub_menu = (wimp_menu *) -1;
-			bookmarks_menu->entries[item].icon_flags = wimp_ICON_TEXT | wimp_ICON_FILLED |
+			bookmarks_list_menu->entries[item].menu_flags = 0;
+			bookmarks_list_menu->entries[item].sub_menu = (wimp_menu *) -1;
+			bookmarks_list_menu->entries[item].icon_flags = wimp_ICON_TEXT | wimp_ICON_FILLED |
 					wimp_ICON_INDIRECTED | wimp_COLOUR_BLACK << wimp_ICON_FG_COLOUR_SHIFT |
 					wimp_COLOUR_WHITE << wimp_ICON_BG_COLOUR_SHIFT;
-			bookmarks_menu->entries[item].data.indirected_text.text = bm->name;
-			bookmarks_menu->entries[item].data.indirected_text.validation = NULL;
-			bookmarks_menu->entries[item].data.indirected_text.size = MAX_BOOKMARK_BLOCK_NAME;
+			bookmarks_list_menu->entries[item].data.indirected_text.text = bm->name;
+			bookmarks_list_menu->entries[item].data.indirected_text.validation = NULL;
+			bookmarks_list_menu->entries[item].data.indirected_text.size = MAX_BOOKMARK_BLOCK_NAME;
 
-			bookmarks_menu_links[item] = bm;
+			bookmarks_list_menu_links[item] = bm;
 
 			if (params->bookmarks == bm)
-				bookmarks_menu->entries[item].menu_flags |= wimp_MENU_TICKED;
+				bookmarks_list_menu->entries[item].menu_flags |= wimp_MENU_TICKED;
 
 			if (strlen(bm->name) > width)
 				width = strlen(bm->name);
 		}
 
-		bookmarks_menu->entries[item].menu_flags |= wimp_MENU_LAST;
+		bookmarks_list_menu->entries[item].menu_flags |= wimp_MENU_LAST;
 
-		bookmarks_menu->title_fg = wimp_COLOUR_BLACK;
-		bookmarks_menu->title_bg = wimp_COLOUR_LIGHT_GREY;
-		bookmarks_menu->work_fg = wimp_COLOUR_BLACK;
-		bookmarks_menu->work_bg = wimp_COLOUR_WHITE;
+		bookmarks_list_menu->title_fg = wimp_COLOUR_BLACK;
+		bookmarks_list_menu->title_bg = wimp_COLOUR_LIGHT_GREY;
+		bookmarks_list_menu->work_fg = wimp_COLOUR_BLACK;
+		bookmarks_list_menu->work_bg = wimp_COLOUR_WHITE;
 
-		bookmarks_menu->width = (width + 1) * 16;
-		bookmarks_menu->height = 44;
-		bookmarks_menu->gap = 0;
+		bookmarks_list_menu->width = (width + 1) * 16;
+		bookmarks_list_menu->height = 44;
+		bookmarks_list_menu->gap = 0;
 	}
 
-	return bookmarks_menu;
+	return bookmarks_list_menu;
 }
 
 
@@ -733,13 +752,9 @@ void open_bookmark_window(bookmark_block *bm)
 
 	int			screen, visible, extent;
 
-	extern global_windows	windows;
-	extern global_menus	menus;
-
-
 	if (bm != NULL && bm->window == NULL && bm->toolbar == NULL) {
-		windows.bookmark_window_def->title_data.indirected_text.text = bm->window_title;
-		windows.bookmark_window_def->title_data.indirected_text.size = MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10;
+		bookmark_window_def->title_data.indirected_text.text = bm->window_title;
+		bookmark_window_def->title_data.indirected_text.size = MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10;
 
 		/* Set the X position of the window. */
 
@@ -749,8 +764,8 @@ void open_bookmark_window(bookmark_block *bm)
 		if (visible > (screen - 2*BOOKMARK_WINDOW_STANDOFF - 4*BOOKMARK_WINDOW_OPENSTEP))
 			visible = (screen - 2*BOOKMARK_WINDOW_STANDOFF - 4*BOOKMARK_WINDOW_OPENSTEP);
 
-		windows.bookmark_window_def->visible.x0 = open_x_offset;
-		windows.bookmark_window_def->visible.x1 = open_x_offset + visible;
+		bookmark_window_def->visible.x0 = open_x_offset;
+		bookmark_window_def->visible.x1 = open_x_offset + visible;
 
 		/* Update the new opening position. */
 
@@ -762,26 +777,26 @@ void open_bookmark_window(bookmark_block *bm)
 
 		screen = mode_height();
 
-		windows.bookmark_window_def->visible.y1 = screen - open_y_offset;
-		windows.bookmark_window_def->visible.y0 = windows.bookmark_window_def->visible.y1 +
+		bookmark_window_def->visible.y1 = screen - open_y_offset;
+		bookmark_window_def->visible.y0 = bookmark_window_def->visible.y1 +
 			LINE_Y0(BOOKMARK_MIN_LINES) - (BOOKMARK_LINE_HEIGHT-(BOOKMARK_ICON_HEIGHT+BOOKMARK_LINE_OFFSET));
 
 		/* Set the window work area extent. */
 
-		windows.bookmark_window_def->extent.x0 = 0;
-		windows.bookmark_window_def->extent.x1 = BOOKMARK_WINDOW_WIDTH;
+		bookmark_window_def->extent.x0 = 0;
+		bookmark_window_def->extent.x1 = BOOKMARK_WINDOW_WIDTH;
 
 		extent = LINE_BASE(bm->lines-1) - BOOKMARK_WINDOW_MARGIN;
 		if (extent > -(screen - 2*sf_WINDOW_GADGET_HEIGHT))
 			extent = -(screen - 2*sf_WINDOW_GADGET_HEIGHT);
 
-		windows.bookmark_window_def->extent.y1 = 0;
-		windows.bookmark_window_def->extent.y0 = extent;
+		bookmark_window_def->extent.y1 = 0;
+		bookmark_window_def->extent.y0 = extent;
 
-		windows.bookmark_pane_def->sprite_area = main_wimp_sprites;
+		bookmark_pane_def->sprite_area = main_wimp_sprites;
 
-		place_window_as_toolbar(windows.bookmark_window_def,
-				windows.bookmark_pane_def,
+		place_window_as_toolbar(bookmark_window_def,
+				bookmark_pane_def,
 				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
 
 		/* Set the name icon width.  Assuming that the window work area
@@ -790,12 +805,12 @@ void open_bookmark_window(bookmark_block *bm)
 		 * is down from the top.
 		 */
 
-		windows.bookmark_pane_def->icons[BOOKMARK_TB_NAME].extent.x1 =
-				windows.bookmark_pane_def->extent.x1 +
-				windows.bookmark_pane_def->icons[BOOKMARK_TB_NAME].extent.y1;
+		bookmark_pane_def->icons[BOOKMARK_TB_NAME].extent.x1 =
+				bookmark_pane_def->extent.x1 +
+				bookmark_pane_def->icons[BOOKMARK_TB_NAME].extent.y1;
 
-		bm->window = wimp_create_window(windows.bookmark_window_def);
-		bm->toolbar = wimp_create_window(windows.bookmark_pane_def);
+		bm->window = wimp_create_window(bookmark_window_def);
+		bm->toolbar = wimp_create_window(bookmark_pane_def);
 
 		/* Register the window's event handlers. */
 
@@ -807,7 +822,7 @@ void open_bookmark_window(bookmark_block *bm)
 		event_add_window_lose_caret_event(bm->window, bookmark_lose_caret_handler);
 		event_add_window_gain_caret_event(bm->window, bookmark_gain_caret_handler);
 		event_add_window_user_data(bm->window, bm);
-		event_add_window_menu(bm->window, menus.bookmarks, FALSE);
+		event_add_window_menu(bm->window, bookmark_menu, FALSE);
 		event_add_window_menu_prepare(bm->window, bookmark_menu_prepare);
 		event_add_window_menu_selection(bm->window, bookmark_menu_selection);
 		event_add_window_menu_close(bm->window, bookmark_menu_close);
@@ -816,7 +831,7 @@ void open_bookmark_window(bookmark_block *bm)
 		event_add_window_user_data(bm->toolbar, bm);
 		event_add_window_mouse_event(bm->toolbar, bookmark_toolbar_click_handler);
 		event_add_window_key_event(bm->toolbar, bookmark_toolbar_key_handler);
-		event_add_window_menu(bm->toolbar, menus.bookmarks, FALSE);
+		event_add_window_menu(bm->toolbar, bookmark_menu, FALSE);
 		event_add_window_menu_prepare(bm->toolbar, bookmark_menu_prepare);
 		event_add_window_menu_selection(bm->toolbar, bookmark_menu_selection);
 		event_add_window_menu_warning(bm->toolbar, bookmark_menu_warning);
@@ -858,7 +873,6 @@ void close_bookmark_window(wimp_close *close)
 	int			button, shift, len;
 	char			*path, *buffer;
 	wimp_pointer		pointer;
-	extern global_windows	windows;
 
 	bm = find_bookmark_window(close->w);
 
@@ -878,7 +892,7 @@ void close_bookmark_window(wimp_close *close)
 		if (button == 3) {
 			if (xwimp_get_pointer_info(&pointer) == NULL) {
 				prepare_bookmark_save_window(bm);
-				create_standard_menu((wimp_menu *) windows.save_as, &pointer);
+				create_standard_menu((wimp_menu *) bookmark_window_saveas, &pointer);
 			}
 		}
 
@@ -975,9 +989,6 @@ void redraw_bookmark_window(wimp_draw *redraw)
 	char			buf[MAX_BOOKMARK_NUM_LEN];
 	bookmark_block		*bm;
 
-	extern global_windows	windows;
-
-
 	bm = (bookmark_block *) event_get_window_user_data(redraw->w);
 
 	if (bm == NULL)
@@ -989,7 +1000,7 @@ void redraw_bookmark_window(wimp_draw *redraw)
 	ox = redraw->box.x0 - redraw->xscroll;
 	oy = redraw->box.y1 - redraw->yscroll;
 
-	icon = windows.bookmark_window_def->icons;
+	icon = bookmark_window_def->icons;
 
 	while (more) {
 		top = (oy - redraw->clip.y1 - BOOKMARK_TOOLBAR_HEIGHT) / BOOKMARK_LINE_HEIGHT;
@@ -1660,7 +1671,6 @@ int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 	wimp_window_state		state;
 	size_t				buf_len;
 	wimp_icon_create		icon;
-	extern global_windows		windows;
 
 	if (bm == NULL || (bm == bookmarks_edit && bm->caret_row == row && bm->caret_col == col) ||
 			row < 0 || row >= bm->lines ||
@@ -1671,7 +1681,7 @@ int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 
 	calculate_bookmark_window_row_start(bm, row);
 
-	memcpy(&(icon.icon), &(windows.bookmark_window_def->icons[col]), sizeof(wimp_icon));
+	memcpy(&(icon.icon), &(bookmark_window_def->icons[col]), sizeof(wimp_icon));
 
 	if (bookmarks_edit_buffer != NULL)
 		free(bookmarks_edit_buffer);
@@ -2066,8 +2076,6 @@ void bookmark_line_drag(bookmark_block *bm, int line)
 	wimp_drag		drag;
 	int			ox, oy;
 
-	extern global_windows	windows;
-
 	if (bm == NULL || line < 0 || line >= bm->lines)
 		return;
 
@@ -2142,8 +2150,6 @@ void bookmark_terminate_line_drag(wimp_dragged *drag, void *data)
 	wimp_pointer		pointer;
 	wimp_window_state	state;
 	int			row, i;
-
-	extern global_windows	windows;
 
 	/* Terminate the drag and end the autoscroll. */
 
@@ -2258,7 +2264,6 @@ void bookmark_terminate_line_drag(wimp_dragged *drag, void *data)
 void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 {
 	bookmark_block		*bm;
-	extern global_windows	windows;
 
 	bm = (bookmark_block *) event_get_window_user_data(pointer->w);
 	if (bm == NULL)
@@ -2268,7 +2273,7 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 	case BOOKMARK_TB_SAVE:
 		prepare_bookmark_save_window(bm);
 		if (pointer->buttons == wimp_CLICK_SELECT)
-			create_standard_menu((wimp_menu *) windows.save_as, pointer);
+			create_standard_menu((wimp_menu *) bookmark_window_saveas, pointer);
 		else if (pointer->buttons == wimp_CLICK_ADJUST)
 			start_direct_menu_save(bm);
 		break;
@@ -2366,10 +2371,9 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 	bookmark_node		*node, *parent;
 	wimp_window_state	state;
 	os_error		*error;
-	extern global_menus	menus;
 
 	bm = (bookmark_block *) event_get_window_user_data(w);
-	if (bm == NULL || menu != menus.bookmarks)
+	if (bm == NULL || menu != bookmark_menu)
 		return;
 
 	if (bm->menu_row != -1) {
@@ -2402,25 +2406,25 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 
 	bookmark_toolbar_set_expansion_icons(bm, &expand, &contract);
 
-	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_LEVEL, row == -1);
-	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_INSERT, row == -1);
-	shade_menu_item(menus.bookmarks, BOOKMARK_MENU_DELETE,
+	shade_menu_item(bookmark_menu, BOOKMARK_MENU_LEVEL, row == -1);
+	shade_menu_item(bookmark_menu, BOOKMARK_MENU_INSERT, row == -1);
+	shade_menu_item(bookmark_menu, BOOKMARK_MENU_DELETE,
 			row == -1 || (bm->root == node && node->next == NULL));
 
-	shade_menu_item(menus.bookmarks_sub_view, BOOKMARK_MENU_VIEW_EXPAND, !expand);
-	shade_menu_item(menus.bookmarks_sub_view, BOOKMARK_MENU_VIEW_CONTRACT, !contract);
+	shade_menu_item(bookmark_menu_view, BOOKMARK_MENU_VIEW_EXPAND, !expand);
+	shade_menu_item(bookmark_menu_view, BOOKMARK_MENU_VIEW_CONTRACT, !contract);
 
-	shade_menu_item(menus.bookmarks_sub_level, BOOKMARK_MENU_LEVEL_PROMOTE,
+	shade_menu_item(bookmark_menu_level, BOOKMARK_MENU_LEVEL_PROMOTE,
 			row == -1 || node == NULL || parent == NULL || node->level > parent->level);
-	shade_menu_item(menus.bookmarks_sub_level, BOOKMARK_MENU_LEVEL_PROMOTEG,
+	shade_menu_item(bookmark_menu_level, BOOKMARK_MENU_LEVEL_PROMOTEG,
 			row == -1 || node == NULL || parent == NULL || node->level > parent->level);
-	shade_menu_item(menus.bookmarks_sub_level, BOOKMARK_MENU_LEVEL_DEMOTE,
+	shade_menu_item(bookmark_menu_level, BOOKMARK_MENU_LEVEL_DEMOTE,
 			row == -1 || node == NULL || parent == NULL || node->level <= 1);
-	shade_menu_item(menus.bookmarks_sub_level, BOOKMARK_MENU_LEVEL_DEMOTEG,
+	shade_menu_item(bookmark_menu_level, BOOKMARK_MENU_LEVEL_DEMOTEG,
 			row == -1 || node == NULL || parent == NULL || node->level <= 1);
 
-	shade_menu_item(menus.bookmarks_sub_insert, BOOKMARK_MENU_INSERT_ABOVE, row == -1);
-	shade_menu_item(menus.bookmarks_sub_insert, BOOKMARK_MENU_INSERT_BELOW, row == -1);
+	shade_menu_item(bookmark_menu_insert, BOOKMARK_MENU_INSERT_ABOVE, row == -1);
+	shade_menu_item(bookmark_menu_insert, BOOKMARK_MENU_INSERT_BELOW, row == -1);
 }
 
 
@@ -2555,27 +2559,25 @@ void bookmark_menu_close(wimp_w w, wimp_menu *menu)
 
 void prepare_file_info_window(bookmark_block *bm)
 {
-	extern global_windows		windows;
-
 	if (bm == NULL)
 		return;
 
-	icon_strncpy(windows.file_info, FILEINFO_ICON_NAME, bm->name);
+	icon_strncpy(bookmark_window_fileinfo, FILEINFO_ICON_NAME, bm->name);
 
 	if (strlen(bm->filename) > 0) {
-		icon_strncpy(windows.file_info, FILEINFO_ICON_LOCATION, bm->filename);
+		icon_strncpy(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION, bm->filename);
 		territory_convert_standard_date_and_time (territory_CURRENT, (os_date_and_time const *) bm->datestamp,
-				indirected_icon_text(windows.file_info, FILEINFO_ICON_DATE),
-				indirected_icon_length(windows.file_info, FILEINFO_ICON_DATE));
+				indirected_icon_text(bookmark_window_fileinfo, FILEINFO_ICON_DATE),
+				indirected_icon_length(bookmark_window_fileinfo, FILEINFO_ICON_DATE));
 	} else {
-		msgs_lookup("Unsaved", indirected_icon_text(windows.file_info, FILEINFO_ICON_LOCATION),
-				indirected_icon_length(windows.file_info, FILEINFO_ICON_LOCATION));
-		msgs_lookup("Unsaved", indirected_icon_text(windows.file_info, FILEINFO_ICON_DATE),
-				indirected_icon_length(windows.file_info, FILEINFO_ICON_DATE));
+		msgs_lookup("Unsaved", indirected_icon_text(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION),
+				indirected_icon_length(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION));
+		msgs_lookup("Unsaved", indirected_icon_text(bookmark_window_fileinfo, FILEINFO_ICON_DATE),
+				indirected_icon_length(bookmark_window_fileinfo, FILEINFO_ICON_DATE));
 	}
 
-	msgs_lookup((bm->unsaved) ? "Yes" : "No", indirected_icon_text(windows.file_info, FILEINFO_ICON_MODIFIED),
-				indirected_icon_length(windows.file_info, FILEINFO_ICON_MODIFIED));
+	msgs_lookup((bm->unsaved) ? "Yes" : "No", indirected_icon_text(bookmark_window_fileinfo, FILEINFO_ICON_MODIFIED),
+				indirected_icon_length(bookmark_window_fileinfo, FILEINFO_ICON_MODIFIED));
 }
 
 
@@ -2591,21 +2593,19 @@ void prepare_file_info_window(bookmark_block *bm)
 
 void prepare_bookmark_save_window(bookmark_block *bm)
 {
-	extern global_windows		windows;
-
 	if (strlen(bm->filename) > 0)
-		strncpy(indirected_icon_text(windows.save_as, SAVEAS_ICON_NAME),
+		strncpy(indirected_icon_text(bookmark_window_saveas, SAVEAS_ICON_NAME),
 				bm->filename, MAX_BOOKMARK_FILENAME);
 	else
-		msgs_lookup("BMFileName", indirected_icon_text(windows.save_as,
+		msgs_lookup("BMFileName", indirected_icon_text(bookmark_window_saveas,
 				SAVEAS_ICON_NAME), MAX_BOOKMARK_FILENAME);
 
-	snprintf(indirected_icon_text(windows.save_as, SAVEAS_ICON_FILE),
+	snprintf(indirected_icon_text(bookmark_window_saveas, SAVEAS_ICON_FILE),
 			MAX_BOOKMARK_FILESPR, "file_%3x", PRINTPDF_FILE_TYPE);
 
-	event_add_window_user_data(windows.save_as, bm);
-	event_add_window_mouse_event(windows.save_as, bookmark_save_as_click);
-	event_add_window_key_event(windows.save_as, bookmark_save_as_keypress);
+	event_add_window_user_data(bookmark_window_saveas, bm);
+	event_add_window_mouse_event(bookmark_window_saveas, bookmark_save_as_click);
+	event_add_window_key_event(bookmark_window_saveas, bookmark_save_as_keypress);
 }
 
 
@@ -2621,7 +2621,8 @@ void bookmark_save_as_click(wimp_pointer *pointer)
 	{
 	case SAVEAS_ICON_FILE:
 		if (pointer->buttons == wimp_DRAG_SELECT)
-			start_save_window_drag(DRAG_SAVE_SAVEAS);
+			start_save_window_drag(DRAG_SAVE_SAVEAS, bookmark_window_saveas, SAVEAS_ICON_FILE,
+					indirected_icon_text(bookmark_window_saveas, SAVEAS_ICON_NAME));
 		break;
 	case SAVEAS_ICON_OK:
 		if (start_direct_dialog_save())
@@ -2668,13 +2669,12 @@ int start_direct_dialog_save(void)
 {
 	bookmark_block		*bm;
 	char			*filename;
-	extern global_windows	windows;
 
-	bm = event_get_window_user_data(windows.save_as);
+	bm = event_get_window_user_data(bookmark_window_saveas);
 	if (bm == NULL)
 		return 0;
 
-	filename = indirected_icon_text(windows.save_as, SAVEAS_ICON_NAME);
+	filename = indirected_icon_text(bookmark_window_saveas, SAVEAS_ICON_NAME);
 
 	if (strchr(filename, '.') == NULL)
 		wimp_msgtrans_info_report("DragSave");
@@ -2697,14 +2697,12 @@ void start_direct_menu_save(bookmark_block *bm)
 {
 	wimp_pointer		pointer;
 
-	extern global_windows	windows;
-
 	if (strlen(bm->filename) > 0) {
 		save_bookmark_file(bm, bm->filename);
 	} else {
 		wimp_get_pointer_info(&pointer);
 		prepare_bookmark_save_window(bm);
-		create_standard_menu((wimp_menu *) windows.save_as, &pointer);
+		create_standard_menu((wimp_menu *) bookmark_window_saveas, &pointer);
 	}
 }
 
@@ -2718,10 +2716,9 @@ void start_direct_menu_save(bookmark_block *bm)
 
 int drag_end_save_saveas(char *filename)
 {
-	extern global_windows		windows;
 	bookmark_block			*bm;
 
-	bm = event_get_window_user_data(windows.save_as);
+	bm = event_get_window_user_data(bookmark_window_saveas);
 
 	if (bm == NULL)
 		return 0;

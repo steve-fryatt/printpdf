@@ -16,8 +16,10 @@
 #include "sflib/debug.h"
 #include "sflib/errors.h"
 #include "sflib/event.h"
+#include "sflib/icons.h"
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
+#include "sflib/url.h"
 #include "sflib/windows.h"
 
 /* Application header files */
@@ -27,8 +29,9 @@
 #include "bookmark.h"
 #include "choices.h"
 #include "convert.h"
+#include "ihelp.h"
 #include "main.h"
-#include "menus.h"
+#include "templates.h"
 
 
 /* Iconbar menu */
@@ -39,10 +42,20 @@
 #define ICONBAR_MENU_CHOICES 3
 #define ICONBAR_MENU_QUIT 4
 
+/* Program Info Window */
+
+#define ICON_PROGINFO_VERSION 6
+#define ICON_PROGINFO_WEBSITE 8
+
 
 static void	iconbar_click_handler(wimp_pointer *pointer);
 static void	iconbar_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void	iconbar_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static osbool	iconbar_proginfo_web_click(wimp_pointer *pointer);
+
+
+static wimp_menu	*iconbar_menu = NULL;					/**< The iconbar menu handle.			*/
+static wimp_w		iconbar_info_window = NULL;				/**< The iconbar menu info window handle.	*/
 
 
 /**
@@ -51,6 +64,15 @@ static void	iconbar_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 
 void iconbar_initialise(void)
 {
+	iconbar_menu = templates_get_menu(TEMPLATES_MENU_ICONBAR);
+
+	iconbar_info_window = templates_create_window("ProgInfo");
+	templates_link_menu_dialogue("ProgInfo", iconbar_info_window);
+	ihelp_add_window(iconbar_info_window, "ProgInfo", NULL);
+	msgs_param_lookup("Version", indirected_icon_text(iconbar_info_window, ICON_PROGINFO_VERSION),
+			indirected_icon_length(iconbar_info_window, ICON_PROGINFO_VERSION),
+			BUILD_VERSION, BUILD_DATE, NULL, NULL);
+	event_add_window_icon_click(iconbar_info_window, ICON_PROGINFO_WEBSITE, iconbar_proginfo_web_click);
 }
 
 
@@ -64,9 +86,6 @@ void iconbar_set_icon(int new_state)
 {
 	static int		icon_present = FALSE;
 	static wimp_i		icon_handle = (wimp_i) -1;
-
-	extern global_menus	menus;
-
 	wimp_icon_create	icon_bar;
 
 
@@ -82,7 +101,7 @@ void iconbar_set_icon(int new_state)
 			icon_handle = wimp_create_icon (&icon_bar);
 
 			event_add_window_mouse_event(wimp_ICON_BAR, iconbar_click_handler);
-			event_add_window_menu(wimp_ICON_BAR, menus.icon_bar, TRUE);
+			event_add_window_menu(wimp_ICON_BAR, iconbar_menu, TRUE);
 			event_add_window_menu_prepare(wimp_ICON_BAR, iconbar_menu_prepare);
 			event_add_window_menu_selection(wimp_ICON_BAR, iconbar_menu_selection);
 
@@ -131,9 +150,7 @@ static void iconbar_click_handler(wimp_pointer *pointer)
 
 static void iconbar_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 {
-	extern global_menus	menus;
-
-	shade_menu_item(menus.icon_bar, ICONBAR_MENU_CHOICES, convert_pdf_conversion_in_progress());
+	shade_menu_item(iconbar_menu, ICONBAR_MENU_CHOICES, convert_pdf_conversion_in_progress());
 }
 
 
@@ -169,5 +186,26 @@ static void iconbar_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 			main_quit_flag = TRUE;
 		break;
 	}
+}
+
+
+/**
+ * Handle clicks on the Website action button in the program info window.
+ *
+ * \param *pointer	The Wimp Event message block for the click.
+ * \return		TRUE if we handle the click; else FALSE.
+ */
+
+static osbool iconbar_proginfo_web_click(wimp_pointer *pointer)
+{
+	char		temp_buf[256];
+
+	msgs_lookup("SupportURL:http://www.stevefryatt.org.uk/software/", temp_buf, sizeof(temp_buf));
+	launch_url(temp_buf);
+
+	if (pointer->buttons == wimp_CLICK_SELECT)
+		wimp_create_menu((wimp_menu *) -1, 0, 0);
+
+	return TRUE;
 }
 
