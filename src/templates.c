@@ -178,8 +178,6 @@ char *templates_get_current_menu_name(char *buffer)
 	else
 		strcpy(buffer, "BookmarkListMenu");
 
-
-
-	return (buffer);
+	return buffer;
 }
 
