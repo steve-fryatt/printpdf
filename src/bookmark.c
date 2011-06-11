@@ -822,7 +822,7 @@ void open_bookmark_window(bookmark_block *bm)
 		event_add_window_lose_caret_event(bm->window, bookmark_lose_caret_handler);
 		event_add_window_gain_caret_event(bm->window, bookmark_gain_caret_handler);
 		event_add_window_user_data(bm->window, bm);
-		event_add_window_menu(bm->window, bookmark_menu, FALSE);
+		event_add_window_menu(bm->window, bookmark_menu);
 		event_add_window_menu_prepare(bm->window, bookmark_menu_prepare);
 		event_add_window_menu_selection(bm->window, bookmark_menu_selection);
 		event_add_window_menu_close(bm->window, bookmark_menu_close);
@@ -831,7 +831,7 @@ void open_bookmark_window(bookmark_block *bm)
 		event_add_window_user_data(bm->toolbar, bm);
 		event_add_window_mouse_event(bm->toolbar, bookmark_toolbar_click_handler);
 		event_add_window_key_event(bm->toolbar, bookmark_toolbar_key_handler);
-		event_add_window_menu(bm->toolbar, bookmark_menu, FALSE);
+		event_add_window_menu(bm->toolbar, bookmark_menu);
 		event_add_window_menu_prepare(bm->toolbar, bookmark_menu_prepare);
 		event_add_window_menu_selection(bm->toolbar, bookmark_menu_selection);
 		event_add_window_menu_warning(bm->toolbar, bookmark_menu_warning);

@@ -101,7 +101,7 @@ void iconbar_set_icon(int new_state)
 			icon_handle = wimp_create_icon (&icon_bar);
 
 			event_add_window_mouse_event(wimp_ICON_BAR, iconbar_click_handler);
-			event_add_window_menu(wimp_ICON_BAR, iconbar_menu, TRUE);
+			event_add_window_menu(wimp_ICON_BAR, iconbar_menu);
 			event_add_window_menu_prepare(wimp_ICON_BAR, iconbar_menu_prepare);
 			event_add_window_menu_selection(wimp_ICON_BAR, iconbar_menu_selection);
 
