@@ -150,7 +150,7 @@ static void iconbar_click_handler(wimp_pointer *pointer)
 
 static void iconbar_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 {
-	shade_menu_item(iconbar_menu, ICONBAR_MENU_CHOICES, convert_pdf_conversion_in_progress());
+	menus_shade_entry(iconbar_menu, ICONBAR_MENU_CHOICES, convert_pdf_conversion_in_progress());
 }
 
 

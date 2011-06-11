@@ -73,7 +73,7 @@ void version_set_menu(version_params *params, wimp_menu *menu)
 	int		i;
 
 	for (i = 0; i < VERSION_MENU_LENGTH; i++)
-		tick_menu_item(menu, i, i == version_tick_menu(params));
+		menus_tick_entry(menu, i, i == version_tick_menu(params));
 }
 
 

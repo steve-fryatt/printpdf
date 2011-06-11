@@ -892,7 +892,7 @@ void close_bookmark_window(wimp_close *close)
 		if (button == 3) {
 			if (xwimp_get_pointer_info(&pointer) == NULL) {
 				prepare_bookmark_save_window(bm);
-				create_standard_menu((wimp_menu *) bookmark_window_saveas, &pointer);
+				menus_create_standard_menu((wimp_menu *) bookmark_window_saveas, &pointer);
 			}
 		}
 
@@ -2273,7 +2273,7 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 	case BOOKMARK_TB_SAVE:
 		prepare_bookmark_save_window(bm);
 		if (pointer->buttons == wimp_CLICK_SELECT)
-			create_standard_menu((wimp_menu *) bookmark_window_saveas, pointer);
+			menus_create_standard_menu((wimp_menu *) bookmark_window_saveas, pointer);
 		else if (pointer->buttons == wimp_CLICK_ADJUST)
 			start_direct_menu_save(bm);
 		break;
@@ -2406,25 +2406,25 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 
 	bookmark_toolbar_set_expansion_icons(bm, &expand, &contract);
 
-	shade_menu_item(bookmark_menu, BOOKMARK_MENU_LEVEL, row == -1);
-	shade_menu_item(bookmark_menu, BOOKMARK_MENU_INSERT, row == -1);
-	shade_menu_item(bookmark_menu, BOOKMARK_MENU_DELETE,
+	menus_shade_entry(bookmark_menu, BOOKMARK_MENU_LEVEL, row == -1);
+	menus_shade_entry(bookmark_menu, BOOKMARK_MENU_INSERT, row == -1);
+	menus_shade_entry(bookmark_menu, BOOKMARK_MENU_DELETE,
 			row == -1 || (bm->root == node && node->next == NULL));
 
-	shade_menu_item(bookmark_menu_view, BOOKMARK_MENU_VIEW_EXPAND, !expand);
-	shade_menu_item(bookmark_menu_view, BOOKMARK_MENU_VIEW_CONTRACT, !contract);
+	menus_shade_entry(bookmark_menu_view, BOOKMARK_MENU_VIEW_EXPAND, !expand);
+	menus_shade_entry(bookmark_menu_view, BOOKMARK_MENU_VIEW_CONTRACT, !contract);
 
-	shade_menu_item(bookmark_menu_level, BOOKMARK_MENU_LEVEL_PROMOTE,
+	menus_shade_entry(bookmark_menu_level, BOOKMARK_MENU_LEVEL_PROMOTE,
 			row == -1 || node == NULL || parent == NULL || node->level > parent->level);
-	shade_menu_item(bookmark_menu_level, BOOKMARK_MENU_LEVEL_PROMOTEG,
+	menus_shade_entry(bookmark_menu_level, BOOKMARK_MENU_LEVEL_PROMOTEG,
 			row == -1 || node == NULL || parent == NULL || node->level > parent->level);
-	shade_menu_item(bookmark_menu_level, BOOKMARK_MENU_LEVEL_DEMOTE,
+	menus_shade_entry(bookmark_menu_level, BOOKMARK_MENU_LEVEL_DEMOTE,
 			row == -1 || node == NULL || parent == NULL || node->level <= 1);
-	shade_menu_item(bookmark_menu_level, BOOKMARK_MENU_LEVEL_DEMOTEG,
+	menus_shade_entry(bookmark_menu_level, BOOKMARK_MENU_LEVEL_DEMOTEG,
 			row == -1 || node == NULL || parent == NULL || node->level <= 1);
 
-	shade_menu_item(bookmark_menu_insert, BOOKMARK_MENU_INSERT_ABOVE, row == -1);
-	shade_menu_item(bookmark_menu_insert, BOOKMARK_MENU_INSERT_BELOW, row == -1);
+	menus_shade_entry(bookmark_menu_insert, BOOKMARK_MENU_INSERT_ABOVE, row == -1);
+	menus_shade_entry(bookmark_menu_insert, BOOKMARK_MENU_INSERT_BELOW, row == -1);
 }
 
 
@@ -2702,7 +2702,7 @@ void start_direct_menu_save(bookmark_block *bm)
 	} else {
 		wimp_get_pointer_info(&pointer);
 		prepare_bookmark_save_window(bm);
-		create_standard_menu((wimp_menu *) bookmark_window_saveas, &pointer);
+		menus_create_standard_menu((wimp_menu *) bookmark_window_saveas, &pointer);
 	}
 }
 

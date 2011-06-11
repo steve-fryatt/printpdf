@@ -118,7 +118,7 @@ wimp_w templates_create_window(char *name)
 
 void templates_load_menus(char *file)
 {
-	menu_definitions = load_menus(file, NULL, templates_menu_list);
+	menu_definitions = menus_load_templates(file, NULL, templates_menu_list, TEMPLATES_MENU_MAX_EXTENT);
 	event_set_menu_pointer(&menu_up);
 }
 
@@ -133,7 +133,7 @@ void templates_load_menus(char *file)
 
 void templates_link_menu_dialogue(char *dbox, wimp_w w)
 {
-	load_menus_dbox(menu_definitions, dbox, w);
+	menus_link_dbox(menu_definitions, dbox, w);
 }
 
 

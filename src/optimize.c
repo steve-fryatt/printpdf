@@ -256,7 +256,7 @@ void optimize_set_menu(optimize_params *params, wimp_menu *menu)
 	int		i;
 
 	for (i = 0; i < OPTIMIZE_MENU_LENGTH; i++)
-		tick_menu_item(menu, i, i == optimize_tick_menu(params));
+		menus_tick_entry(menu, i, i == optimize_tick_menu(params));
 }
 
 

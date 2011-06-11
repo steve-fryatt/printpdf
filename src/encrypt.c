@@ -245,7 +245,7 @@ void encrypt_open_dialogue(encrypt_params *params, osbool extended_opts, wimp_po
 
 	encrypt_shade_dialogue(encrypt_win);
 
-	create_standard_menu((wimp_menu *) encrypt_win, pointer);
+	menus_create_standard_menu((wimp_menu *) encrypt_win, pointer);
 }
 
 
