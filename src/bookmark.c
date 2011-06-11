@@ -844,7 +844,7 @@ void open_bookmark_window(bookmark_block *bm)
 		/* Set up the toolbar. */
 
 		bookmark_toolbar_set_expansion_icons(bm, NULL, NULL);
-		icon_strncpy(bm->toolbar, BOOKMARK_TB_NAME, bm->name);
+		icons_strncpy(bm->toolbar, BOOKMARK_TB_NAME, bm->name);
 
 		/* Open the window and toolbar. */
 
@@ -2562,10 +2562,10 @@ void prepare_file_info_window(bookmark_block *bm)
 	if (bm == NULL)
 		return;
 
-	icon_strncpy(bookmark_window_fileinfo, FILEINFO_ICON_NAME, bm->name);
+	icons_strncpy(bookmark_window_fileinfo, FILEINFO_ICON_NAME, bm->name);
 
 	if (strlen(bm->filename) > 0) {
-		icon_strncpy(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION, bm->filename);
+		icons_strncpy(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION, bm->filename);
 		territory_convert_standard_date_and_time (territory_CURRENT, (os_date_and_time const *) bm->datestamp,
 				indirected_icon_text(bookmark_window_fileinfo, FILEINFO_ICON_DATE),
 				indirected_icon_length(bookmark_window_fileinfo, FILEINFO_ICON_DATE));
