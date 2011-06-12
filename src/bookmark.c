@@ -385,11 +385,11 @@ void fill_bookmark_field(wimp_w window, wimp_i icon, bookmark_params *params)
 	params->bookmarks = find_bookmark_block(params->bookmarks);
 
 	if (params == NULL || params->bookmarks == NULL) {
-		msgs_lookup ("None", indirected_icon_text (window, icon), MAX_BOOKMARK_FIELD_LEN);
+		msgs_lookup ("None", icons_get_indirected_text_addr (window, icon), MAX_BOOKMARK_FIELD_LEN);
 	} else {
-		strncpy(indirected_icon_text (window, icon), params->bookmarks->name, MAX_BOOKMARK_FIELD_LEN);
+		strncpy(icons_get_indirected_text_addr (window, icon), params->bookmarks->name, MAX_BOOKMARK_FIELD_LEN);
 		if (strlen(params->bookmarks->name) >= MAX_BOOKMARK_FIELD_LEN)
-			strcpy(indirected_icon_text (window, icon) + MAX_BOOKMARK_FIELD_LEN - 4, "...");
+			strcpy(icons_get_indirected_text_addr (window, icon) + MAX_BOOKMARK_FIELD_LEN - 4, "...");
 	}
 
 	wimp_set_icon_state (window, icon, 0, 0);
@@ -856,7 +856,7 @@ void open_bookmark_window(bookmark_block *bm)
 		/* Place the caret. */
 
 		if (!bookmark_place_edit_icon(bm, 0, BOOKMARK_ICON_TITLE))
-			put_caret_at_end(bm->window, bm->edit_icon);
+			icons_put_caret_at_end(bm->window, bm->edit_icon);
 	}
 }
 
@@ -1154,7 +1154,7 @@ osbool bookmark_key_handler(wimp_key *key)
 			if (bm->caret_col == BOOKMARK_ICON_TITLE && bm->caret_row > 0 &&
 					 strlen(bm->redraw[bm->caret_row].node->title) == 0) {
 				bookmark_delete_edit_row(bm, bm->redraw[bm->caret_row].node);
-				put_caret_at_end(bm->window, bm->edit_icon);
+				icons_put_caret_at_end(bm->window, bm->edit_icon);
 			}
 			break;
 		case wimp_KEY_UP:
@@ -1173,7 +1173,7 @@ osbool bookmark_key_handler(wimp_key *key)
 				bookmark_place_edit_icon(bm, bm->caret_row, BOOKMARK_ICON_TITLE);
 			}
 			if (bm->edit_icon != wimp_ICON_WINDOW)
-				put_caret_at_end(bm->window, bm->edit_icon);
+				icons_put_caret_at_end(bm->window, bm->edit_icon);
 			break;
 		case wimp_KEY_TAB | wimp_KEY_SHIFT:
 			if (bm->caret_col > BOOKMARK_ICON_TITLE)
@@ -1181,7 +1181,7 @@ osbool bookmark_key_handler(wimp_key *key)
 			else if (bm->caret_row > 0)
 				bookmark_place_edit_icon(bm, bm->caret_row - 1, BOOKMARK_WINDOW_COLUMNS - 1);
 			if (bm->edit_icon != wimp_ICON_WINDOW)
-				put_caret_at_end(bm->window, bm->edit_icon);
+				icons_put_caret_at_end(bm->window, bm->edit_icon);
 			break;
 		default:
 			bookmark_resync_edit_with_file();
@@ -1223,7 +1223,7 @@ void bookmark_lose_caret_handler(wimp_caret *caret)
 		return;
 
 	if (current.w != bm->window)
-		set_icons_shaded(bm->toolbar, 1, 4,
+		icons_set_group_shaded(bm->toolbar, 1, 4,
 				BOOKMARK_TB_DEMOTEG, BOOKMARK_TB_DEMOTE,
 				BOOKMARK_TB_PROMOTE, BOOKMARK_TB_PROMOTEG);
 }
@@ -1254,9 +1254,9 @@ void bookmark_gain_caret_handler(wimp_caret *caret)
 
 	/* Set up the toolbar icons. */
 
-	set_icons_shaded(bm->toolbar, node == NULL || parent == NULL || node->level <= 1,
+	icons_set_group_shaded(bm->toolbar, node == NULL || parent == NULL || node->level <= 1,
 			2, BOOKMARK_TB_DEMOTEG, BOOKMARK_TB_DEMOTE);
-	set_icons_shaded(bm->toolbar, node == NULL || parent == NULL || node->level > parent->level,
+	icons_set_group_shaded(bm->toolbar, node == NULL || parent == NULL || node->level > parent->level,
 			2, BOOKMARK_TB_PROMOTE, BOOKMARK_TB_PROMOTEG);
 }
 
@@ -1395,7 +1395,7 @@ void bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *care
 
 	if (direction == BOOKMARK_BELOW) {
 		if (!bookmark_place_edit_icon(bm, bm->caret_row+1, BOOKMARK_ICON_TITLE))
-			put_caret_at_end(bm->window, bm->edit_icon);
+			icons_put_caret_at_end(bm->window, bm->edit_icon);
 
 	}
 }
@@ -1620,8 +1620,8 @@ void bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *
 		if (contract != NULL)
 			*contract = c;
 	} else {
-		set_icon_shaded(bm->toolbar, BOOKMARK_TB_EXPAND, !e);
-		set_icon_shaded(bm->toolbar, BOOKMARK_TB_CONTRACT, !c);
+		icons_set_shaded(bm->toolbar, BOOKMARK_TB_EXPAND, !e);
+		icons_set_shaded(bm->toolbar, BOOKMARK_TB_CONTRACT, !c);
 	}
 }
 
@@ -2344,9 +2344,9 @@ void bookmark_resync_toolbar_name_with_file(bookmark_block *bm)
 	if (bm == NULL)
 		return;
 
-	if (strcmp(indirected_icon_text(bm->toolbar, BOOKMARK_TB_NAME),
+	if (strcmp(icons_get_indirected_text_addr(bm->toolbar, BOOKMARK_TB_NAME),
 			bm->name) != 0) {
-		strncpy(bm->name, indirected_icon_text(bm->toolbar, BOOKMARK_TB_NAME),
+		strncpy(bm->name, icons_get_indirected_text_addr(bm->toolbar, BOOKMARK_TB_NAME),
 				MAX_BOOKMARK_BLOCK_NAME);
 		set_bookmark_unsaved_state(bm, 1);
 	}
@@ -2567,17 +2567,17 @@ void prepare_file_info_window(bookmark_block *bm)
 	if (strlen(bm->filename) > 0) {
 		icons_strncpy(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION, bm->filename);
 		territory_convert_standard_date_and_time (territory_CURRENT, (os_date_and_time const *) bm->datestamp,
-				indirected_icon_text(bookmark_window_fileinfo, FILEINFO_ICON_DATE),
-				indirected_icon_length(bookmark_window_fileinfo, FILEINFO_ICON_DATE));
+				icons_get_indirected_text_addr(bookmark_window_fileinfo, FILEINFO_ICON_DATE),
+				icons_get_indirected_text_length(bookmark_window_fileinfo, FILEINFO_ICON_DATE));
 	} else {
-		msgs_lookup("Unsaved", indirected_icon_text(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION),
-				indirected_icon_length(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION));
-		msgs_lookup("Unsaved", indirected_icon_text(bookmark_window_fileinfo, FILEINFO_ICON_DATE),
-				indirected_icon_length(bookmark_window_fileinfo, FILEINFO_ICON_DATE));
+		msgs_lookup("Unsaved", icons_get_indirected_text_addr(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION),
+				icons_get_indirected_text_length(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION));
+		msgs_lookup("Unsaved", icons_get_indirected_text_addr(bookmark_window_fileinfo, FILEINFO_ICON_DATE),
+				icons_get_indirected_text_length(bookmark_window_fileinfo, FILEINFO_ICON_DATE));
 	}
 
-	msgs_lookup((bm->unsaved) ? "Yes" : "No", indirected_icon_text(bookmark_window_fileinfo, FILEINFO_ICON_MODIFIED),
-				indirected_icon_length(bookmark_window_fileinfo, FILEINFO_ICON_MODIFIED));
+	msgs_lookup((bm->unsaved) ? "Yes" : "No", icons_get_indirected_text_addr(bookmark_window_fileinfo, FILEINFO_ICON_MODIFIED),
+				icons_get_indirected_text_length(bookmark_window_fileinfo, FILEINFO_ICON_MODIFIED));
 }
 
 
@@ -2594,13 +2594,13 @@ void prepare_file_info_window(bookmark_block *bm)
 void prepare_bookmark_save_window(bookmark_block *bm)
 {
 	if (strlen(bm->filename) > 0)
-		strncpy(indirected_icon_text(bookmark_window_saveas, SAVEAS_ICON_NAME),
+		strncpy(icons_get_indirected_text_addr(bookmark_window_saveas, SAVEAS_ICON_NAME),
 				bm->filename, MAX_BOOKMARK_FILENAME);
 	else
-		msgs_lookup("BMFileName", indirected_icon_text(bookmark_window_saveas,
+		msgs_lookup("BMFileName", icons_get_indirected_text_addr(bookmark_window_saveas,
 				SAVEAS_ICON_NAME), MAX_BOOKMARK_FILENAME);
 
-	snprintf(indirected_icon_text(bookmark_window_saveas, SAVEAS_ICON_FILE),
+	snprintf(icons_get_indirected_text_addr(bookmark_window_saveas, SAVEAS_ICON_FILE),
 			MAX_BOOKMARK_FILESPR, "file_%3x", PRINTPDF_FILE_TYPE);
 
 	event_add_window_user_data(bookmark_window_saveas, bm);
@@ -2622,7 +2622,7 @@ void bookmark_save_as_click(wimp_pointer *pointer)
 	case SAVEAS_ICON_FILE:
 		if (pointer->buttons == wimp_DRAG_SELECT)
 			start_save_window_drag(DRAG_SAVE_SAVEAS, bookmark_window_saveas, SAVEAS_ICON_FILE,
-					indirected_icon_text(bookmark_window_saveas, SAVEAS_ICON_NAME));
+					icons_get_indirected_text_addr(bookmark_window_saveas, SAVEAS_ICON_NAME));
 		break;
 	case SAVEAS_ICON_OK:
 		if (start_direct_dialog_save())
@@ -2674,7 +2674,7 @@ int start_direct_dialog_save(void)
 	if (bm == NULL)
 		return 0;
 
-	filename = indirected_icon_text(bookmark_window_saveas, SAVEAS_ICON_NAME);
+	filename = icons_get_indirected_text_addr(bookmark_window_saveas, SAVEAS_ICON_NAME);
 
 	if (strchr(filename, '.') == NULL)
 		wimp_msgtrans_info_report("DragSave");

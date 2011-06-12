@@ -69,8 +69,8 @@ void iconbar_initialise(void)
 	iconbar_info_window = templates_create_window("ProgInfo");
 	templates_link_menu_dialogue("ProgInfo", iconbar_info_window);
 	ihelp_add_window(iconbar_info_window, "ProgInfo", NULL);
-	msgs_param_lookup("Version", indirected_icon_text(iconbar_info_window, ICON_PROGINFO_VERSION),
-			indirected_icon_length(iconbar_info_window, ICON_PROGINFO_VERSION),
+	msgs_param_lookup("Version", icons_get_indirected_text_addr(iconbar_info_window, ICON_PROGINFO_VERSION),
+			icons_get_indirected_text_length(iconbar_info_window, ICON_PROGINFO_VERSION),
 			BUILD_VERSION, BUILD_DATE, NULL, NULL);
 	event_add_window_icon_click(iconbar_info_window, ICON_PROGINFO_WEBSITE, iconbar_proginfo_web_click);
 }

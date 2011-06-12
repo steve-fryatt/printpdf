@@ -104,7 +104,7 @@ void choices_open_window(wimp_pointer *pointer)
 
 	open_window_centred_at_pointer(choices_window, pointer);
 
-	put_caret_at_end(choices_window, CHOICE_ICON_DEFFILE);
+	icons_put_caret_at_end(choices_window, CHOICE_ICON_DEFFILE);
 }
 
 
@@ -124,19 +124,19 @@ static void choices_close_window(void)
 
 static void choices_set_window(void)
 {
-	sprintf(indirected_icon_text(choices_window, CHOICE_ICON_DEFFILE), "%s", config_str_read("FileName"));
+	sprintf(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_DEFFILE), "%s", config_str_read("FileName"));
 
 	encrypt_initialise_settings(&encryption);
 	optimize_initialise_settings(&optimization);
 	version_initialise_settings(&version);
 	pdfmark_initialise_settings(&pdfmark);
 
-	set_icon_selected(choices_window, CHOICE_ICON_RESETEVERY, config_opt_read("ResetParams"));
-	set_icon_selected(choices_window, CHOICE_ICON_IBAR, config_opt_read("IconBarIcon"));
-	set_icon_selected(choices_window, CHOICE_ICON_POPUP, config_opt_read("PopUpAfter"));
-	set_icon_selected(choices_window, CHOICE_ICON_PREPROCESS, config_opt_read("PreProcess"));
+	icons_set_selected(choices_window, CHOICE_ICON_RESETEVERY, config_opt_read("ResetParams"));
+	icons_set_selected(choices_window, CHOICE_ICON_IBAR, config_opt_read("IconBarIcon"));
+	icons_set_selected(choices_window, CHOICE_ICON_POPUP, config_opt_read("PopUpAfter"));
+	icons_set_selected(choices_window, CHOICE_ICON_PREPROCESS, config_opt_read("PreProcess"));
 
-	sprintf(indirected_icon_text (choices_window, CHOICE_ICON_MEMORY), "%d", config_int_read("TaskMemory"));
+	sprintf(icons_get_indirected_text_addr (choices_window, CHOICE_ICON_MEMORY), "%d", config_int_read("TaskMemory"));
 
 	version_fill_field(choices_window, CHOICE_ICON_VERSION, &version);
 	optimize_fill_field(choices_window, CHOICE_ICON_OPTIMIZE, &optimization);
@@ -153,14 +153,14 @@ static void choices_read_window(void)
 {
 	/* Read the main window. */
 
-	config_str_set("FileName", indirected_icon_text(choices_window, CHOICE_ICON_DEFFILE));
+	config_str_set("FileName", icons_get_indirected_text_addr(choices_window, CHOICE_ICON_DEFFILE));
 
-	config_opt_set("ResetParams", read_icon_selected(choices_window, CHOICE_ICON_RESETEVERY));
-	config_opt_set("IconBarIcon", read_icon_selected(choices_window, CHOICE_ICON_IBAR));
-	config_opt_set("PopUpAfter", read_icon_selected(choices_window, CHOICE_ICON_POPUP));
-	config_opt_set("PreProcess", read_icon_selected(choices_window, CHOICE_ICON_PREPROCESS));
+	config_opt_set("ResetParams", icons_get_selected(choices_window, CHOICE_ICON_RESETEVERY));
+	config_opt_set("IconBarIcon", icons_get_selected(choices_window, CHOICE_ICON_IBAR));
+	config_opt_set("PopUpAfter", icons_get_selected(choices_window, CHOICE_ICON_POPUP));
+	config_opt_set("PreProcess", icons_get_selected(choices_window, CHOICE_ICON_PREPROCESS));
 
-	config_int_set("TaskMemory", atoi(indirected_icon_text(choices_window, CHOICE_ICON_MEMORY)));
+	config_int_set("TaskMemory", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_MEMORY)));
 
 	version_save_settings(&version);
 	encrypt_save_settings(&encryption);
@@ -184,7 +184,7 @@ static void choices_redraw_window(void)
 	wimp_set_icon_state(choices_window, CHOICE_ICON_OPTIMIZE, 0, 0);
 	wimp_set_icon_state(choices_window, CHOICE_ICON_MEMORY, 0, 0);
 
-	replace_caret_in_window(choices_window);
+	icons_replace_caret_in_window(choices_window);
 }
 
 
@@ -346,9 +346,9 @@ static osbool handle_choices_icon_drop(wimp_message *message)
 	leaf = lose_extension(path);
 	find_pathname(path);
 
-	sprintf(indirected_icon_text(choices_window, CHOICE_ICON_DEFFILE), "%s.%s/pdf", path, leaf);
+	sprintf(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_DEFFILE), "%s.%s/pdf", path, leaf);
 
-	replace_caret_in_window(datasave->w);
+	icons_replace_caret_in_window(datasave->w);
 	wimp_set_icon_state(datasave->w, datasave->i, 0, 0);
 
 	return TRUE;

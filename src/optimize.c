@@ -451,58 +451,58 @@ static osbool optimize_keypress_handler(wimp_key *key)
 
 static void optimize_open_dialogue(optimize_params *params, wimp_pointer *pointer)
 {
-	set_icon_selected(optimize_window, OPTIMIZE_ICON_COLOUR_DOWNSAMPLE, params->downsample_colour_images);
-	set_icon_selected(optimize_window, OPTIMIZE_ICON_GREY_DOWNSAMPLE, params->downsample_grey_images);
-	set_icon_selected(optimize_window, OPTIMIZE_ICON_MONO_DOWNSAMPLE, params->downsample_mono_images);
+	icons_set_selected(optimize_window, OPTIMIZE_ICON_COLOUR_DOWNSAMPLE, params->downsample_colour_images);
+	icons_set_selected(optimize_window, OPTIMIZE_ICON_GREY_DOWNSAMPLE, params->downsample_grey_images);
+	icons_set_selected(optimize_window, OPTIMIZE_ICON_MONO_DOWNSAMPLE, params->downsample_mono_images);
 
-	set_radio_icon_group_selected(optimize_window, params->downsample_colour_type, 2,
+	icons_set_radio_group_selected(optimize_window, params->downsample_colour_type, 2,
 			OPTIMIZE_ICON_COLOUR_SUBSAMPLE, OPTIMIZE_ICON_COLOUR_AVERAGE);
-	set_radio_icon_group_selected(optimize_window, params->downsample_grey_type, 2,
+	icons_set_radio_group_selected(optimize_window, params->downsample_grey_type, 2,
 			OPTIMIZE_ICON_GREY_SUBSAMPLE, OPTIMIZE_ICON_GREY_AVERAGE);
-	set_radio_icon_group_selected(optimize_window, params->downsample_mono_type, 2,
+	icons_set_radio_group_selected(optimize_window, params->downsample_mono_type, 2,
 			OPTIMIZE_ICON_MONO_SUBSAMPLE, OPTIMIZE_ICON_MONO_AVERAGE);
 
-	set_icon_selected(optimize_window, OPTIMIZE_ICON_COLOUR_ENCODE, params->encode_colour_images);
-	set_icon_selected(optimize_window, OPTIMIZE_ICON_GREY_ENCODE, params->encode_grey_images);
-	set_icon_selected(optimize_window, OPTIMIZE_ICON_MONO_ENCODE, params->encode_mono_images);
+	icons_set_selected(optimize_window, OPTIMIZE_ICON_COLOUR_ENCODE, params->encode_colour_images);
+	icons_set_selected(optimize_window, OPTIMIZE_ICON_GREY_ENCODE, params->encode_grey_images);
+	icons_set_selected(optimize_window, OPTIMIZE_ICON_MONO_ENCODE, params->encode_mono_images);
 
-	set_radio_icon_group_selected(optimize_window, params->encode_colour_type, 2,
+	icons_set_radio_group_selected(optimize_window, params->encode_colour_type, 2,
 			OPTIMIZE_ICON_COLOUR_DCT, OPTIMIZE_ICON_COLOUR_FLATE);
-	set_radio_icon_group_selected(optimize_window, params->encode_grey_type, 2,
+	icons_set_radio_group_selected(optimize_window, params->encode_grey_type, 2,
 			OPTIMIZE_ICON_GREY_DCT, OPTIMIZE_ICON_GREY_FLATE);
-	set_radio_icon_group_selected(optimize_window, params->encode_mono_type, 3,
+	icons_set_radio_group_selected(optimize_window, params->encode_mono_type, 3,
 			OPTIMIZE_ICON_MONO_CCITT, OPTIMIZE_ICON_MONO_FLATE, OPTIMIZE_ICON_MONO_RUNLENGTH);
 
-	set_radio_icon_group_selected(optimize_window, params->auto_page_rotation, 3,
+	icons_set_radio_group_selected(optimize_window, params->auto_page_rotation, 3,
 			OPTIMIZE_ICON_ROTATE_NONE, OPTIMIZE_ICON_ROTATE_ALL, OPTIMIZE_ICON_ROTATE_PAGE);
 
-	set_icon_selected(optimize_window, OPTIMIZE_ICON_COMPRESS, params->compress_pages);
+	icons_set_selected(optimize_window, OPTIMIZE_ICON_COMPRESS, params->compress_pages);
 
-	sprintf(indirected_icon_text(optimize_window, OPTIMIZE_ICON_COLOUR_RESOLUTION),
+	sprintf(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_RESOLUTION),
 			"%d", params->downsample_colour_resolution);
 
-	sprintf(indirected_icon_text(optimize_window, OPTIMIZE_ICON_GREY_RESOLUTION),
+	sprintf(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_RESOLUTION),
 			"%d", params->downsample_grey_resolution);
 
-	sprintf(indirected_icon_text(optimize_window, OPTIMIZE_ICON_MONO_RESOLUTION),
+	sprintf(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_RESOLUTION),
 			"%d", params->downsample_mono_resolution);
 
-	sprintf(indirected_icon_text(optimize_window, OPTIMIZE_ICON_COLOUR_THRESHOLD),
+	sprintf(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_THRESHOLD),
 			"%.1f", (double) params->downsample_colour_threshold / 10.0);
 
-	sprintf(indirected_icon_text(optimize_window, OPTIMIZE_ICON_GREY_THRESHOLD),
+	sprintf(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_THRESHOLD),
 			"%.1f", (double) params->downsample_grey_threshold / 10.0);
 
-	sprintf(indirected_icon_text(optimize_window, OPTIMIZE_ICON_MONO_THRESHOLD),
+	sprintf(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_THRESHOLD),
 			"%.1f", (double) params->downsample_mono_threshold / 10.0);
 
 	downsample_mono_depth = params->downsample_mono_depth;
 	downsample_grey_depth = params->downsample_grey_depth;
 	downsample_colour_depth = params->downsample_colour_depth;
 
-	optimize_depth_text(indirected_icon_text(optimize_window, OPTIMIZE_ICON_MONO_DEPTH), downsample_mono_depth);
-	optimize_depth_text(indirected_icon_text(optimize_window, OPTIMIZE_ICON_GREY_DEPTH), downsample_grey_depth);
-	optimize_depth_text(indirected_icon_text(optimize_window, OPTIMIZE_ICON_COLOUR_DEPTH), downsample_colour_depth);
+	optimize_depth_text(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_DEPTH), downsample_mono_depth);
+	optimize_depth_text(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_DEPTH), downsample_grey_depth);
+	optimize_depth_text(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_DEPTH), downsample_colour_depth);
 
 	optimize_shade_dialogue(NULL);
 
@@ -521,57 +521,57 @@ void optimize_process_dialogue(optimize_params *params)
 {
 	params->standard_preset = -1;
 
-	params->downsample_colour_images = read_icon_selected(optimize_window,
+	params->downsample_colour_images = icons_get_selected(optimize_window,
 			OPTIMIZE_ICON_COLOUR_DOWNSAMPLE);
-	params->downsample_grey_images = read_icon_selected(optimize_window,
+	params->downsample_grey_images = icons_get_selected(optimize_window,
 			OPTIMIZE_ICON_GREY_DOWNSAMPLE);
-	params->downsample_mono_images = read_icon_selected(optimize_window,
+	params->downsample_mono_images = icons_get_selected(optimize_window,
 			OPTIMIZE_ICON_MONO_DOWNSAMPLE);
 
-	params->downsample_colour_type = read_radio_icon_group_selected(optimize_window, 2,
+	params->downsample_colour_type = icons_get_radio_group_selected(optimize_window, 2,
 			OPTIMIZE_ICON_COLOUR_SUBSAMPLE, OPTIMIZE_ICON_COLOUR_AVERAGE);
-	params->downsample_grey_type = read_radio_icon_group_selected(optimize_window, 2,
+	params->downsample_grey_type = icons_get_radio_group_selected(optimize_window, 2,
 			OPTIMIZE_ICON_GREY_SUBSAMPLE, OPTIMIZE_ICON_GREY_AVERAGE);
-	params->downsample_mono_type = read_radio_icon_group_selected(optimize_window, 2,
+	params->downsample_mono_type = icons_get_radio_group_selected(optimize_window, 2,
 			OPTIMIZE_ICON_MONO_SUBSAMPLE, OPTIMIZE_ICON_MONO_AVERAGE);
 
-	params->encode_colour_images = read_icon_selected(optimize_window, OPTIMIZE_ICON_COLOUR_ENCODE);
-	params->encode_grey_images = read_icon_selected(optimize_window, OPTIMIZE_ICON_GREY_ENCODE);
-	params->encode_mono_images = read_icon_selected(optimize_window, OPTIMIZE_ICON_MONO_ENCODE);
+	params->encode_colour_images = icons_get_selected(optimize_window, OPTIMIZE_ICON_COLOUR_ENCODE);
+	params->encode_grey_images = icons_get_selected(optimize_window, OPTIMIZE_ICON_GREY_ENCODE);
+	params->encode_mono_images = icons_get_selected(optimize_window, OPTIMIZE_ICON_MONO_ENCODE);
 
-	params->encode_colour_type = read_radio_icon_group_selected(optimize_window, 2,
+	params->encode_colour_type = icons_get_radio_group_selected(optimize_window, 2,
 			OPTIMIZE_ICON_COLOUR_DCT, OPTIMIZE_ICON_COLOUR_FLATE);
-	params->encode_grey_type = read_radio_icon_group_selected(optimize_window, 2,
+	params->encode_grey_type = icons_get_radio_group_selected(optimize_window, 2,
 			OPTIMIZE_ICON_GREY_DCT, OPTIMIZE_ICON_GREY_FLATE);
-	params->encode_mono_type = read_radio_icon_group_selected(optimize_window, 3,
+	params->encode_mono_type = icons_get_radio_group_selected(optimize_window, 3,
 			OPTIMIZE_ICON_MONO_CCITT, OPTIMIZE_ICON_MONO_FLATE, OPTIMIZE_ICON_MONO_RUNLENGTH);
 
-	params->auto_page_rotation = read_radio_icon_group_selected(optimize_window, 3,
+	params->auto_page_rotation = icons_get_radio_group_selected(optimize_window, 3,
 			OPTIMIZE_ICON_ROTATE_NONE, OPTIMIZE_ICON_ROTATE_ALL, OPTIMIZE_ICON_ROTATE_PAGE);
 
-	params->compress_pages = read_icon_selected (optimize_window, OPTIMIZE_ICON_COMPRESS);
+	params->compress_pages = icons_get_selected (optimize_window, OPTIMIZE_ICON_COMPRESS);
 
-	terminate_ctrl_str(indirected_icon_text(optimize_window, OPTIMIZE_ICON_COLOUR_RESOLUTION));
-	terminate_ctrl_str(indirected_icon_text(optimize_window, OPTIMIZE_ICON_GREY_RESOLUTION));
-	terminate_ctrl_str(indirected_icon_text(optimize_window, OPTIMIZE_ICON_MONO_RESOLUTION));
+	terminate_ctrl_str(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_RESOLUTION));
+	terminate_ctrl_str(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_RESOLUTION));
+	terminate_ctrl_str(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_RESOLUTION));
 
 	params->downsample_colour_resolution =
-			atoi(indirected_icon_text(optimize_window, OPTIMIZE_ICON_COLOUR_RESOLUTION));
+			atoi(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_RESOLUTION));
 	params->downsample_grey_resolution =
-			atoi(indirected_icon_text(optimize_window, OPTIMIZE_ICON_GREY_RESOLUTION));
+			atoi(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_RESOLUTION));
 	params->downsample_mono_resolution =
-			atoi(indirected_icon_text(optimize_window, OPTIMIZE_ICON_MONO_RESOLUTION));
+			atoi(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_RESOLUTION));
 
-	terminate_ctrl_str(indirected_icon_text(optimize_window, OPTIMIZE_ICON_COLOUR_THRESHOLD));
-	terminate_ctrl_str(indirected_icon_text(optimize_window, OPTIMIZE_ICON_GREY_THRESHOLD));
-	terminate_ctrl_str(indirected_icon_text(optimize_window, OPTIMIZE_ICON_MONO_THRESHOLD));
+	terminate_ctrl_str(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_THRESHOLD));
+	terminate_ctrl_str(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_THRESHOLD));
+	terminate_ctrl_str(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_THRESHOLD));
 
 	params->downsample_colour_threshold = (int) 10.0 *
-			atof(indirected_icon_text(optimize_window, OPTIMIZE_ICON_COLOUR_THRESHOLD));
+			atof(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_THRESHOLD));
 	params->downsample_grey_threshold = (int) 10.0 *
-			atof(indirected_icon_text(optimize_window, OPTIMIZE_ICON_GREY_THRESHOLD));
+			atof(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_THRESHOLD));
 	params->downsample_mono_threshold = (int) 10.0 *
-			atof(indirected_icon_text(optimize_window, OPTIMIZE_ICON_MONO_THRESHOLD));
+			atof(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_THRESHOLD));
 
 	params->downsample_mono_depth = downsample_mono_depth;
 	params->downsample_grey_depth = downsample_grey_depth;
@@ -592,7 +592,7 @@ void optimize_process_dialogue(optimize_params *params)
 static bool optimize_shade_dialogue(wimp_pointer *pointer)
 {
 	if (pointer == NULL || pointer->i == OPTIMIZE_ICON_COLOUR_DOWNSAMPLE)
-		set_icons_shaded_when_radio_off(optimize_window, OPTIMIZE_ICON_COLOUR_DOWNSAMPLE, 11,
+		icons_set_group_shaded_when_off(optimize_window, OPTIMIZE_ICON_COLOUR_DOWNSAMPLE, 11,
 				OPTIMIZE_ICON_COLOUR_SUBSAMPLE, OPTIMIZE_ICON_COLOUR_AVERAGE,
 				OPTIMIZE_ICON_COLOUR_RESOLUTION, OPTIMIZE_ICON_COLOUR_RESOLUTION_UP,
 				OPTIMIZE_ICON_COLOUR_RESOLUTION_DOWN, OPTIMIZE_ICON_COLOUR_THRESHOLD,
@@ -601,7 +601,7 @@ static bool optimize_shade_dialogue(wimp_pointer *pointer)
 				OPTIMIZE_ICON_COLOUR_DEPTH_DOWN);
 
 	if (pointer == NULL || pointer->i == OPTIMIZE_ICON_GREY_DOWNSAMPLE)
-		set_icons_shaded_when_radio_off(optimize_window, OPTIMIZE_ICON_GREY_DOWNSAMPLE, 11,
+		icons_set_group_shaded_when_off(optimize_window, OPTIMIZE_ICON_GREY_DOWNSAMPLE, 11,
 				OPTIMIZE_ICON_GREY_SUBSAMPLE, OPTIMIZE_ICON_GREY_AVERAGE,
 				OPTIMIZE_ICON_GREY_RESOLUTION, OPTIMIZE_ICON_GREY_RESOLUTION_UP,
 				OPTIMIZE_ICON_GREY_RESOLUTION_DOWN, OPTIMIZE_ICON_GREY_THRESHOLD,
@@ -610,7 +610,7 @@ static bool optimize_shade_dialogue(wimp_pointer *pointer)
 				OPTIMIZE_ICON_GREY_DEPTH_DOWN);
 
 	if (pointer == NULL || pointer->i == OPTIMIZE_ICON_MONO_DOWNSAMPLE)
-		set_icons_shaded_when_radio_off(optimize_window, OPTIMIZE_ICON_MONO_DOWNSAMPLE, 11,
+		icons_set_group_shaded_when_off(optimize_window, OPTIMIZE_ICON_MONO_DOWNSAMPLE, 11,
 				OPTIMIZE_ICON_MONO_SUBSAMPLE, OPTIMIZE_ICON_MONO_AVERAGE,
 				OPTIMIZE_ICON_MONO_RESOLUTION, OPTIMIZE_ICON_MONO_RESOLUTION_UP,
 				OPTIMIZE_ICON_MONO_RESOLUTION_DOWN, OPTIMIZE_ICON_MONO_THRESHOLD,
@@ -619,18 +619,18 @@ static bool optimize_shade_dialogue(wimp_pointer *pointer)
 				OPTIMIZE_ICON_MONO_DEPTH_DOWN);
 
 	if (pointer == NULL || pointer->i == OPTIMIZE_ICON_COLOUR_ENCODE)
-		set_icons_shaded_when_radio_off(optimize_window, OPTIMIZE_ICON_COLOUR_ENCODE, 2,
+		icons_set_group_shaded_when_off(optimize_window, OPTIMIZE_ICON_COLOUR_ENCODE, 2,
 				OPTIMIZE_ICON_COLOUR_DCT, OPTIMIZE_ICON_COLOUR_FLATE);
 
 	if (pointer == NULL || pointer->i == OPTIMIZE_ICON_GREY_ENCODE)
-		set_icons_shaded_when_radio_off(optimize_window, OPTIMIZE_ICON_GREY_ENCODE, 2,
+		icons_set_group_shaded_when_off(optimize_window, OPTIMIZE_ICON_GREY_ENCODE, 2,
 				OPTIMIZE_ICON_GREY_DCT, OPTIMIZE_ICON_GREY_FLATE);
 
 	if (pointer == NULL || pointer->i == OPTIMIZE_ICON_MONO_ENCODE)
-		set_icons_shaded_when_radio_off(optimize_window, OPTIMIZE_ICON_MONO_ENCODE, 3,
+		icons_set_group_shaded_when_off(optimize_window, OPTIMIZE_ICON_MONO_ENCODE, 3,
 				OPTIMIZE_ICON_MONO_CCITT, OPTIMIZE_ICON_MONO_FLATE, OPTIMIZE_ICON_MONO_RUNLENGTH);
 
-	replace_caret_in_window(optimize_window);
+	icons_replace_caret_in_window(optimize_window);
 
 	return TRUE;
 }
@@ -654,7 +654,7 @@ void optimize_fill_field (wimp_w window, wimp_i icon, optimize_params *params)
 	else
 		snprintf(token, sizeof(token), "Optimization%d", params->standard_preset);
 
-	msgs_lookup(token, indirected_icon_text(window, icon), 20);
+	msgs_lookup(token, icons_get_indirected_text_addr(window, icon), 20);
 	wimp_set_icon_state(window, icon, 0, 0);
 }
 
@@ -772,14 +772,14 @@ static void optimize_update_resolution_icon(wimp_i i, int dir)
 {
 	int			value = -1;
 
-	value = atoi(indirected_icon_text(optimize_window, i));
+	value = atoi(icons_get_indirected_text_addr(optimize_window, i));
 
 	if (dir > 0 && value < 999)
 		value += 1;
 	else if (dir < 0 && value > 1)
 		value -= 1;
 
-	sprintf(indirected_icon_text(optimize_window, i), "%d", value);
+	sprintf(icons_get_indirected_text_addr(optimize_window, i), "%d", value);
 	wimp_set_icon_state(optimize_window, i, 0, 0);
 }
 
@@ -795,14 +795,14 @@ static void optimize_update_threshold_icon(wimp_i i, int dir)
 {
 	int			value = -1;
 
-	value = (int) 10.0 * atof(indirected_icon_text(optimize_window, i));
+	value = (int) 10.0 * atof(icons_get_indirected_text_addr(optimize_window, i));
 
 	if (dir > 0 && value < 999)
 		value += 1;
 	else if (dir < 0 && value > 1)
 		value -= 1;
 
-	sprintf(indirected_icon_text(optimize_window, i), "%.1f", (double) value / 10.0);
+	sprintf(icons_get_indirected_text_addr(optimize_window, i), "%.1f", (double) value / 10.0);
 	wimp_set_icon_state(optimize_window, i, 0, 0);
 }
 
@@ -861,7 +861,7 @@ static void optimize_update_depth_icon(wimp_i i, int dir)
 		break;
 	}
 
-	optimize_depth_text(indirected_icon_text(optimize_window, i), value);
+	optimize_depth_text(icons_get_indirected_text_addr(optimize_window, i), value);
 	wimp_set_icon_state(optimize_window, i, 0, 0);
 }
 

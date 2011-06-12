@@ -119,7 +119,7 @@ void version_fill_field(wimp_w window, wimp_i icon, version_params *params)
 	char		token[20];
 
 	snprintf(token, sizeof(token), "Version%d", params->standard_version);
-	msgs_lookup(token, indirected_icon_text(window, icon), 20);
+	msgs_lookup(token, icons_get_indirected_text_addr(window, icon), 20);
 	wimp_set_icon_state(window, icon, 0, 0);
 }
 

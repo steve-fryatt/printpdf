@@ -261,9 +261,9 @@ void convert_initialise(void)
 
 	/* Initialise the options. */
 
-	strcpy(indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_NAME), config_str_read("FileName"));
-	strcpy(indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), config_str_read("PDFMarkUserFile"));
-	set_icon_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS, config_opt_read("PreProcess"));
+	strcpy(icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME), config_str_read("FileName"));
+	strcpy(icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), config_str_read("PDFMarkUserFile"));
+	icons_set_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS, config_opt_read("PreProcess"));
 
 	encrypt_initialise_settings(&encryption);
 	optimize_initialise_settings(&optimization);
@@ -479,9 +479,9 @@ static void convert_open_save_dialogue(void)
 	/* Set up and open the conversion window. */
 
 	if (config_opt_read ("ResetParams")) {
-		strcpy(indirected_icon_text (convert_savepdf_window, SAVE_PDF_ICON_NAME), config_str_read ("FileName"));
-		strcpy(indirected_icon_text (convert_savepdf_window, SAVE_PDF_ICON_USERFILE), config_str_read ("PDFMarkUserFile"));
-		set_icon_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS, config_opt_read ("PreProcess"));
+		strcpy(icons_get_indirected_text_addr (convert_savepdf_window, SAVE_PDF_ICON_NAME), config_str_read ("FileName"));
+		strcpy(icons_get_indirected_text_addr (convert_savepdf_window, SAVE_PDF_ICON_USERFILE), config_str_read ("PDFMarkUserFile"));
+		icons_set_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS, config_opt_read ("PreProcess"));
 		encrypt_initialise_settings(&encryption);
 		optimize_initialise_settings(&optimization);
 		version_initialise_settings(&version);
@@ -498,7 +498,7 @@ static void convert_open_save_dialogue(void)
 	wimp_get_pointer_info(&pointer);
 
 	open_window_centred_at_pointer(convert_savepdf_window, &pointer);
-	put_caret_at_end(convert_savepdf_window, SAVE_PDF_ICON_NAME);
+	icons_put_caret_at_end(convert_savepdf_window, SAVE_PDF_ICON_NAME);
 }
 
 
@@ -518,12 +518,12 @@ void convert_save_dialogue_end(char *output_file)
 	terminate_ctrl_str(output_file);
 
 	strcpy(params.output_filename, output_file);
-	strcpy(indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_NAME), output_file);
+	strcpy(icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME), output_file);
 
 	/* Read and store the options from the window. */
 
-	params.preprocess_in_ps2ps = read_icon_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS);
-	ctrl_strcpy(params.pdfmark_userfile, indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_USERFILE));
+	params.preprocess_in_ps2ps = icons_get_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS);
+	ctrl_strcpy(params.pdfmark_userfile, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE));
 
 	/* Launch the conversion process. */
 
@@ -550,7 +550,7 @@ static void convert_save_dialogue_queue(void)
 
 	/* Sort out the filenames. */
 
-	ctrl_strcpy(filename, indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_NAME));
+	ctrl_strcpy(filename, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME));
 	leafname = find_leafname(filename);
 
 	list = queue;
@@ -606,17 +606,17 @@ static osbool convert_handle_save_icon_drop(wimp_message *message)
 			find_pathname(path);
 
 			if (strcmp_no_case(extension, "pdf") != 0) {
-				snprintf(indirected_icon_text (convert_savepdf_window, SAVE_PDF_ICON_NAME), 256, "%s.%s/pdf", path, leaf);
+				snprintf(icons_get_indirected_text_addr (convert_savepdf_window, SAVE_PDF_ICON_NAME), 256, "%s.%s/pdf", path, leaf);
 
-				replace_caret_in_window (dataload->w);
+				icons_replace_caret_in_window (dataload->w);
 				wimp_set_icon_state (dataload->w, dataload->i, 0, 0);
 			}
 			break;
 
 		case SAVE_PDF_ICON_USERFILE:
 			if (dataload->file_type == 0xfff) {
-				strcpy(indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), dataload->file_name);
-				replace_caret_in_window(dataload->w);
+				strcpy(icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), dataload->file_name);
+				icons_replace_caret_in_window(dataload->w);
 				wimp_set_icon_state(dataload->w, dataload->i, 0, 0);
 			}
 			break;
@@ -922,7 +922,7 @@ static void convert_save_click_handler(wimp_pointer *pointer)
 	case SAVE_PDF_ICON_FILE:
 		if (pointer->buttons == wimp_DRAG_SELECT)
 			start_save_window_drag(DRAG_SAVE_PDF, convert_savepdf_window, SAVE_PDF_ICON_FILE,
-					indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_NAME));
+					icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME));
 		break;
 
 	case SAVE_PDF_ICON_OK:
@@ -1041,7 +1041,7 @@ static osbool convert_immediate_window_save(void)
 {
 	char			*filename;
 
-	filename = indirected_icon_text(convert_savepdf_window, SAVE_PDF_ICON_NAME);
+	filename = icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME);
 
 	/* Test if the filename is valid. */
 

@@ -216,10 +216,10 @@ static osbool pdfmark_keypress_handler(wimp_key *key)
 
 void pdfmark_open_dialogue(pdfmark_params *params, wimp_pointer *pointer)
 {
-	strcpy(indirected_icon_text(pdfmark_window, PDFMARK_ICON_TITLE), params->title);
-	strcpy(indirected_icon_text(pdfmark_window, PDFMARK_ICON_AUTHOR), params->author);
-	strcpy(indirected_icon_text(pdfmark_window, PDFMARK_ICON_SUBJECT), params->subject);
-	strcpy(indirected_icon_text(pdfmark_window, PDFMARK_ICON_KEYWORDS), params->keywords);
+	strcpy(icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_TITLE), params->title);
+	strcpy(icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_AUTHOR), params->author);
+	strcpy(icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_SUBJECT), params->subject);
+	strcpy(icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_KEYWORDS), params->keywords);
 
 	pdfmark_shade_dialogue();
 
@@ -236,10 +236,10 @@ void pdfmark_open_dialogue(pdfmark_params *params, wimp_pointer *pointer)
 
 void pdfmark_process_dialogue(pdfmark_params *params)
 {
-	strcpy(params->title, indirected_icon_text(pdfmark_window, PDFMARK_ICON_TITLE));
-	strcpy(params->author, indirected_icon_text(pdfmark_window, PDFMARK_ICON_AUTHOR));
-	strcpy(params->subject, indirected_icon_text(pdfmark_window, PDFMARK_ICON_SUBJECT));
-	strcpy(params->keywords, indirected_icon_text(pdfmark_window, PDFMARK_ICON_KEYWORDS));
+	strcpy(params->title, icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_TITLE));
+	strcpy(params->author, icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_AUTHOR));
+	strcpy(params->subject, icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_SUBJECT));
+	strcpy(params->keywords, icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_KEYWORDS));
 
 	wimp_create_menu((wimp_menu *) -1, 0, 0);
 }
@@ -252,7 +252,7 @@ void pdfmark_process_dialogue(pdfmark_params *params)
 
 static void pdfmark_shade_dialogue(void)
 {
-	replace_caret_in_window(pdfmark_window);
+	icons_replace_caret_in_window(pdfmark_window);
 }
 
 
@@ -269,9 +269,9 @@ void pdfmark_fill_field(wimp_w window, wimp_i icon, pdfmark_params *params)
 {
 	if (pdfmark_data_available(params))
 		/* \TODO -- Here we should look for Info and/or Bookmarks and use Info, BMark or InfoBM accordingly. */
-		msgs_lookup("Info", indirected_icon_text(window, icon), 20);
+		msgs_lookup("Info", icons_get_indirected_text_addr(window, icon), 20);
 	else
-		msgs_lookup("None", indirected_icon_text(window, icon), 20);
+		msgs_lookup("None", icons_get_indirected_text_addr(window, icon), 20);
 
 	wimp_set_icon_state(window, icon, 0, 0);
 }

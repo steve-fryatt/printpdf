@@ -228,19 +228,19 @@ void encrypt_open_dialogue(encrypt_params *params, osbool extended_opts, wimp_po
 
 	encrypt_win = (extended_opts) ? encrypt_window3 : encrypt_window2;
 
-	strcpy(indirected_icon_text(encrypt_win, ENCRYPT_ICON_OWNER_PW), params->owner_password);
-	strcpy(indirected_icon_text(encrypt_win, ENCRYPT_ICON_ACCESS_PW), params->access_password);
+	strcpy(icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_OWNER_PW), params->owner_password);
+	strcpy(icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_ACCESS_PW), params->access_password);
 
-	set_icon_selected(encrypt_win, ENCRYPT_ICON_PRINT, params->allow_print);
-	set_icon_selected(encrypt_win, ENCRYPT_ICON_EXTRACT, params->allow_extraction);
-	set_icon_selected(encrypt_win, ENCRYPT_ICON_FORMS, params->allow_forms);
-	set_icon_selected(encrypt_win, ENCRYPT_ICON_MODS, params->allow_modifications);
+	icons_set_selected(encrypt_win, ENCRYPT_ICON_PRINT, params->allow_print);
+	icons_set_selected(encrypt_win, ENCRYPT_ICON_EXTRACT, params->allow_extraction);
+	icons_set_selected(encrypt_win, ENCRYPT_ICON_FORMS, params->allow_forms);
+	icons_set_selected(encrypt_win, ENCRYPT_ICON_MODS, params->allow_modifications);
 
 	if (extended_opts) {
-		set_icon_selected(encrypt_win, ENCRYPT_ICON_FULL_PRINT, params->allow_full_print);
-		set_icon_selected(encrypt_win, ENCRYPT_ICON_FULL_EXTRACT, params->allow_full_extraction);
-		set_icon_selected(encrypt_win, ENCRYPT_ICON_ANNOTATE, params->allow_annotation);
-		set_icon_selected(encrypt_win, ENCRYPT_ICON_ASSEMBLY, params->allow_assembly);
+		icons_set_selected(encrypt_win, ENCRYPT_ICON_FULL_PRINT, params->allow_full_print);
+		icons_set_selected(encrypt_win, ENCRYPT_ICON_FULL_EXTRACT, params->allow_full_extraction);
+		icons_set_selected(encrypt_win, ENCRYPT_ICON_ANNOTATE, params->allow_annotation);
+		icons_set_selected(encrypt_win, ENCRYPT_ICON_ASSEMBLY, params->allow_assembly);
 	}
 
 	encrypt_shade_dialogue(encrypt_win);
@@ -270,19 +270,19 @@ void encrypt_process_dialogue(encrypt_params *params)
 		extended_opts = TRUE;
 	}
 
-	strcpy(params->owner_password, indirected_icon_text(encrypt_win, ENCRYPT_ICON_OWNER_PW));
-	strcpy(params->access_password, indirected_icon_text(encrypt_win, ENCRYPT_ICON_ACCESS_PW));
+	strcpy(params->owner_password, icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_OWNER_PW));
+	strcpy(params->access_password, icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_ACCESS_PW));
 
-	params->allow_print = read_icon_selected(encrypt_win, ENCRYPT_ICON_PRINT);
-	params->allow_extraction = read_icon_selected(encrypt_win, ENCRYPT_ICON_EXTRACT);
-	params->allow_forms = read_icon_selected(encrypt_win, ENCRYPT_ICON_FORMS);
-	params->allow_modifications = read_icon_selected(encrypt_win, ENCRYPT_ICON_MODS);
+	params->allow_print = icons_get_selected(encrypt_win, ENCRYPT_ICON_PRINT);
+	params->allow_extraction = icons_get_selected(encrypt_win, ENCRYPT_ICON_EXTRACT);
+	params->allow_forms = icons_get_selected(encrypt_win, ENCRYPT_ICON_FORMS);
+	params->allow_modifications = icons_get_selected(encrypt_win, ENCRYPT_ICON_MODS);
 
 	if (extended_opts) {
-		params->allow_full_print = read_icon_selected(encrypt_win, ENCRYPT_ICON_FULL_PRINT);
-		params->allow_full_extraction = read_icon_selected(encrypt_win, ENCRYPT_ICON_FULL_EXTRACT);
-		params->allow_annotation = read_icon_selected(encrypt_win, ENCRYPT_ICON_ANNOTATE);
-		params->allow_assembly = read_icon_selected(encrypt_win, ENCRYPT_ICON_ASSEMBLY);
+		params->allow_full_print = icons_get_selected(encrypt_win, ENCRYPT_ICON_FULL_PRINT);
+		params->allow_full_extraction = icons_get_selected(encrypt_win, ENCRYPT_ICON_FULL_EXTRACT);
+		params->allow_annotation = icons_get_selected(encrypt_win, ENCRYPT_ICON_ANNOTATE);
+		params->allow_assembly = icons_get_selected(encrypt_win, ENCRYPT_ICON_ASSEMBLY);
 	}
 
 	wimp_create_menu((wimp_menu *) -1, 0, 0);
@@ -308,14 +308,14 @@ static void encrypt_shade_dialogue(wimp_w window)
 	if (window != NULL) {
 		encrypt_win = window;
 
-		shaded = (strlen(indirected_icon_text(encrypt_win, ENCRYPT_ICON_OWNER_PW)) == 0);
+		shaded = (strlen(icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_OWNER_PW)) == 0);
 		max_icon = (encrypt_win == encrypt_window3) ? ENCRYPT_ICON_ASSEMBLY : ENCRYPT_ICON_FORMS;
 
 		changed = TRUE;
 	} else {
 		if (window_is_open(encrypt_window2)) {
 			encrypt_win = encrypt_window2;
-			new_state = (strlen(indirected_icon_text(encrypt_win, ENCRYPT_ICON_OWNER_PW)) == 0);
+			new_state = (strlen(icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_OWNER_PW)) == 0);
 			max_icon = ENCRYPT_ICON_SHADE_MAX2;
 
 			if (new_state != shaded) {
@@ -324,7 +324,7 @@ static void encrypt_shade_dialogue(wimp_w window)
 			}
 		} else if (window_is_open(encrypt_window3)) {
 			encrypt_win = encrypt_window3;
-			new_state = (strlen(indirected_icon_text(encrypt_win, ENCRYPT_ICON_OWNER_PW)) == 0);
+			new_state = (strlen(icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_OWNER_PW)) == 0);
 			max_icon = ENCRYPT_ICON_SHADE_MAX3;
 
 			if (new_state != shaded) {
@@ -336,7 +336,7 @@ static void encrypt_shade_dialogue(wimp_w window)
 
 	if (changed) {
 		for (icon = ENCRYPT_ICON_SHADE_BASE; icon <= max_icon; icon++)
-			set_icon_shaded(encrypt_win, icon, shaded);
+			icons_set_shaded(encrypt_win, icon, shaded);
 	}
 }
 
@@ -359,7 +359,7 @@ void encrypt_fill_field(wimp_w window, wimp_i icon, encrypt_params *params)
 	else
 		strcpy(token, "Encrypt1");
 
-	msgs_lookup(token, indirected_icon_text(window, icon), 20);
+	msgs_lookup(token, icons_get_indirected_text_addr(window, icon), 20);
 	wimp_set_icon_state(window, icon, 0, 0);
 }
 
