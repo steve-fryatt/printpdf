@@ -158,7 +158,7 @@ static void main_initialise(void)
 	hourglass_on();
 
 	strcpy(resources, "<PrintPDF$Dir>.Resources");
-	find_resource_path(resources, sizeof (resources));
+	resources_find_path(resources, sizeof(resources));
 
 	/* Load the messages file. */
 
@@ -261,7 +261,7 @@ static void main_initialise(void)
 
 	/* Load the window templates. */
 
-	sprites = load_user_sprite_area("<PrintPDF$Dir>.Sprites");
+	sprites = resources_load_user_sprite_area("<PrintPDF$Dir>.Sprites");
 
 	main_wimp_sprites = sprites;
 
