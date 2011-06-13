@@ -191,7 +191,8 @@ static char *ihelp_get_text(char *buffer, wimp_w window, wimp_i icon, os_coord p
 	char		help_text[IHELP_LENGTH], token[128], icon_name[IHELP_INAME_LEN];
 	ihelp_window	*win_data;
 	wimp_selection	menu_selection;
-	int		found, i;
+	int		i;
+	osbool		found;
 
 
 	/* Set the buffer to a null string, to return no text if a result isn't found. */
@@ -202,13 +203,13 @@ static char *ihelp_get_text(char *buffer, wimp_w window, wimp_i icon, os_coord p
 	if (window == wimp_ICON_BAR) {
 		/* Special case, if the window is the iconbar. */
 
-		if (msgs_lookup_result("Help.IconBar", help_text, IHELP_LENGTH) == 0)
+		if (msgs_lookup_result("Help.IconBar", help_text, IHELP_LENGTH))
 			strcpy(buffer, help_text);
 
 	} else if ((win_data = ihelp_find_window(window)) != NULL) {
 		/* Otherwise, if the window is one of the windows registered for interactive help. */
 
-		found = 0;
+		found = FALSE;
 		*icon_name = '\0';
 
 		/* If the window supplied a decoding function, call that to get an 'icon name'. */
@@ -227,14 +228,14 @@ static char *ihelp_get_text(char *buffer, wimp_w window, wimp_i icon, os_coord p
 
 		if (*icon_name != '\0') {
 			snprintf(token, sizeof(token), "Help.%s.%s", win_data->name, icon_name);
-			found = (msgs_lookup_result(token, help_text, IHELP_LENGTH) == 0);
+			found = msgs_lookup_result(token, help_text, IHELP_LENGTH);
 		}
 
 		/* If the icon did not have a name, or it is the window background, look up a token for the window. */
 
 		if (!found) {
 			snprintf(token, sizeof(token), "Help.%s", win_data->name);
-			found = (msgs_lookup_result(token, help_text, IHELP_LENGTH) == 0);
+			found = msgs_lookup_result(token, help_text, IHELP_LENGTH);
 		}
 
 		/* If a message was found, return it. */
@@ -256,7 +257,7 @@ static char *ihelp_get_text(char *buffer, wimp_w window, wimp_i icon, os_coord p
 				strcat(token, icon_name);
 			}
 
-			if (msgs_lookup_result(token, help_text, IHELP_LENGTH) == 0)
+			if (msgs_lookup_result(token, help_text, IHELP_LENGTH))
 				strcpy (buffer, help_text);
 		}
 	}

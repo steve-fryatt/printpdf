@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 	main_poll_loop();
 
 	terminate_bookmarks();
-	msgs_close_file();
+	msgs_terminate();
 	wimp_close_down(main_task_handle);
 	convert_remove_all_remaining_conversions();
 
@@ -163,7 +163,7 @@ static void main_initialise(void)
 	/* Load the messages file. */
 
 	snprintf(res_temp, sizeof(res_temp), "%s.Messages", resources);
-	msgs_init(res_temp);
+	msgs_initialise(res_temp);
 
 	/* Initialise the error message system. */
 
