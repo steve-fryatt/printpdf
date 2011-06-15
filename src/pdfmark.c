@@ -223,7 +223,7 @@ void pdfmark_open_dialogue(pdfmark_params *params, wimp_pointer *pointer)
 
 	pdfmark_shade_dialogue();
 
-	open_transient_window_centred_at_pointer(pdfmark_window, pointer);
+	windows_open_transient_centred_at_pointer(pdfmark_window, pointer);
 }
 
 

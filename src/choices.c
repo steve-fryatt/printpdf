@@ -102,7 +102,7 @@ void choices_open_window(wimp_pointer *pointer)
 {
 	choices_set_window();
 
-	open_window_centred_at_pointer(choices_window, pointer);
+	windows_open_centred_at_pointer(choices_window, pointer);
 
 	icons_put_caret_at_end(choices_window, CHOICE_ICON_DEFFILE);
 }
@@ -399,6 +399,6 @@ static void choices_process_optimize_dialogue(void)
 
 osbool choices_window_is_open(void)
 {
-	return window_is_open(choices_window);
+	return windows_get_open(choices_window);
 }
 

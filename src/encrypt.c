@@ -262,7 +262,7 @@ void encrypt_process_dialogue(encrypt_params *params)
 	wimp_w				encrypt_win;
 
 
-	if (window_is_open(encrypt_window2)) {
+	if (windows_get_open(encrypt_window2)) {
 		encrypt_win = encrypt_window2;
 		extended_opts = FALSE;
 	} else {
@@ -313,7 +313,7 @@ static void encrypt_shade_dialogue(wimp_w window)
 
 		changed = TRUE;
 	} else {
-		if (window_is_open(encrypt_window2)) {
+		if (windows_get_open(encrypt_window2)) {
 			encrypt_win = encrypt_window2;
 			new_state = (strlen(icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_OWNER_PW)) == 0);
 			max_icon = ENCRYPT_ICON_SHADE_MAX2;
@@ -322,7 +322,7 @@ static void encrypt_shade_dialogue(wimp_w window)
 				shaded = new_state;
 				changed = TRUE;
 			}
-		} else if (window_is_open(encrypt_window3)) {
+		} else if (windows_get_open(encrypt_window3)) {
 			encrypt_win = encrypt_window3;
 			new_state = (strlen(icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_OWNER_PW)) == 0);
 			max_icon = ENCRYPT_ICON_SHADE_MAX3;

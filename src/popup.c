@@ -102,5 +102,5 @@ void popup_open(int open_time)
 	popup_is_open = TRUE;
 	popup_close_time = os_read_monotonic_time() + open_time;
 
-	open_window_centred_on_screen(popup_window);
+	windows_open_centred_on_screen(popup_window);
 }

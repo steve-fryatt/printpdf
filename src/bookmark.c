@@ -795,7 +795,7 @@ void open_bookmark_window(bookmark_block *bm)
 
 		bookmark_pane_def->sprite_area = main_wimp_sprites;
 
-		place_window_as_toolbar(bookmark_window_def,
+		windows_place_as_toolbar(bookmark_window_def,
 				bookmark_pane_def,
 				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
 
@@ -849,8 +849,8 @@ void open_bookmark_window(bookmark_block *bm)
 		/* Open the window and toolbar. */
 
 		set_bookmark_window_columns(bm);
-		open_window(bm->window);
-		open_window_nested_as_toolbar(bm->toolbar, bm->window,
+		windows_open(bm->window);
+		windows_open_nested_as_toolbar(bm->toolbar, bm->window,
 				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
 
 		/* Place the caret. */

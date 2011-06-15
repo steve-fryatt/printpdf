@@ -75,7 +75,7 @@ wimp_window *templates_load_window(char *name)
 {
 	wimp_window	*definition;
 
-	definition = load_window_template(name);
+	definition = windows_load_template(name);
 
 	if (definition == NULL)
 		wimp_msgtrans_fatal_report("BadTemplate");
@@ -96,7 +96,7 @@ wimp_w templates_create_window(char *name)
 	wimp_window	*definition;
 	wimp_w		w = NULL;
 
-	definition = load_window_template(name);
+	definition = windows_load_template(name);
 
 	if (definition != NULL) {
 		w = wimp_create_window(definition);

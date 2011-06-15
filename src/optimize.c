@@ -506,7 +506,7 @@ static void optimize_open_dialogue(optimize_params *params, wimp_pointer *pointe
 
 	optimize_shade_dialogue(NULL);
 
-	open_transient_window_centred_at_pointer(optimize_window, pointer);
+	windows_open_transient_centred_at_pointer(optimize_window, pointer);
 }
 
 

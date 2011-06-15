@@ -497,7 +497,7 @@ static void convert_open_save_dialogue(void)
 
 	wimp_get_pointer_info(&pointer);
 
-	open_window_centred_at_pointer(convert_savepdf_window, &pointer);
+	windows_open_centred_at_pointer(convert_savepdf_window, &pointer);
 	icons_put_caret_at_end(convert_savepdf_window, SAVE_PDF_ICON_NAME);
 }
 
@@ -568,10 +568,10 @@ static void convert_save_dialogue_queue(void)
 		list = list->next;
 	}
 
-	if (window_is_open (convert_queue_window)) {
+	if (windows_get_open (convert_queue_window)) {
 		convert_reorder_queue_from_index();
 		convert_rebuild_queue_index();
-		force_visible_window_redraw(convert_queue_pane);
+		windows_redraw(convert_queue_pane);
 	}
 
 	conversion_in_progress = FALSE;
@@ -1232,7 +1232,7 @@ osbool convert_pending_files_in_queue(void)
 
 void convert_open_queue_window(wimp_pointer *pointer)
 {
-	open_pane_dialogue_centred_at_pointer(convert_queue_window, convert_queue_pane, QUEUE_ICON_PANE, 40, pointer);
+	windows_open_with_pane_centred_at_pointer(convert_queue_window, convert_queue_pane, QUEUE_ICON_PANE, 40, pointer);
 	convert_rebuild_queue_index();
 }
 
@@ -1615,7 +1615,7 @@ static void convert_terminate_queue_entry_drag(wimp_dragged *drag, void *data)
 
 	queue_redraw_list[line] = moved;
 
-	force_visible_window_redraw (convert_queue_pane);
+	windows_redraw(convert_queue_pane);
 }
 
 
