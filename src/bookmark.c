@@ -758,7 +758,7 @@ void open_bookmark_window(bookmark_block *bm)
 
 		/* Set the X position of the window. */
 
-		screen = mode_width();
+		screen = general_mode_width();
 
 		visible = BOOKMARK_WINDOW_WIDTH;
 		if (visible > (screen - 2*BOOKMARK_WINDOW_STANDOFF - 4*BOOKMARK_WINDOW_OPENSTEP))
@@ -775,7 +775,7 @@ void open_bookmark_window(bookmark_block *bm)
 
 		/* Set the Y position of the window. */
 
-		screen = mode_height();
+		screen = general_mode_height();
 
 		bookmark_window_def->visible.y1 = screen - open_y_offset;
 		bookmark_window_def->visible.y0 = bookmark_window_def->visible.y1 +
@@ -1881,7 +1881,7 @@ void set_bookmark_window_extent(bookmark_block *bm)
 	if (error != NULL)
 		return;
 
-	screen_y = mode_height();
+	screen_y = general_mode_height();
 
 	new_y = LINE_BASE(bm->lines-1) - BOOKMARK_WINDOW_MARGIN;
 	if (new_y > -(screen_y - 2*sf_WINDOW_GADGET_HEIGHT))
