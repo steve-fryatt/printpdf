@@ -137,7 +137,7 @@ void start_save_window_drag(int type, wimp_w w, wimp_i i, char *filename)
 	else
 		wimp_drag_box (&drag);
 
-	drag_save_leafname = find_leafname(filename);
+	drag_save_leafname = string_find_leafname(filename);
 
 	drag_type = type;
 	event_set_drag_handler(terminate_user_drag, NULL, NULL);

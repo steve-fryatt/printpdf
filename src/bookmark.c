@@ -668,7 +668,7 @@ bookmark_block *find_bookmark_name(char *name)
 {
 	bookmark_block		*bm = bookmarks_list;
 
-	while ((bm != NULL) && strcmp_no_case(bm->name, name) != 0)
+	while ((bm != NULL) && string_nocase_strcmp(bm->name, name) != 0)
 		bm = bm->next;
 
 	return bm;
@@ -908,7 +908,7 @@ void close_bookmark_window(wimp_close *close)
 		if (path != NULL && buffer != NULL) {
 			strncpy(path, bm->filename, len+1);
 
-			snprintf(buffer, len+16, "%%Filer_OpenDir %s", find_pathname(path));
+			snprintf(buffer, len+16, "%%Filer_OpenDir %s", string_find_pathname(path));
 			xos_cli(buffer);
 		}
 
@@ -2850,12 +2850,12 @@ bookmark_block *load_bookmark_file(char *filename)
 
 	while ((result = config_read_token_pair(in, token, value, section)) != sf_READ_CONFIG_EOF) {
 		if (result == sf_READ_CONFIG_NEW_SECTION)
-			bookmarks = (strcmp_no_case(section, "Bookmarks") == 0);
+			bookmarks = (string_nocase_strcmp(section, "Bookmarks") == 0);
 
 		if (bookmarks) {
-			if (strcmp_no_case(token, "Name") == 0) {
+			if (string_nocase_strcmp(token, "Name") == 0) {
 				strncpy(block->name, value, MAX_BOOKMARK_BLOCK_NAME);
-			} else if (strcmp_no_case(token, "@") == 0) {
+			} else if (string_nocase_strcmp(token, "@") == 0) {
 				new = (bookmark_node *) malloc(sizeof(bookmark_node));
 
 				if (new != NULL) {
@@ -2878,23 +2878,23 @@ bookmark_block *load_bookmark_file(char *filename)
 					current = new;
 				}
 
-			} else if (strcmp_no_case(token, "Page") == 0) {
+			} else if (string_nocase_strcmp(token, "Page") == 0) {
 				if (current != NULL)
 					current->page = atoi(value);
-			} else if (strcmp_no_case(token, "YOffset") == 0) {
+			} else if (string_nocase_strcmp(token, "YOffset") == 0) {
 				if (current != NULL && version > 100) /* Version 1.00 files probably have buggy YOffets that we can't use anyway. */
 					current->yoffset = atoi(value);
-			} else if (strcmp_no_case(token, "Level") == 0) {
+			} else if (string_nocase_strcmp(token, "Level") == 0) {
 				if (current != NULL)
 					current->level = atoi(value);
-			} else if (strcmp_no_case(token, "Expanded") == 0) {
+			} else if (string_nocase_strcmp(token, "Expanded") == 0) {
 				if (current != NULL)
 					current->expanded = config_read_opt_string(value);
 			} else {
 				unknown_data = 1;
 			}
 		} else {
-			if (strcmp_no_case(token, "Format") == 0) {
+			if (string_nocase_strcmp(token, "Format") == 0) {
 				version = string_convert_version_number(value);
 				if (version != 100)
 					unknown_format = 1;

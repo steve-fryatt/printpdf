@@ -515,7 +515,7 @@ void convert_save_dialogue_end(char *output_file)
 
 	/* Sort out the filenames. */
 
-	terminate_ctrl_str(output_file);
+	string_ctrl_zero_terminate(output_file);
 
 	strcpy(params.output_filename, output_file);
 	strcpy(icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME), output_file);
@@ -523,7 +523,7 @@ void convert_save_dialogue_end(char *output_file)
 	/* Read and store the options from the window. */
 
 	params.preprocess_in_ps2ps = icons_get_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS);
-	ctrl_strcpy(params.pdfmark_userfile, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE));
+	string_ctrl_strcpy(params.pdfmark_userfile, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE));
 
 	/* Launch the conversion process. */
 
@@ -550,8 +550,8 @@ static void convert_save_dialogue_queue(void)
 
 	/* Sort out the filenames. */
 
-	ctrl_strcpy(filename, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME));
-	leafname = find_leafname(filename);
+	string_ctrl_strcpy(filename, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME));
+	leafname = string_find_leafname(filename);
 
 	list = queue;
 
@@ -601,11 +601,11 @@ static osbool convert_handle_save_icon_drop(wimp_message *message)
 		case SAVE_PDF_ICON_NAME:
 			strcpy(path, dataload->file_name);
 
-			extension = find_extension(path);
-			leaf = lose_extension(path);
-			find_pathname(path);
+			extension = string_find_extension(path);
+			leaf = string_strip_extension(path);
+			string_find_pathname(path);
 
-			if (strcmp_no_case(extension, "pdf") != 0) {
+			if (string_nocase_strcmp(extension, "pdf") != 0) {
 				snprintf(icons_get_indirected_text_addr (convert_savepdf_window, SAVE_PDF_ICON_NAME), 256, "%s.%s/pdf", path, leaf);
 
 				icons_replace_caret_in_window (dataload->w);

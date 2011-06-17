@@ -342,9 +342,9 @@ static osbool handle_choices_icon_drop(wimp_message *message)
 
 	strcpy(path, datasave->file_name);
 
-	extension = find_extension(path);
-	leaf = lose_extension(path);
-	find_pathname(path);
+	extension = string_find_extension(path);
+	leaf = string_strip_extension(path);
+	string_find_pathname(path);
 
 	sprintf(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_DEFFILE), "%s.%s/pdf", path, leaf);
 
