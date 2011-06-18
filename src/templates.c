@@ -50,7 +50,7 @@ void templates_open(char *file)
 
 	error = xwimp_open_template(file);
 	if (error != NULL)
-		wimp_program_report(error);
+		error_report_program(error);
 }
 
 
@@ -78,7 +78,7 @@ wimp_window *templates_load_window(char *name)
 	definition = windows_load_template(name);
 
 	if (definition == NULL)
-		wimp_msgtrans_fatal_report("BadTemplate");
+		error_msgs_report_fatal("BadTemplate");
 
 	return definition;
 }
@@ -102,7 +102,7 @@ wimp_w templates_create_window(char *name)
 		w = wimp_create_window(definition);
 		free(definition);
 	} else {
-		wimp_msgtrans_fatal_report("BadTemplate");
+		error_msgs_report_fatal("BadTemplate");
 	}
 
 	return w;

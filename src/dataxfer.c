@@ -211,7 +211,7 @@ static osbool message_data_save_reply(wimp_message *message)
 
 		error = xwimp_send_message(wimp_USER_MESSAGE, (wimp_message *) datasave, datasave->sender);
 		if (error != NULL)
-			wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
+			error_report_os_error(error, wimp_ERROR_BOX_CANCEL_ICON);
 	}
 
 	return TRUE;
@@ -272,7 +272,7 @@ static osbool message_data_load_reply(wimp_message *message)
 
 		error = xwimp_send_message(wimp_USER_MESSAGE, (wimp_message *) dataload, dataload->sender);
 		if (error != NULL)
-			wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
+			error_report_os_error(error, wimp_ERROR_BOX_CANCEL_ICON);
 
 		handled = TRUE;
 	}
@@ -301,7 +301,7 @@ static osbool start_data_open_load(wimp_message *message)
 
 		error = xwimp_send_message(wimp_USER_MESSAGE, (wimp_message *) xfer, xfer->sender);
 		if (error != NULL) {
-			wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
+			error_report_os_error(error, wimp_ERROR_BOX_CANCEL_ICON);
 			return FALSE;
 		}
 

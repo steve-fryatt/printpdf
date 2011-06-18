@@ -167,7 +167,7 @@ static osbool ihelp_send_reply_help_request(wimp_message *message)
 
 		error = xwimp_send_message(wimp_USER_MESSAGE, (wimp_message *) &help_reply, help_request->sender);
 		if (error != NULL)
-			wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
+			error_report_os_error(error, wimp_ERROR_BOX_CANCEL_ICON);
 	}
 
 	return TRUE;

@@ -224,7 +224,7 @@ void convert_initialise(void)
 	if (type == fileswitch_NOT_FOUND)
 		osfile_create_dir(queue_dir, 0);
 	else if (type != fileswitch_IS_DIR)
-		wimp_msgtrans_error_report("NoQueueDir");
+		error_msgs_report_error("NoQueueDir");
 
 	/* Create the windows and menus. */
 
@@ -674,7 +674,7 @@ static osbool convert_progress(conversion_params *params)
 				conversion_state = (convert_launch_ps2pdf(output_file, pdfmark_file)) ? CONVERSION_PS2PDF : CONVERSION_STOPPED;
 			}
 		} else {
-			wimp_msgtrans_error_report("FOpenFailed");
+			error_msgs_report_error("FOpenFailed");
 			conversion_state = CONVERSION_STOPPED;
 		}
 		break;
@@ -1046,7 +1046,7 @@ static osbool convert_immediate_window_save(void)
 	/* Test if the filename is valid. */
 
 	if (strchr (filename, '.') == NULL) {
-		wimp_msgtrans_info_report("DragSave");
+		error_msgs_report_info("DragSave");
 		return FALSE;
 	}
 
@@ -1218,7 +1218,7 @@ osbool convert_pending_files_in_queue(void)
 	int		button = -1;
 
 	if (queue != NULL)
-		button = wimp_msgtrans_question_report("PendingJobs", "PendingJobsB");
+		button = error_msgs_report_question("PendingJobs", "PendingJobsB");
 
 	return (button == 2) ? TRUE : FALSE;
 }

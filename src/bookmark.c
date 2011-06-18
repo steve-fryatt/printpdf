@@ -709,7 +709,7 @@ int bookmark_files_unsaved(void)
 		bm = bm->next;
 
 	if (bm != NULL)
-		button = wimp_msgtrans_question_report("FilesNotSaved", "FilesNotSavedB");
+		button = error_msgs_report_question("FilesNotSaved", "FilesNotSavedB");
 
 	return (button == 2);
 }
@@ -888,7 +888,7 @@ void close_bookmark_window(wimp_close *close)
 	/* If the file is unsaved, prompt the user. */
 
 	if (bm->unsaved && !(pointer.buttons == wimp_CLICK_ADJUST && shift) &&
-			(button = wimp_msgtrans_question_report("FileNotSaved", "FileNotSavedB")) >= 2) {
+			(button = error_msgs_report_question("FileNotSaved", "FileNotSavedB")) >= 2) {
 		if (button == 3) {
 			if (xwimp_get_pointer_info(&pointer) == NULL) {
 				prepare_bookmark_save_window(bm);
@@ -2677,7 +2677,7 @@ int start_direct_dialog_save(void)
 	filename = icons_get_indirected_text_addr(bookmark_window_saveas, SAVEAS_ICON_NAME);
 
 	if (strchr(filename, '.') == NULL)
-		wimp_msgtrans_info_report("DragSave");
+		error_msgs_report_info("DragSave");
 	else {
 		save_bookmark_file(bm, filename);
 		return 1;
@@ -2909,10 +2909,10 @@ bookmark_block *load_bookmark_file(char *filename)
 	fclose (in);
 
 	if (unknown_data)
-		wimp_msgtrans_info_report ("UnknownFileData");
+		error_msgs_report_info ("UnknownFileData");
 
 	if (unknown_format)
-		wimp_msgtrans_info_report ("UnknownFileFormat");
+		error_msgs_report_info ("UnknownFileFormat");
 
 	rebuild_bookmark_data(block);
 	open_bookmark_window(block);
