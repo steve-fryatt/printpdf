@@ -164,10 +164,10 @@ static void terminate_user_drag(wimp_dragged *drag, void *data)
 
 	switch (drag_type) {
 	case DRAG_SAVE_PDF:
-		send_start_data_save_function(pointer.w, pointer.i, pointer.pos, 0, drag_end_save_pdf, 0, PDF_FILE_TYPE, drag_save_leafname);
+		transfer_save_start_callback(pointer.w, pointer.i, pointer.pos, 0, drag_end_save_pdf, 0, PDF_FILE_TYPE, drag_save_leafname);
 		break;
 	case DRAG_SAVE_SAVEAS:
-		send_start_data_save_function(pointer.w, pointer.i, pointer.pos, 0, drag_end_save_saveas, 0, PRINTPDF_FILE_TYPE, drag_save_leafname);
+		transfer_save_start_callback(pointer.w, pointer.i, pointer.pos, 0, drag_end_save_saveas, 0, PRINTPDF_FILE_TYPE, drag_save_leafname);
 		break;
 	}
 }
@@ -227,7 +227,7 @@ static osbool message_data_save_reply(wimp_message *message)
 
 static osbool message_data_save_ack_reply(wimp_message *message)
 {
-	send_reply_data_save_ack(message);
+	transfer_save_reply_datasaveack(message);
 
 	return TRUE;
 }
