@@ -44,8 +44,7 @@ typedef struct ihelp_window {
 	void			(*pointer_location) (char *, wimp_w, wimp_i, os_coord, wimp_mouse_state);
 
 	struct ihelp_window	*next;
-}
-ihelp_window;
+} ihelp_window;
 
 
 
