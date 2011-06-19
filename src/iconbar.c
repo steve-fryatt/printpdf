@@ -129,7 +129,7 @@ static void iconbar_click_handler(wimp_pointer *pointer)
 
 	switch (pointer->buttons) {
 	case wimp_CLICK_SELECT:
-		create_new_bookmark_window();
+		bookmark_create_new_window();
 		break;
 
 	case wimp_CLICK_ADJUST:

@@ -269,7 +269,7 @@ void convert_initialise(void)
 	optimize_initialise_settings(&optimization);
 	version_initialise_settings(&version);
 	pdfmark_initialise_settings(&pdfmark);
-	initialise_bookmark_settings(&bookmark);
+	bookmark_initialise_settings(&bookmark);
 
 }
 
@@ -486,14 +486,14 @@ static void convert_open_save_dialogue(void)
 		optimize_initialise_settings(&optimization);
 		version_initialise_settings(&version);
 		pdfmark_initialise_settings(&pdfmark);
-		initialise_bookmark_settings(&bookmark);
+		bookmark_initialise_settings(&bookmark);
 	}
 
 	version_fill_field(convert_savepdf_window, SAVE_PDF_ICON_VERSION_FIELD, &version);
 	optimize_fill_field(convert_savepdf_window, SAVE_PDF_ICON_OPT_FIELD, &optimization);
 	encrypt_fill_field(convert_savepdf_window, SAVE_PDF_ICON_ENCRYPT_FIELD, &encryption);
 	pdfmark_fill_field(convert_savepdf_window, SAVE_PDF_ICON_PDFMARK_FIELD, &pdfmark);
-	fill_bookmark_field(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
+	bookmark_fill_field(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
 
 	wimp_get_pointer_info(&pointer);
 
@@ -594,8 +594,8 @@ static osbool convert_handle_save_icon_drop(wimp_message *message)
 		return FALSE;
 
 	if (dataload != NULL && dataload->w == convert_savepdf_window && dataload->file_type == PRINTPDF_FILE_TYPE) {
-		if (!load_and_select_bookmark_file(&bookmark, dataload->file_name))
-			fill_bookmark_field(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
+		if (bookmark_load_and_select_file(&bookmark, dataload->file_name))
+			bookmark_fill_field(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
 	} else if (dataload != NULL && dataload->w == convert_savepdf_window) {
 		switch (dataload->i) {
 		case SAVE_PDF_ICON_NAME:
@@ -802,7 +802,7 @@ static osbool convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file)
 
 			if (pdfmark_file != NULL) {
 				pdfmark_write_docinfo_file(pdfmark_file, &pdfmark);
-				write_pdfmark_out_file(pdfmark_file, &bookmark);
+				bookmarks_write_pdfmark_out_file(pdfmark_file, &bookmark);
 
 				fclose(pdfmark_file);
 			}
@@ -903,7 +903,7 @@ static void convert_cancel_conversion(void)
 void convert_validate_params(void)
 {
 	if (bookmark_validate_params(&bookmark))
-		fill_bookmark_field(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
+		bookmark_fill_field(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
 }
 
 
@@ -1001,7 +1001,7 @@ static void convert_save_menu_prepare_handler(wimp_w w, wimp_menu *menu, wimp_po
 	else if (menu == popup_optimize)
 		optimize_set_menu(&optimization, popup_optimize);
 	else if (menu == popup_bookmark) {
-		popup_bookmark = build_bookmark_menu(&bookmark);
+		popup_bookmark = bookmark_build_menu(&bookmark);
 		event_set_menu_block(popup_bookmark);
 	}
 }
@@ -1025,8 +1025,8 @@ static void convert_save_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_
 		optimize_process_menu(&optimization, popup_version, selection);
 		optimize_fill_field(w, SAVE_PDF_ICON_OPT_FIELD, &optimization);
 	} else if (menu == popup_bookmark) {
-		process_bookmark_menu(&bookmark, selection);
-		fill_bookmark_field(w, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
+		bookmark_process_menu(&bookmark, selection);
+		bookmark_fill_field(w, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
 	}
 }
 

@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 
 	main_poll_loop();
 
-	terminate_bookmarks();
+	bookmarks_terminate();
 	msgs_terminate();
 	wimp_close_down(main_task_handle);
 	convert_remove_all_remaining_conversions();
@@ -280,7 +280,7 @@ static void main_initialise(void)
 	pdfmark_initialise();
 	iconbar_initialise();
 	convert_initialise();
-	initialise_bookmarks();
+	bookmarks_initialise();
 	url_initialise();
 
 	templates_close();
@@ -304,7 +304,7 @@ static void main_parse_command_line(int argc, char *argv[])
 	if (argc > 1) {
 		for (i=1; i<argc; i++) {
 			if (strcmp (argv[i], "-file") == 0 && i+1 < argc)
-				load_bookmark_file(argv[i+1]);
+				bookmarks_load_file(argv[i+1]);
 		}
 	}
 }

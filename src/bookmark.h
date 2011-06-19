@@ -1,10 +1,10 @@
 /* PrintPDF - bookmark.h
  *
- * (c) Stephen Fryatt, 2010
+ * (c) Stephen Fryatt, 2010-2011
  */
 
-#ifndef _PRINTPDF_BOOKMARK
-#define _PRINTPDF_BOOKARK
+#ifndef PRINTPDF_BOOKMARK
+#define PRINTPDF_BOOKARK
 
 #include <stdio.h>
 
@@ -99,94 +99,150 @@
  * Data structures
  * ****************************************************************************/
 
-typedef struct bookmark_node {
-	char			title[MAX_BOOKMARK_LEN];
-	int			page;		/*< Destination page number.		*/
-	int			yoffset;	/*< Destination Y offset (millipt from top).	*/
-	int			level;
-	int			count;
-
-	osbool			expanded;
-
-	struct bookmark_node	*next;
-} bookmark_node;
-
-typedef struct bookmark_redraw {
-	bookmark_node		*node;
-	int			selected;
-} bookmark_redraw;
-
-typedef struct bookmark_block {
-	char			name[MAX_BOOKMARK_BLOCK_NAME];
-	char			filename[MAX_BOOKMARK_FILENAME];
-	char			window_title[MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10];
-	os_date_and_time	datestamp;
-
-	int			unsaved;
-
-	wimp_w			window;
-	wimp_w			toolbar;
-	wimp_i			edit_icon;
-
-	bookmark_redraw		*redraw;
-	int			lines;
-
-	int			column_pos[BOOKMARK_WINDOW_COLUMNS];
-	int			column_width[BOOKMARK_WINDOW_COLUMNS];
-	int			caret_row;
-	int			caret_col;
-
-	int			menu_row;
-	int			drag_row;
-
-	bookmark_node		*root;
-	int			nodes;
-
-	osbool			drag_complete;
-
-	struct bookmark_block	*next;
-} bookmark_block;
+typedef struct bookmark_block bookmark_block;
 
 typedef struct bookmark_params {
 	bookmark_block		*bookmarks;
 } bookmark_params;
 
 
-/* ****************************************************************************
- * Function prototypes
- * ****************************************************************************/
 
-/* Bookmarks System Initialisation and Termination */
+/**
+ * Initialise the bookmarks system.
+ */
 
-void initialise_bookmarks(void);
-void terminate_bookmarks(void);
+void bookmarks_initialise(void);
 
-/* PDF Creation Interface */
 
-void initialise_bookmark_settings(bookmark_params *params);
-void process_bookmark_menu(bookmark_params *params, wimp_selection *selection);
-wimp_menu *build_bookmark_menu(bookmark_params *params);
-int load_and_select_bookmark_file(bookmark_params *params, char *filename);
-void fill_bookmark_field (wimp_w window, wimp_i icon, bookmark_params *params);
+/**
+ * Terminate the bookmarks system, freeing up the resources used.
+ */
+
+void bookmarks_terminate(void);
+
+
+/**
+ * Initialise a bookmarks settings block with default parameters.
+ *
+ * \param  *params		The parameter block to initialise.
+ */
+
+void bookmark_initialise_settings(bookmark_params *params);
+
+
+/**
+ * Handle selection events from the bookmarks pop-up menu.
+ *
+ * \param  *params		The associated bookmarks parameters.
+ * \param  *selection		The Wimp Menu selection block.
+ */
+
+void bookmark_process_menu(bookmark_params *params, wimp_selection *selection);
+
+
+/**
+ * Build the bookmarks pop-up menu used for selecting a bookmark set to use, and
+ * register it with the global_menus structure.
+ *
+ * \param  *params		Bookamrks param block to use to set ticks.
+ * \return			The menu block, or NULL.
+ */
+
+wimp_menu *bookmark_build_menu(bookmark_params *params);
+
+
+/**
+ * Load a bookmark file and set it as the current conversion file.
+ *
+ * \param  *params		The bookmark parameters.
+ * \param  *filename		The file to load.
+ * \return			TRUE if the file loaded OK; else FALSE.
+ */
+
+osbool bookmark_load_and_select_file(bookmark_params *params, char *filename);
+
+
+/**
+ * Fill the Bookmark info field based on the supplied parameters.
+ *
+ * \param  window		The window the field is in.
+ * \param  icon			The icon for the field.
+ * \param  *params		The parameters to use.
+ */
+
+void bookmark_fill_field(wimp_w window, wimp_i icon, bookmark_params *params);
+
+/**
+ * Indicate if the supplied bookmark parameters have data available for a
+ * conversion.
+ *
+ * \param  *params		The parameter block to check.
+ * \return			1 if data is available; else 0.
+ */
+
 int bookmark_data_available(bookmark_params *params);
+
+
+/**
+ * Check the status of the supplied parameter block, and update it if anything
+ * is invalid.
+ *
+ * \param  *params		The parameter block to check.
+ * \return			1 if parameters were chnaged; else 0.
+ */
+
 int bookmark_validate_params(bookmark_params *params);
 
-/* Bookmark Block Management */
 
-int bookmark_files_unsaved(void);
+/**
+ * Check for any unsaved bookmark files and prompt the user if found.
+ *
+ * \return			TRUE if there are unsaved files to rescue; else FALSE.
+ */
 
-/* Bookmark Window Handling */
+osbool bookmark_files_unsaved(void);
 
-bookmark_block *create_new_bookmark_window(void);
 
-/* SaveAs Dialogue Handling */
+/**
+ * Create and open a new bookmark window.
+ *
+ * \return			The address of the new block; else NULL.
+ */
+
+bookmark_block *bookmark_create_new_window(void);
+
+
+/**
+ * Callback to terminate a dragging filesave.
+ * \TODO -- Move this into an internal message event handler.
+ *
+ * \param  *filename	The filename to save under.
+ * \return		0 if the save completes OK; else non-0.
+ */
 
 int drag_end_save_saveas(char *filename);
 
-/* Bookmark Data Processing */
 
-void save_bookmark_file(bookmark_block *bm, char *filename);
-bookmark_block *load_bookmark_file(char *filename);
-void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params);
+/**
+ * Load a bookmark file into memory, storing the data it contains in a new
+ * bookmark_block structure and opening a bookmark window.
+ *
+ * \param  *filename	The file to load.
+ * \return		The bookmark block containing the file; else NULL.
+ */
+
+bookmark_block *bookmarks_load_file(char *filename);
+
+
+/**
+ * Write document info to a PSDMark file, reflecting the data in the supplied
+ * PDFMark parameter block.
+ *
+ * \param *file			The file handle to write to.
+ * \param *params		The PRDMark parameter block to translate.
+ */
+
+void bookmarks_write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params);
 
 #endif
+

@@ -88,7 +88,7 @@ void pdfmark_fill_field(wimp_w window, wimp_i icon, pdfmark_params *params);
 
 
 /**
- * Write document info to a PSDMark file, reflecting the data in the supplied
+ * Write document info to a PDFMark file, reflecting the data in the supplied
  * PDFMark parameter block.
  *
  * \param *file			The file handle to write to.

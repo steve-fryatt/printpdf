@@ -261,7 +261,7 @@ static osbool message_data_load_reply(wimp_message *message)
 				convert_queue_ps_file(dataload->file_name);
 			break;
 		case PRINTPDF_FILE_TYPE:
-			load_bookmark_file(dataload->file_name);
+			bookmarks_load_file(dataload->file_name);
 			break;
 		}
 
@@ -305,7 +305,7 @@ static osbool start_data_open_load(wimp_message *message)
 			return FALSE;
 		}
 
-		load_bookmark_file(xfer->file_name);
+		bookmarks_load_file(xfer->file_name);
 		break;
 	}
 

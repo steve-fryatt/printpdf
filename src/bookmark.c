@@ -1,6 +1,6 @@
 /* PrintPDF - bookmark.c
  *
- * (C) Stephen Fryatt, 2010
+ * (C) Stephen Fryatt, 2010-2011
  */
 
 /* ANSI C header files */
@@ -46,6 +46,57 @@
 #include "templates.h"
 
 
+typedef struct bookmark_node {
+	char			title[MAX_BOOKMARK_LEN];
+	int			page;		/*< Destination page number.		*/
+	int			yoffset;	/*< Destination Y offset (millipt from top).	*/
+	int			level;
+	int			count;
+
+	osbool			expanded;
+
+	struct bookmark_node	*next;
+} bookmark_node;
+
+typedef struct bookmark_redraw {
+	bookmark_node		*node;
+	int			selected;
+} bookmark_redraw;
+
+/* Not a typedef, as that is done in the header file. */
+
+struct bookmark_block {
+	char			name[MAX_BOOKMARK_BLOCK_NAME];
+	char			filename[MAX_BOOKMARK_FILENAME];
+	char			window_title[MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10];
+	os_date_and_time	datestamp;
+
+	int			unsaved;
+
+	wimp_w			window;
+	wimp_w			toolbar;
+	wimp_i			edit_icon;
+
+	bookmark_redraw		*redraw;
+	int			lines;
+
+	int			column_pos[BOOKMARK_WINDOW_COLUMNS];
+	int			column_width[BOOKMARK_WINDOW_COLUMNS];
+	int			caret_row;
+	int			caret_col;
+
+	int			menu_row;
+	int			drag_row;
+
+	bookmark_node		*root;
+	int			nodes;
+
+	osbool			drag_complete;
+
+	struct bookmark_block	*next;
+};
+
+
 /* ****************************************************************************
  * Function prototypes
  * ****************************************************************************/
@@ -54,77 +105,78 @@
 
 /* Bookmark Block Management */
 
-bookmark_block	*create_bookmark_block(void);
-void		delete_bookmark_block(bookmark_block *bookmark);
-bookmark_node	*insert_bookmark_node(bookmark_block *bm, bookmark_node *before);
-void		delete_bookmark_node(bookmark_block *bm, bookmark_node *node);
-void		set_bookmark_unsaved_state(bookmark_block *bm, int unsaved);
+static bookmark_block	*bookmark_create_block(void);
+static void		bookmark_delete_block(bookmark_block *bookmark);
+static bookmark_node	*bookmark_insert_node(bookmark_block *bm, bookmark_node *before);
+static void		bookmark_delete_node(bookmark_block *bm, bookmark_node *node);
+static void		bookmark_set_unsaved_state(bookmark_block *bm, int unsaved);
 
-bookmark_block	*find_bookmark_window(wimp_w window);
-bookmark_block	*find_bookmark_toolbar(wimp_w window);
-bookmark_block	*find_bookmark_name(char *name);
-bookmark_block	*find_bookmark_block(bookmark_block *block);
+static bookmark_block	*bookmark_find_window(wimp_w window);
+static bookmark_block	*bookmark_find_toolbar(wimp_w window);
+static bookmark_block	*bookmark_find_name(char *name);
+static bookmark_block	*bookmark_find_block(bookmark_block *block);
 
 /* Bookmark Window Handling */
 
-void		open_bookmark_window(bookmark_block *bm);
-void		close_bookmark_window(wimp_close *close);
-void		decode_bookmark_window_help(char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons);
-void		redraw_bookmark_window(wimp_draw *redraw);
-void		bookmark_click_handler(wimp_pointer *pointer);
-osbool		bookmark_key_handler(wimp_key *key);
-void		bookmark_lose_caret_handler(wimp_caret *caret);
-void		bookmark_gain_caret_handler(wimp_caret *caret);
-void		bookmark_scroll_handler(wimp_scroll *scroll);
-void		bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *caret);
-void		bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *caret);
-int		bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direction);
-void		bookmark_delete_edit_row(bookmark_block *bm, bookmark_node *node);
-void		bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node, int action);
-void		bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *contract);
-void		bookmark_tree_node_expansion(bookmark_block *bm, osbool expand);
-int		bookmark_place_edit_icon(bookmark_block *bm, int row, int col);
-void		bookmark_remove_edit_icon(void);
-void		bookmark_resync_edit_with_file(void);
-void		update_bookmark_window_title(bookmark_block *bm);
-void		force_bookmark_window_redraw(bookmark_block *bm, int from, int to);
-void		set_bookmark_window_extent(bookmark_block *bm);
-void		set_bookmark_window_columns(bookmark_block *bm);
-void		calculate_bookmark_window_row_start(bookmark_block *bm, int row);
-int		calculate_bookmark_window_click_row(bookmark_block *bm, os_coord *pos, wimp_window_state *state);
-int		calculate_bookmark_window_click_column(bookmark_block *bm, os_coord *pos, wimp_window_state *state);
-void		bookmark_line_drag(bookmark_block *bm, int line);
-void		bookmark_terminate_line_drag(wimp_dragged *drag, void *data);
+static void		bookmark_open_window(bookmark_block *bm);
+static void		bookmark_close_window(wimp_close *close);
+static void		bookmark_window_decode_help(char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons);
+static void		bookmark_redraw_window(wimp_draw *redraw);
+static void		bookmark_click_handler(wimp_pointer *pointer);
+static osbool		bookmark_key_handler(wimp_key *key);
+static void		bookmark_lose_caret_handler(wimp_caret *caret);
+static void		bookmark_gain_caret_handler(wimp_caret *caret);
+static void		bookmark_scroll_handler(wimp_scroll *scroll);
+static void		bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *caret);
+static void		bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *caret);
+static int		bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direction);
+static void		bookmark_delete_edit_row(bookmark_block *bm, bookmark_node *node);
+static void		bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node, int action);
+static void		bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *contract);
+static void		bookmark_tree_node_expansion(bookmark_block *bm, osbool expand);
+static int		bookmark_place_edit_icon(bookmark_block *bm, int row, int col);
+static void		bookmark_remove_edit_icon(void);
+static void		bookmark_resync_edit_with_file(void);
+static void		bookmark_update_window_title(bookmark_block *bm);
+static void		bookmark_force_window_redraw(bookmark_block *bm, int from, int to);
+static void		bookmark_set_window_extent(bookmark_block *bm);
+static void		bookmark_set_window_columns(bookmark_block *bm);
+static void		bookmark_calculate_window_row_start(bookmark_block *bm, int row);
+static int		bookmark_calculate_window_click_row(bookmark_block *bm, os_coord *pos, wimp_window_state *state);
+static int		bookmark_calculate_window_click_column(bookmark_block *bm, os_coord *pos, wimp_window_state *state);
+static void		bookmark_line_drag(bookmark_block *bm, int line);
+static void		bookmark_terminate_line_drag(wimp_dragged *drag, void *data);
 
 
 /* Bookmark Toolbar Handling */
 
-void		bookmark_toolbar_click_handler(wimp_pointer *pointer);
-osbool		bookmark_toolbar_key_handler(wimp_key *key);
-void		bookmark_resync_toolbar_name_with_file(bookmark_block *bm);
+static void		bookmark_toolbar_click_handler(wimp_pointer *pointer);
+static osbool		bookmark_toolbar_key_handler(wimp_key *key);
+static void		bookmark_resync_toolbar_name_with_file(bookmark_block *bm);
 
 /* Bookmark Window Menu Handling */
 
-void		bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
-void		bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
-void		bookmark_menu_close(wimp_w w, wimp_menu *menu);
-void		bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning *warning);
+static void		bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
+static void		bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static void		bookmark_menu_close(wimp_w w, wimp_menu *menu);
+static void		bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning *warning);
 
 /* File Info Dialogue Handling */
 
-void prepare_file_info_window(bookmark_block *bm);
+static void		bookmark_prepare_file_info_window(bookmark_block *bm);
 
 /* SaveAs Dialogue Handling */
 
-void		prepare_bookmark_save_window(bookmark_block *bm);
-void		bookmark_save_as_click(wimp_pointer *pointer);
-osbool		bookmark_save_as_keypress(wimp_key *key);
-int		start_direct_dialog_save(void);
-void		start_direct_menu_save(bookmark_block *bm);
+static void		bookmark_prepare_save_window(bookmark_block *bm);
+static void		bookmark_save_as_click(wimp_pointer *pointer);
+static osbool		bookmark_save_as_keypress(wimp_key *key);
+static int		bookmark_start_direct_dialog_save(void);
+static void		bookmark_start_direct_menu_save(bookmark_block *bm);
 
 /* Bookmark Data Processing */
 
-void		rebuild_bookmark_data(bookmark_block *bm);
+static void		bookmarks_save_file(bookmark_block *bm, char *filename);
+static void		bookmark_rebuild_data(bookmark_block *bm);
 
 /* ****************************************************************************
  * Macros
@@ -172,7 +224,7 @@ static wimp_menu	*bookmark_menu_view = NULL;
  * Initialise the bookmarks system.
  */
 
-void initialise_bookmarks(void)
+void bookmarks_initialise(void)
 {
 	bookmark_menu = templates_get_menu(TEMPLATES_MENU_BOOKMARKS);
 	bookmark_menu_insert = templates_get_menu(TEMPLATES_MENU_BOOKMARKS_INSERT);
@@ -197,12 +249,12 @@ void initialise_bookmarks(void)
  * Terminate the bookmarks system, freeing up the resources used.
  */
 
-void terminate_bookmarks(void)
+void bookmarks_terminate(void)
 {
 	/* Work through the bookmarks list, deleting everything. */
 
 	while (bookmarks_list != NULL)
-		delete_bookmark_block(bookmarks_list);
+		bookmark_delete_block(bookmarks_list);
 }
 
 
@@ -216,7 +268,7 @@ void terminate_bookmarks(void)
  * \param  *params		The parameter block to initialise.
  */
 
-void initialise_bookmark_settings(bookmark_params *params)
+void bookmark_initialise_settings(bookmark_params *params)
 {
 	params->bookmarks = NULL;
 }
@@ -229,14 +281,14 @@ void initialise_bookmark_settings(bookmark_params *params)
  * \param  *selection		The Wimp Menu selection block.
  */
 
-void process_bookmark_menu(bookmark_params *params, wimp_selection *selection)
+void bookmark_process_menu(bookmark_params *params, wimp_selection *selection)
 {
 	bookmark_block		*bm;
 
-	params->bookmarks = find_bookmark_block(params->bookmarks);
+	params->bookmarks = bookmark_find_block(params->bookmarks);
 
 	if (selection->items[0] == 0) {
-		bm = create_new_bookmark_window();
+		bm = bookmark_create_new_window();
 		if (bm != NULL)
 			params->bookmarks = bm;
 	} else if (selection->items[0] > 0 && selection->items[0] < bookmarks_list_menu_size) {
@@ -253,12 +305,12 @@ void process_bookmark_menu(bookmark_params *params, wimp_selection *selection)
  * \return			The menu block, or NULL.
  */
 
-wimp_menu *build_bookmark_menu(bookmark_params *params)
+wimp_menu *bookmark_build_menu(bookmark_params *params)
 {
 	int			count, item, width;
 	bookmark_block		*bm;
 
-	params->bookmarks = find_bookmark_block(params->bookmarks);
+	params->bookmarks = bookmark_find_block(params->bookmarks);
 
 	/* Count up the entries; we need a menu length one greater, to allow
 	 * for the 'None' entry.
@@ -356,19 +408,19 @@ wimp_menu *build_bookmark_menu(bookmark_params *params)
  *
  * \param  *params		The bookmark parameters.
  * \param  *filename		The file to load.
- * \return			0 if the file loaded OK; else 1.
+ * \return			TRUE if the file loaded OK; else FALSE.
  */
 
-int load_and_select_bookmark_file(bookmark_params *params, char *filename)
+osbool bookmark_load_and_select_file(bookmark_params *params, char *filename)
 {
 	bookmark_block		*bm;
 
-	bm = load_bookmark_file(filename);
+	bm = bookmarks_load_file(filename);
 
 	if (bm != NULL)
 		params->bookmarks = bm;
 
-	return (bm == NULL);
+	return (bm == NULL) ? FALSE : TRUE;
 }
 
 
@@ -380,9 +432,9 @@ int load_and_select_bookmark_file(bookmark_params *params, char *filename)
  * \param  *params		The parameters to use.
  */
 
-void fill_bookmark_field(wimp_w window, wimp_i icon, bookmark_params *params)
+void bookmark_fill_field(wimp_w window, wimp_i icon, bookmark_params *params)
 {
-	params->bookmarks = find_bookmark_block(params->bookmarks);
+	params->bookmarks = bookmark_find_block(params->bookmarks);
 
 	if (params == NULL || params->bookmarks == NULL) {
 		msgs_lookup ("None", icons_get_indirected_text_addr (window, icon), MAX_BOOKMARK_FIELD_LEN);
@@ -406,10 +458,11 @@ void fill_bookmark_field(wimp_w window, wimp_i icon, bookmark_params *params)
 
 int bookmark_data_available(bookmark_params *params)
 {
-	params->bookmarks = find_bookmark_block(params->bookmarks);
+	params->bookmarks = bookmark_find_block(params->bookmarks);
 
 	return (params != NULL && params->bookmarks != NULL);
 }
+
 
 /**
  * Check the status of the supplied parameter block, and update it if anything
@@ -422,7 +475,7 @@ int bookmark_data_available(bookmark_params *params)
 int bookmark_validate_params(bookmark_params *params)
 {
 	if (params != NULL && params->bookmarks != NULL) {
-		params->bookmarks = find_bookmark_block(params->bookmarks);
+		params->bookmarks = bookmark_find_block(params->bookmarks);
 
 		if (params->bookmarks == NULL)
 			return 1;
@@ -442,7 +495,7 @@ int bookmark_validate_params(bookmark_params *params)
  * \return		Pointer to block; or NULL if failed.
  */
 
-bookmark_block *create_bookmark_block(void)
+static bookmark_block *bookmark_create_block(void)
 {
 	bookmark_block		*new;
 	char			name[MAX_BOOKMARK_BLOCK_NAME], number[10];
@@ -454,7 +507,7 @@ bookmark_block *create_bookmark_block(void)
 			snprintf(number, 10, "%d", untitled_number++);
 			msgs_param_lookup("UntBM", name, MAX_BOOKMARK_BLOCK_NAME,
 					number, NULL, NULL, NULL);
-		} while (find_bookmark_name(name) != NULL);
+		} while (bookmark_find_name(name) != NULL);
 		strncpy(new->name, name, MAX_BOOKMARK_BLOCK_NAME);
 		strncpy(new->filename, "", MAX_BOOKMARK_FILENAME);
 		strncpy(new->window_title, "", MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10);
@@ -472,7 +525,7 @@ bookmark_block *create_bookmark_block(void)
 		new->drag_row = -1;
 		new->drag_complete = FALSE;
 
-		update_bookmark_window_title(new);
+		bookmark_update_window_title(new);
 
 		new->next = bookmarks_list;
 		bookmarks_list = new;
@@ -489,7 +542,7 @@ bookmark_block *create_bookmark_block(void)
  * \param  *bookmark		The block to delete.
  */
 
-void delete_bookmark_block(bookmark_block *bookmark)
+static void bookmark_delete_block(bookmark_block *bookmark)
 {
 	bookmark_block		**bm, *f;
 	bookmark_node		*n, *nf;
@@ -533,7 +586,7 @@ void delete_bookmark_block(bookmark_block *bookmark)
  * \return			The inserted node; NULL indicates a failure.
  */
 
-bookmark_node *insert_bookmark_node(bookmark_block *bm, bookmark_node *before)
+static bookmark_node *bookmark_insert_node(bookmark_block *bm, bookmark_node *before)
 {
 	bookmark_node		**node, *new = NULL;
 
@@ -575,7 +628,7 @@ bookmark_node *insert_bookmark_node(bookmark_block *bm, bookmark_node *before)
  * \param  *node		The node to delete.
  */
 
-void delete_bookmark_node(bookmark_block *bm, bookmark_node *node)
+static void bookmark_delete_node(bookmark_block *bm, bookmark_node *node)
 {
 	bookmark_node		*parent = NULL;
 
@@ -612,11 +665,11 @@ void delete_bookmark_node(bookmark_block *bm, bookmark_node *node)
  * \param  unsaved		The unsaved status (1 = unsaved; 0 = saved).
  */
 
-void set_bookmark_unsaved_state(bookmark_block *bm, int unsaved)
+static void bookmark_set_unsaved_state(bookmark_block *bm, int unsaved)
 {
 	if (unsaved != bm->unsaved) {
 		bm->unsaved = unsaved;
-		update_bookmark_window_title(bm);
+		bookmark_update_window_title(bm);
 	}
 }
 
@@ -628,7 +681,7 @@ void set_bookmark_unsaved_state(bookmark_block *bm, int unsaved)
  * \return 			The block address, or NULL if it wasn't found.
  */
 
-bookmark_block *find_bookmark_window(wimp_w window)
+static bookmark_block *bookmark_find_window(wimp_w window)
 {
 	bookmark_block		*bm = bookmarks_list;
 
@@ -646,7 +699,7 @@ bookmark_block *find_bookmark_window(wimp_w window)
  * \return 			The block address, or NULL if it wasn't found.
  */
 
-bookmark_block *find_bookmark_toolbar(wimp_w window)
+static bookmark_block *bookmark_find_toolbar(wimp_w window)
 {
 	bookmark_block		*bm = bookmarks_list;
 
@@ -664,7 +717,7 @@ bookmark_block *find_bookmark_toolbar(wimp_w window)
  * \return 			The block address, or NULL if it wasn't found.
  */
 
-bookmark_block *find_bookmark_name(char *name)
+static bookmark_block *bookmark_find_name(char *name)
 {
 	bookmark_block		*bm = bookmarks_list;
 
@@ -683,7 +736,7 @@ bookmark_block *find_bookmark_name(char *name)
  * \return 			The block address, or NULL if it failed.
  */
 
-bookmark_block *find_bookmark_block(bookmark_block *block)
+static bookmark_block *bookmark_find_block(bookmark_block *block)
 {
 	bookmark_block		*bm = bookmarks_list;
 
@@ -697,10 +750,10 @@ bookmark_block *find_bookmark_block(bookmark_block *block)
 /**
  * Check for any unsaved bookmark files and prompt the user if found.
  *
- * \return			1 if there are unsaved files to rescue; else 0.
+ * \return			TRUE if there are unsaved files to rescue; else FALSE.
  */
 
-int bookmark_files_unsaved(void)
+osbool bookmark_files_unsaved(void)
 {
 	int			button = -1;
 	bookmark_block		*bm = bookmarks_list;
@@ -711,7 +764,7 @@ int bookmark_files_unsaved(void)
 	if (bm != NULL)
 		button = error_msgs_report_question("FilesNotSaved", "FilesNotSavedB");
 
-	return (button == 2);
+	return (button == 2) ? TRUE : FALSE;
 }
 
 /* ****************************************************************************
@@ -724,16 +777,16 @@ int bookmark_files_unsaved(void)
  * \return			The address of the new block; else NULL.
  */
 
-bookmark_block *create_new_bookmark_window(void)
+bookmark_block *bookmark_create_new_window(void)
 {
 	bookmark_block		*new;
 
-	new = create_bookmark_block();
+	new = bookmark_create_block();
 
 	if (new != NULL) {
-		insert_bookmark_node(new, NULL);
-		rebuild_bookmark_data(new);
-		open_bookmark_window(new);
+		bookmark_insert_node(new, NULL);
+		bookmark_rebuild_data(new);
+		bookmark_open_window(new);
 	}
 
 	return new;
@@ -745,7 +798,7 @@ bookmark_block *create_new_bookmark_window(void)
  * \param *bm		The block to open the window for.
  */
 
-void open_bookmark_window(bookmark_block *bm)
+static void bookmark_open_window(bookmark_block *bm)
 {
 	static int		open_x_offset = BOOKMARK_WINDOW_STANDOFF;
 	static int		open_y_offset = BOOKMARK_WINDOW_STANDOFF;
@@ -814,8 +867,8 @@ void open_bookmark_window(bookmark_block *bm)
 
 		/* Register the window's event handlers. */
 
-		event_add_window_close_event(bm->window, close_bookmark_window);
-		event_add_window_redraw_event(bm->window, redraw_bookmark_window);
+		event_add_window_close_event(bm->window, bookmark_close_window);
+		event_add_window_redraw_event(bm->window, bookmark_redraw_window);
 		event_add_window_mouse_event(bm->window, bookmark_click_handler);
 		event_add_window_key_event(bm->window, bookmark_key_handler);
 		event_add_window_scroll_event(bm->window, bookmark_scroll_handler);
@@ -838,7 +891,7 @@ void open_bookmark_window(bookmark_block *bm)
 
 		/* Register for interactive help. */
 
-		ihelp_add_window(bm->window, "Bookmark", decode_bookmark_window_help);
+		ihelp_add_window(bm->window, "Bookmark", bookmark_window_decode_help);
 		ihelp_add_window(bm->toolbar, "BookmarkTB", NULL);
 
 		/* Set up the toolbar. */
@@ -848,7 +901,7 @@ void open_bookmark_window(bookmark_block *bm)
 
 		/* Open the window and toolbar. */
 
-		set_bookmark_window_columns(bm);
+		bookmark_set_window_columns(bm);
 		windows_open(bm->window);
 		windows_open_nested_as_toolbar(bm->toolbar, bm->window,
 				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
@@ -867,14 +920,14 @@ void open_bookmark_window(bookmark_block *bm)
  * \param  *close		The Wimp close data block.
  */
 
-void close_bookmark_window(wimp_close *close)
+static void bookmark_close_window(wimp_close *close)
 {
 	bookmark_block		*bm;
 	int			button, shift, len;
 	char			*path, *buffer;
 	wimp_pointer		pointer;
 
-	bm = find_bookmark_window(close->w);
+	bm = bookmark_find_window(close->w);
 
 	if (bm == NULL)
 		return;
@@ -891,7 +944,7 @@ void close_bookmark_window(wimp_close *close)
 			(button = error_msgs_report_question("FileNotSaved", "FileNotSavedB")) >= 2) {
 		if (button == 3) {
 			if (xwimp_get_pointer_info(&pointer) == NULL) {
-				prepare_bookmark_save_window(bm);
+				bookmark_prepare_save_window(bm);
 				menus_create_standard_menu((wimp_menu *) bookmark_window_saveas, &pointer);
 			}
 		}
@@ -936,7 +989,7 @@ void close_bookmark_window(wimp_close *close)
 	if (bookmarks_edit == bm)
 		bookmarks_edit = NULL;
 
-	delete_bookmark_block(bm);
+	bookmark_delete_block(bm);
 
 }
 
@@ -951,7 +1004,7 @@ void close_bookmark_window(wimp_close *close)
  * \param  buttons			The mouse button state.
  */
 
-void decode_bookmark_window_help(char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons)
+static void bookmark_window_decode_help(char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons)
 {
 	int			col;
 	bookmark_block		*bm;
@@ -968,7 +1021,7 @@ void decode_bookmark_window_help(char *buffer, wimp_w w, wimp_i i, os_coord pos,
 	if (xwimp_get_window_state(&state) != NULL)
 		return;
 
-	col = calculate_bookmark_window_click_column(bm, &pos, &state);
+	col = bookmark_calculate_window_click_column(bm, &pos, &state);
 
 	if (col != -1)
 		snprintf(buffer, IHELP_INAME_LEN, "Col%d", col);
@@ -980,7 +1033,7 @@ void decode_bookmark_window_help(char *buffer, wimp_w w, wimp_i i, os_coord pos,
  * \param  *redraw		The Wimp redraw event block.
  */
 
-void redraw_bookmark_window(wimp_draw *redraw)
+static void bookmark_redraw_window(wimp_draw *redraw)
 {
 	int			ox, oy, top, bottom, y;
 	osbool			more;
@@ -1013,7 +1066,7 @@ void redraw_bookmark_window(wimp_draw *redraw)
 			bottom = bm->lines;
 
 		for (y = top; y < bottom; y++) {
-			calculate_bookmark_window_row_start(bm, y);
+			bookmark_calculate_window_row_start(bm, y);
 			node = bm->redraw[y].node;
 
 			/* Plot the menu highlight. */
@@ -1080,7 +1133,7 @@ void redraw_bookmark_window(wimp_draw *redraw)
  * \param  *pointer		The Wimp mouse click event data.
  */
 
-void bookmark_click_handler(wimp_pointer *pointer)
+static void bookmark_click_handler(wimp_pointer *pointer)
 {
 	int			x, y, row, col;
 	bookmark_block		*bm;
@@ -1097,8 +1150,8 @@ void bookmark_click_handler(wimp_pointer *pointer)
 	if (error != NULL)
 		return;
 
-	row = calculate_bookmark_window_click_row(bm, &(pointer->pos), &state);
-	col = calculate_bookmark_window_click_column(bm, &(pointer->pos), &state);
+	row = bookmark_calculate_window_click_row(bm, &(pointer->pos), &state);
+	col = bookmark_calculate_window_click_column(bm, &(pointer->pos), &state);
 
 	x = pointer->pos.x - state.visible.x0 + state.xscroll;
 	y = pointer->pos.y - state.visible.y1 + state.yscroll;
@@ -1111,9 +1164,9 @@ void bookmark_click_handler(wimp_pointer *pointer)
 			/* Handle expandion arrow clicks. */
 
 			node->expanded = !node->expanded;
-			rebuild_bookmark_data(bm);
-			force_bookmark_window_redraw(bm, row, -1);
-			set_bookmark_unsaved_state(bm, 1);
+			bookmark_rebuild_data(bm);
+			bookmark_force_window_redraw(bm, row, -1);
+			bookmark_set_unsaved_state(bm, 1);
 		} else if (col >= BOOKMARK_ICON_TITLE && pointer->buttons == wimp_CLICK_SELECT) {
 			if (bm->drag_complete) {
 				bm->drag_complete = FALSE;
@@ -1135,7 +1188,7 @@ void bookmark_click_handler(wimp_pointer *pointer)
  * \return			TRUE if the keypress was handled; else FALSE.
  */
 
-osbool bookmark_key_handler(wimp_key *key)
+static osbool bookmark_key_handler(wimp_key *key)
 {
 	bookmark_block		*bm;
 
@@ -1210,7 +1263,7 @@ osbool bookmark_key_handler(wimp_key *key)
  * \param  *caret		The associated wimp event block.
  */
 
-void bookmark_lose_caret_handler(wimp_caret *caret)
+static void bookmark_lose_caret_handler(wimp_caret *caret)
 {
 	wimp_caret		current;
 	bookmark_block		*bm;
@@ -1235,7 +1288,7 @@ void bookmark_lose_caret_handler(wimp_caret *caret)
  * \param  *caret		The associated wimp event block.
  */
 
-void bookmark_gain_caret_handler(wimp_caret *caret)
+static void bookmark_gain_caret_handler(wimp_caret *caret)
 {
 	bookmark_block		*bm;
 	bookmark_node		*node, *parent;
@@ -1267,7 +1320,7 @@ void bookmark_gain_caret_handler(wimp_caret *caret)
  * \param  *scroll		The associated wimp event block.
  */
 
-void bookmark_scroll_handler(wimp_scroll *scroll)
+static void bookmark_scroll_handler(wimp_scroll *scroll)
 {
 	int		width, height, error;
 
@@ -1339,7 +1392,7 @@ void bookmark_scroll_handler(wimp_scroll *scroll)
  * \param  *caret		A block detailing the current caret position.
  */
 
-void bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *caret)
+static void bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *caret)
 {
 	int			row;
 
@@ -1374,7 +1427,7 @@ void bookmark_change_edit_row(bookmark_block *bm, int direction, wimp_caret *car
  * \param  *caret		A block detailing the current caret position.
  */
 
-void bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *caret)
+static void bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *caret)
 {
 	bookmark_node		*node;
 	int			direction;
@@ -1410,7 +1463,7 @@ void bookmark_insert_edit_row_from_keypress(bookmark_block *bm, wimp_caret *care
  * \return			0 if a line was inserted; else 1;
  */
 
-int bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direction)
+static int bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direction)
 {
 	bookmark_node		*new;
 	int			line, status = 1;
@@ -1423,21 +1476,21 @@ int bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direct
 		return status;
 
 	if (direction == BOOKMARK_ABOVE) {
-		new = insert_bookmark_node(bm, node);
+		new = bookmark_insert_node(bm, node);
 		if (new != NULL) {
 			new->level = node->level;
-			rebuild_bookmark_data(bm);
-			force_bookmark_window_redraw(bm, line, -1);
-			set_bookmark_unsaved_state(bm, 1);
+			bookmark_rebuild_data(bm);
+			bookmark_force_window_redraw(bm, line, -1);
+			bookmark_set_unsaved_state(bm, 1);
 			status = 0;
 		}
 	} else if (direction == BOOKMARK_BELOW) {
-		new = insert_bookmark_node(bm, ((line+1) < bm->lines) ? bm->redraw[line+1].node : NULL);
+		new = bookmark_insert_node(bm, ((line+1) < bm->lines) ? bm->redraw[line+1].node : NULL);
 		if (new != NULL) {
 			new->level = bm->redraw[line].node->level;
-			rebuild_bookmark_data(bm);
-			force_bookmark_window_redraw(bm, line + 1, -1);
-			set_bookmark_unsaved_state(bm, 1);
+			bookmark_rebuild_data(bm);
+			bookmark_force_window_redraw(bm, line + 1, -1);
+			bookmark_set_unsaved_state(bm, 1);
 			status = 0;
 		}
 	}
@@ -1453,7 +1506,7 @@ int bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int direct
  * \param  *node		The node to be deleted.
  */
 
-void bookmark_delete_edit_row(bookmark_block *bm, bookmark_node *node)
+static void bookmark_delete_edit_row(bookmark_block *bm, bookmark_node *node)
 {
 	int			i, line;
 	bookmark_node		*n;
@@ -1500,10 +1553,10 @@ void bookmark_delete_edit_row(bookmark_block *bm, bookmark_node *node)
 
 	/* Delete the line and tidy up. */
 
-	delete_bookmark_node(bm, node);
-	rebuild_bookmark_data(bm);
-	force_bookmark_window_redraw(bm, line, -1);
-	set_bookmark_unsaved_state(bm, 1);
+	bookmark_delete_node(bm, node);
+	bookmark_rebuild_data(bm);
+	bookmark_force_window_redraw(bm, line, -1);
+	bookmark_set_unsaved_state(bm, 1);
 }
 
 
@@ -1515,7 +1568,7 @@ void bookmark_delete_edit_row(bookmark_block *bm, bookmark_node *node)
  * \param  action		The action to carry out, in terms of toolbar icon numbers.
  */
 
-void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node, int action)
+static void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *node, int action)
 {
 	bookmark_node		*parent;
 	int			redraw_from, redraw_to, base, line;
@@ -1582,9 +1635,9 @@ void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *nod
 	 */
 
 	if (redraw_from != -1 || redraw_to != -1) {
-		rebuild_bookmark_data(bm);
-		set_bookmark_unsaved_state(bm, 1);
-		force_bookmark_window_redraw(bm, redraw_from, redraw_to);
+		bookmark_rebuild_data(bm);
+		bookmark_set_unsaved_state(bm, 1);
+		bookmark_force_window_redraw(bm, redraw_from, redraw_to);
 	}
 }
 
@@ -1598,7 +1651,7 @@ void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_node *nod
  * \param  *contract		A variable to return the contract setting in, or NULL.
  */
 
-void bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *contract)
+static void bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *contract)
 {
 	bookmark_node		*node;
 	int			e=0, c=0;
@@ -1634,7 +1687,7 @@ void bookmark_toolbar_set_expansion_icons(bookmark_block *bm, int *expand, int *
  * \param  expand		TRUE to expand the tree; FALSE to contract.
  */
 
-void bookmark_tree_node_expansion(bookmark_block *bm, osbool expanded)
+static void bookmark_tree_node_expansion(bookmark_block *bm, osbool expanded)
 {
 	bookmark_node		*node;
 
@@ -1650,9 +1703,9 @@ void bookmark_tree_node_expansion(bookmark_block *bm, osbool expanded)
 		node = node->next;
 	}
 
-	rebuild_bookmark_data(bm);
-	set_bookmark_unsaved_state(bm, 1);
-	force_bookmark_window_redraw(bm, -1, -1);
+	bookmark_rebuild_data(bm);
+	bookmark_set_unsaved_state(bm, 1);
+	bookmark_force_window_redraw(bm, -1, -1);
 }
 
 
@@ -1666,7 +1719,7 @@ void bookmark_tree_node_expansion(bookmark_block *bm, osbool expanded)
  * \return			0 if icon placed OK; else 1;
  */
 
-int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
+static int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 {
 	wimp_window_state		state;
 	size_t				buf_len;
@@ -1679,7 +1732,7 @@ int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 
 	bookmark_remove_edit_icon();
 
-	calculate_bookmark_window_row_start(bm, row);
+	bookmark_calculate_window_row_start(bm, row);
 
 	memcpy(&(icon.icon), &(bookmark_window_def->icons[col]), sizeof(wimp_icon));
 
@@ -1746,7 +1799,7 @@ int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
  * Remove the edit icon from a bookmark window.
  */
 
-void bookmark_remove_edit_icon(void)
+static void bookmark_remove_edit_icon(void)
 {
 	if (bookmarks_edit != NULL &&
 			bookmarks_edit->edit_icon != wimp_ICON_WINDOW) {
@@ -1770,7 +1823,7 @@ void bookmark_remove_edit_icon(void)
  * Sync the edit icon contents with the underlying file.
  */
 
-void bookmark_resync_edit_with_file(void)
+static void bookmark_resync_edit_with_file(void)
 {
 	int		page;
 
@@ -1782,7 +1835,7 @@ void bookmark_resync_edit_with_file(void)
 	case BOOKMARK_ICON_TITLE:
 		if (strcmp(bookmarks_edit->redraw[bookmarks_edit->caret_row].node->title, bookmarks_edit_buffer) != 0) {
 			strncpy(bookmarks_edit->redraw[bookmarks_edit->caret_row].node->title, bookmarks_edit_buffer, MAX_BOOKMARK_LEN);
-			set_bookmark_unsaved_state(bookmarks_edit, 1);
+			bookmark_set_unsaved_state(bookmarks_edit, 1);
 		}
 		break;
 	case BOOKMARK_ICON_PAGE:
@@ -1790,7 +1843,7 @@ void bookmark_resync_edit_with_file(void)
 
 		if (page != bookmarks_edit->redraw[bookmarks_edit->caret_row].node->page) {
 			bookmarks_edit->redraw[bookmarks_edit->caret_row].node->page = page;
-			set_bookmark_unsaved_state(bookmarks_edit, 1);
+			bookmark_set_unsaved_state(bookmarks_edit, 1);
 		}
 		break;
 	}
@@ -1803,7 +1856,7 @@ void bookmark_resync_edit_with_file(void)
  * \param  *bm			The block to set the window title for.
  */
 
-void update_bookmark_window_title(bookmark_block *bm)
+static void bookmark_update_window_title(bookmark_block *bm)
 {
 	char		*asterisk, buf[256];
 
@@ -1831,7 +1884,7 @@ void update_bookmark_window_title(bookmark_block *bm)
  * \param  to			The row to end the readraw at (-1 = to end)
  */
 
-void force_bookmark_window_redraw(bookmark_block *bm, int from, int to)
+static void bookmark_force_window_redraw(bookmark_block *bm, int from, int to)
 {
 	int			x0, y0, x1, y1;
 	wimp_window_info	info;
@@ -1867,7 +1920,7 @@ void force_bookmark_window_redraw(bookmark_block *bm, int from, int to)
  * \param  *bm			The window block.
  */
 
-void set_bookmark_window_extent(bookmark_block *bm)
+static void bookmark_set_window_extent(bookmark_block *bm)
 {
 	int			screen_y, new_y, visible_y, new_y_scroll;
 	wimp_window_info	info;
@@ -1924,7 +1977,7 @@ void set_bookmark_window_extent(bookmark_block *bm)
  * \param  *bm			The bookmark window to set.
  */
 
-void set_bookmark_window_columns(bookmark_block *bm)
+static void bookmark_set_window_columns(bookmark_block *bm)
 {
 	int			i;
 	wimp_window_info	info;
@@ -1977,7 +2030,7 @@ void set_bookmark_window_columns(bookmark_block *bm)
  * \param  row			The row to calculate.
  */
 
-void calculate_bookmark_window_row_start(bookmark_block *bm, int row)
+static void bookmark_calculate_window_row_start(bookmark_block *bm, int row)
 {
 	bookmark_node		*node;
 
@@ -2001,7 +2054,7 @@ void calculate_bookmark_window_row_start(bookmark_block *bm, int row)
  * \return			The row (from 0) or -1 if none.
  */
 
-int calculate_bookmark_window_click_row(bookmark_block *bm, os_coord *pos, wimp_window_state *state)
+static int bookmark_calculate_window_click_row(bookmark_block *bm, os_coord *pos, wimp_window_state *state)
 {
 	int			y, row, row_y_pos;
 
@@ -2031,21 +2084,21 @@ int calculate_bookmark_window_click_row(bookmark_block *bm, os_coord *pos, wimp_
  * \return			The column (from 0) or -1 if none.
  */
 
-int calculate_bookmark_window_click_column(bookmark_block *bm, os_coord *pos, wimp_window_state *state)
+static int bookmark_calculate_window_click_column(bookmark_block *bm, os_coord *pos, wimp_window_state *state)
 {
 	int			i, x, row, col;
 
 	if (bm == NULL || state == NULL)
 		return -1;
 
-	row = calculate_bookmark_window_click_row(bm, pos, state);
+	row = bookmark_calculate_window_click_row(bm, pos, state);
 
 	if (row < 0 || row >= bm->lines)
 		return -1;
 
 	x = pos->x - state->visible.x0 + state->xscroll;
 
-	calculate_bookmark_window_row_start(bm, row);
+	bookmark_calculate_window_row_start(bm, row);
 	col = -1;
 
 	for (i=0; i<BOOKMARK_WINDOW_COLUMNS; i++)
@@ -2069,7 +2122,7 @@ int calculate_bookmark_window_click_column(bookmark_block *bm, os_coord *pos, wi
  * Start dragging a line in the bookmark window.
  */
 
-void bookmark_line_drag(bookmark_block *bm, int line)
+static void bookmark_line_drag(bookmark_block *bm, int line)
 {
 	wimp_window_state	window;
 	wimp_auto_scroll_info	auto_scroll;
@@ -2131,7 +2184,7 @@ void bookmark_line_drag(bookmark_block *bm, int line)
 
 //	dragging_start_line = line;
 	bm->drag_row = line;
-	force_bookmark_window_redraw(bm, line, line);
+	bookmark_force_window_redraw(bm, line, line);
 	event_set_drag_handler(bookmark_terminate_line_drag, NULL, (void *) bm);
 }
 
@@ -2143,7 +2196,7 @@ void bookmark_line_drag(bookmark_block *bm, int line)
  * \param  *data		The bookmark block associated with the drag.
  */
 
-void bookmark_terminate_line_drag(wimp_dragged *drag, void *data)
+static void bookmark_terminate_line_drag(wimp_dragged *drag, void *data)
 {
 	bookmark_block		*bm;
 	bookmark_node		*node, *target, *n;
@@ -2238,12 +2291,12 @@ void bookmark_terminate_line_drag(wimp_dragged *drag, void *data)
 		else
 			node->level = target->level;
 
-		rebuild_bookmark_data(bm);
-		set_bookmark_unsaved_state(bm, 1);
+		bookmark_rebuild_data(bm);
+		bookmark_set_unsaved_state(bm, 1);
 
-		force_bookmark_window_redraw(bm, (row < bm->drag_row) ? row-1 : bm->drag_row-1, -1);
+		bookmark_force_window_redraw(bm, (row < bm->drag_row) ? row-1 : bm->drag_row-1, -1);
 	} else {
-		force_bookmark_window_redraw(bm, bm->drag_row, bm->drag_row);
+		bookmark_force_window_redraw(bm, bm->drag_row, bm->drag_row);
 	}
 
 	bm->drag_row = -1;
@@ -2261,7 +2314,7 @@ void bookmark_terminate_line_drag(wimp_dragged *drag, void *data)
  * \param  *pointer		The Wimp mouse click event data.
  */
 
-void bookmark_toolbar_click_handler(wimp_pointer *pointer)
+static void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 {
 	bookmark_block		*bm;
 
@@ -2271,11 +2324,11 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 
 	switch (pointer->i) {
 	case BOOKMARK_TB_SAVE:
-		prepare_bookmark_save_window(bm);
+		bookmark_prepare_save_window(bm);
 		if (pointer->buttons == wimp_CLICK_SELECT)
 			menus_create_standard_menu((wimp_menu *) bookmark_window_saveas, pointer);
 		else if (pointer->buttons == wimp_CLICK_ADJUST)
-			start_direct_menu_save(bm);
+			bookmark_start_direct_menu_save(bm);
 		break;
 	case BOOKMARK_TB_PROMOTE:
 	case BOOKMARK_TB_PROMOTEG:
@@ -2300,7 +2353,7 @@ void bookmark_toolbar_click_handler(wimp_pointer *pointer)
  * \return			TRUE if the keypress was handled; else FALSE.
  */
 
-osbool bookmark_toolbar_key_handler(wimp_key *key)
+static osbool bookmark_toolbar_key_handler(wimp_key *key)
 {
 	bookmark_block		*bm;
 
@@ -2339,7 +2392,7 @@ osbool bookmark_toolbar_key_handler(wimp_key *key)
  * \param  *bm			The window to resync.
  */
 
-void bookmark_resync_toolbar_name_with_file(bookmark_block *bm)
+static void bookmark_resync_toolbar_name_with_file(bookmark_block *bm)
 {
 	if (bm == NULL)
 		return;
@@ -2348,7 +2401,7 @@ void bookmark_resync_toolbar_name_with_file(bookmark_block *bm)
 			bm->name) != 0) {
 		strncpy(bm->name, icons_get_indirected_text_addr(bm->toolbar, BOOKMARK_TB_NAME),
 				MAX_BOOKMARK_BLOCK_NAME);
-		set_bookmark_unsaved_state(bm, 1);
+		bookmark_set_unsaved_state(bm, 1);
 	}
 }
 
@@ -2364,7 +2417,7 @@ void bookmark_resync_toolbar_name_with_file(bookmark_block *bm)
  * \param  *pointer		Pointer to the Wimp Pointer event block.
  */
 
-void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
+static void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 {
 	int			row = -1, expand, contract;
 	bookmark_block		*bm;
@@ -2382,7 +2435,7 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 		state.w = pointer->w;
 		error = xwimp_get_window_state(&state);
 		if (error == NULL)
-			row = calculate_bookmark_window_click_row(bm, &(pointer->pos), &state);
+			row = bookmark_calculate_window_click_row(bm, &(pointer->pos), &state);
 		else
 			row = -1;
 	}
@@ -2396,7 +2449,7 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 		for (parent = bm->root; parent != NULL && parent->next != node; parent = parent->next);
 
 		bm->menu_row = row;
-		force_bookmark_window_redraw(bm, bm->menu_row, bm->menu_row);
+		bookmark_force_window_redraw(bm, bm->menu_row, bm->menu_row);
 	} else {
 		node = NULL;
 		parent = NULL;
@@ -2436,7 +2489,7 @@ void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
  * \param  *warning		Pointer to the Wimp menu warning block.
  */
 
-void bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning *warning)
+static void bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning *warning)
 {
 	bookmark_block		*bm;
 
@@ -2448,10 +2501,10 @@ void bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning 
 	case BOOKMARK_MENU_FILE:
 		switch (warning->selection.items[1]) {
 			case BOOKMARK_MENU_FILE_INFO:
-				prepare_file_info_window(bm);
+				bookmark_prepare_file_info_window(bm);
 				break;
 			case BOOKMARK_MENU_FILE_SAVE:
-				prepare_bookmark_save_window(bm);
+				bookmark_prepare_save_window(bm);
 				break;
 		}
 		break;
@@ -2469,7 +2522,7 @@ void bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_warning 
  * \param  *selection		Pointer to the Wimp menu selction block.
  */
 
-void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection)
+static void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection)
 {
 	bookmark_block		*bm;
 
@@ -2481,7 +2534,7 @@ void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selectio
 	case BOOKMARK_MENU_FILE:
 		switch (selection->items[1]) {
 		case BOOKMARK_MENU_FILE_SAVE:
-			start_direct_menu_save(bm);
+			bookmark_start_direct_menu_save(bm);
 			break;
 		}
 		break;
@@ -2532,7 +2585,7 @@ void bookmark_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selectio
  * Handle the bookmark window menu closing.
  */
 
-void bookmark_menu_close(wimp_w w, wimp_menu *menu)
+static void bookmark_menu_close(wimp_w w, wimp_menu *menu)
 {
 	bookmark_block		*bm;
 
@@ -2541,7 +2594,7 @@ void bookmark_menu_close(wimp_w w, wimp_menu *menu)
 		return;
 
 	if (bm->menu_row != -1) {
-		force_bookmark_window_redraw(bm, bm->menu_row, bm->menu_row);
+		bookmark_force_window_redraw(bm, bm->menu_row, bm->menu_row);
 		bm->menu_row = -1;
 	}
 }
@@ -2557,7 +2610,7 @@ void bookmark_menu_close(wimp_w w, wimp_menu *menu)
  * \param  *bm			The bookmark file to be used.
  */
 
-void prepare_file_info_window(bookmark_block *bm)
+static void bookmark_prepare_file_info_window(bookmark_block *bm)
 {
 	if (bm == NULL)
 		return;
@@ -2591,7 +2644,7 @@ void prepare_file_info_window(bookmark_block *bm)
  * \param  *bm			The bookmark file to which the window applies.
  */
 
-void prepare_bookmark_save_window(bookmark_block *bm)
+static void bookmark_prepare_save_window(bookmark_block *bm)
 {
 	if (strlen(bm->filename) > 0)
 		strncpy(icons_get_indirected_text_addr(bookmark_window_saveas, SAVEAS_ICON_NAME),
@@ -2615,7 +2668,7 @@ void prepare_bookmark_save_window(bookmark_block *bm)
  * \param  *pointer	The relevant Wimp pointer data block.
  */
 
-void bookmark_save_as_click(wimp_pointer *pointer)
+static void bookmark_save_as_click(wimp_pointer *pointer)
 {
 	switch ((int) pointer->i)
 	{
@@ -2625,7 +2678,7 @@ void bookmark_save_as_click(wimp_pointer *pointer)
 					icons_get_indirected_text_addr(bookmark_window_saveas, SAVEAS_ICON_NAME));
 		break;
 	case SAVEAS_ICON_OK:
-		if (start_direct_dialog_save())
+		if (bookmark_start_direct_dialog_save())
 			wimp_create_menu((wimp_menu *) -1, 0, 0);
 		break;
 	case SAVEAS_ICON_CANCEL:
@@ -2642,11 +2695,11 @@ void bookmark_save_as_click(wimp_pointer *pointer)
  * \return		TRUE if the keypress was handled; FALSE if not.
  */
 
-osbool bookmark_save_as_keypress(wimp_key *key)
+static osbool bookmark_save_as_keypress(wimp_key *key)
 {
 	switch (key->c) {
 	case wimp_KEY_RETURN:
-		if (start_direct_dialog_save())
+		if (bookmark_start_direct_dialog_save())
 			wimp_create_menu((wimp_menu *) -1, 0, 0);
 		break;
 	case wimp_KEY_ESCAPE:
@@ -2665,7 +2718,7 @@ osbool bookmark_save_as_keypress(wimp_key *key)
  * \return		1 if the save completed; else 0.
  */
 
-int start_direct_dialog_save(void)
+static int bookmark_start_direct_dialog_save(void)
 {
 	bookmark_block		*bm;
 	char			*filename;
@@ -2679,7 +2732,7 @@ int start_direct_dialog_save(void)
 	if (strchr(filename, '.') == NULL)
 		error_msgs_report_info("DragSave");
 	else {
-		save_bookmark_file(bm, filename);
+		bookmarks_save_file(bm, filename);
 		return 1;
 	}
 
@@ -2693,15 +2746,15 @@ int start_direct_dialog_save(void)
  * \param  *bm		The bookmark block to be saved.
  */
 
-void start_direct_menu_save(bookmark_block *bm)
+static void bookmark_start_direct_menu_save(bookmark_block *bm)
 {
 	wimp_pointer		pointer;
 
 	if (strlen(bm->filename) > 0) {
-		save_bookmark_file(bm, bm->filename);
+		bookmarks_save_file(bm, bm->filename);
 	} else {
 		wimp_get_pointer_info(&pointer);
-		prepare_bookmark_save_window(bm);
+		bookmark_prepare_save_window(bm);
 		menus_create_standard_menu((wimp_menu *) bookmark_window_saveas, &pointer);
 	}
 }
@@ -2723,16 +2776,12 @@ int drag_end_save_saveas(char *filename)
 	if (bm == NULL)
 		return 0;
 
-	save_bookmark_file(bm, filename);
+	bookmarks_save_file(bm, filename);
 	wimp_create_menu((wimp_menu *) -1, 0, 0);
 
 	return 0;
 }
 
-
-/* ****************************************************************************
- * Bookmark Data Processing
- * ****************************************************************************/
 
 /**
  * Save a bookmark file from memory to disc.
@@ -2741,7 +2790,7 @@ int drag_end_save_saveas(char *filename)
  * \param  *filename	The filename to save to.
  */
 
-void save_bookmark_file(bookmark_block *bm, char *filename)
+static void bookmarks_save_file(bookmark_block *bm, char *filename)
 {
 	FILE			*out;
 	bookmark_node		*node;
@@ -2793,19 +2842,19 @@ void save_bookmark_file(bookmark_block *bm, char *filename)
 
 	strncpy(bm->filename, filename, MAX_BOOKMARK_FILENAME);
 	bm->unsaved = 1; /* Force the titlebar to update, even if the file was already saved. */
-	set_bookmark_unsaved_state(bm, 0);
+	bookmark_set_unsaved_state(bm, 0);
 }
 
 
 /**
  * Load a bookmark file into memory, storing the data it contains in a new
- * bookmark_block structure.
+ * bookmark_block structure and opening a bookmark window.
  *
  * \param  *filename	The file to load.
  * \return		The bookmark block containing the file; else NULL.
  */
 
-bookmark_block *load_bookmark_file(char *filename)
+bookmark_block *bookmarks_load_file(char *filename)
 {
 	FILE			*in;
 	bookmark_block		*block;
@@ -2815,7 +2864,7 @@ bookmark_block *load_bookmark_file(char *filename)
 	bits			load, exec;
 
 
-	block = create_bookmark_block();
+	block = bookmark_create_block();
 
 	if (block == NULL) {
 		// \TODO -- Add an error report here.
@@ -2833,14 +2882,14 @@ bookmark_block *load_bookmark_file(char *filename)
 
 	if (in == NULL) {
 		// \TODO -- Add an error report here.
-		delete_bookmark_block(block);
+		bookmark_delete_block(block);
 		return NULL;
 	}
 
 	hourglass_on();
 
 	strncpy(block->filename, filename, MAX_BOOKMARK_FILENAME);
-	update_bookmark_window_title(block);
+	bookmark_update_window_title(block);
 
 	/* Read the nodes into a linear linked list, ignoring for the time
 	 * being any levels.
@@ -2914,8 +2963,8 @@ bookmark_block *load_bookmark_file(char *filename)
 	if (unknown_format)
 		error_msgs_report_info ("UnknownFileFormat");
 
-	rebuild_bookmark_data(block);
-	open_bookmark_window(block);
+	bookmark_rebuild_data(block);
+	bookmark_open_window(block);
 
 	return block;
 }
@@ -2927,7 +2976,7 @@ bookmark_block *load_bookmark_file(char *filename)
  * \param *bm		Pointer to the block to recalculate.
  */
 
-void rebuild_bookmark_data(bookmark_block *bm)
+static void bookmark_rebuild_data(bookmark_block *bm)
 {
 	bookmark_node		*node, *n, *edit_node, *edit_parent;;
 	int			count, i, edit_col;
@@ -3010,7 +3059,7 @@ void rebuild_bookmark_data(bookmark_block *bm)
 		bm->lines = count;
 	}
 
-	set_bookmark_window_extent(bm);
+	bookmark_set_window_extent(bm);
 	bookmark_toolbar_set_expansion_icons(bm, NULL, NULL);
 
 	/* If there was an edit icon, find its new home and restore it. */
@@ -3037,12 +3086,12 @@ void rebuild_bookmark_data(bookmark_block *bm)
  * \param  *params		The parameter block to use.
  */
 
-void write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params)
+void bookmarks_write_pdfmark_out_file(FILE *pdfmark_file, bookmark_params *params)
 {
 	bookmark_node		*node;
 	char			buffer[MAX_BOOKMARK_LEN * 4];
 
-	params->bookmarks = find_bookmark_block(params->bookmarks);
+	params->bookmarks = bookmark_find_block(params->bookmarks);
 
 	if (pdfmark_file != NULL && bookmark_data_available(params))
 		for (node = params->bookmarks->root; node != NULL; node = node->next) {
