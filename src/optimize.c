@@ -138,22 +138,22 @@ void optimize_initialise(void)
 	event_add_window_icon_click(optimize_window, OPTIMIZE_ICON_GREY_ENCODE, optimize_shade_dialogue);
 	event_add_window_icon_click(optimize_window, OPTIMIZE_ICON_MONO_ENCODE, optimize_shade_dialogue);
 
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_COLOUR_SUBSAMPLE);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_GREY_SUBSAMPLE);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_MONO_SUBSAMPLE);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_COLOUR_AVERAGE);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_GREY_AVERAGE);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_MONO_AVERAGE);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_COLOUR_DCT);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_GREY_DCT);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_MONO_CCITT);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_COLOUR_FLATE);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_GREY_FLATE);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_MONO_FLATE);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_MONO_RUNLENGTH);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_ROTATE_NONE);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_ROTATE_ALL);
-	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_ROTATE_PAGE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_COLOUR_SUBSAMPLE, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_GREY_SUBSAMPLE, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_MONO_SUBSAMPLE, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_COLOUR_AVERAGE, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_GREY_AVERAGE, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_MONO_AVERAGE, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_COLOUR_DCT, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_GREY_DCT, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_MONO_CCITT, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_COLOUR_FLATE, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_GREY_FLATE, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_MONO_FLATE, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_MONO_RUNLENGTH, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_ROTATE_NONE, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_ROTATE_ALL, TRUE);
+	event_add_window_icon_radio(optimize_window, OPTIMIZE_ICON_ROTATE_PAGE, TRUE);
 }
 
 
