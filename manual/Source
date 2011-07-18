@@ -602,6 +602,15 @@ Update to eighth beta release.
 <li>Correct buffer length calculations and text truncation in PDF Doc Encoding conversions.
 </list>
 
+
+<subhead title="Test Build">
+
+Alpha release, for feedback and comment.
+
+<list>
+<li>Extensive internal restructuring.
+</list>
+
 </chapter>
 
 
