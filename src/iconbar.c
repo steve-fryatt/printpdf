@@ -81,9 +81,9 @@ void iconbar_initialise(void)
  * \param new_state		TRUE to create an icon; FALSE to remove it.
  */
 
-void iconbar_set_icon(int new_state)
+void iconbar_set_icon(osbool new_state)
 {
-	static int		icon_present = FALSE;
+	static osbool		icon_present = FALSE;
 	static wimp_i		icon_handle = (wimp_i) -1;
 	wimp_icon_create	icon_bar;
 
@@ -96,7 +96,7 @@ void iconbar_set_icon(int new_state)
 			icon_bar.icon.extent.y0 = 0;
 			icon_bar.icon.extent.y1 = 69;
 			icon_bar.icon.flags = wimp_ICON_SPRITE | (wimp_BUTTON_CLICK << wimp_ICON_BUTTON_TYPE_SHIFT);
-			msgs_lookup ("TaskSpr", icon_bar.icon.data.sprite, osspriteop_NAME_LIMIT);
+			msgs_lookup("TaskSpr", icon_bar.icon.data.sprite, osspriteop_NAME_LIMIT);
 			icon_handle = wimp_create_icon (&icon_bar);
 
 			event_add_window_mouse_event(wimp_ICON_BAR, iconbar_click_handler);
@@ -106,7 +106,7 @@ void iconbar_set_icon(int new_state)
 
 			icon_present = TRUE;
 		} else {
-			wimp_delete_icon (wimp_ICON_BAR, icon_handle);
+			wimp_delete_icon(wimp_ICON_BAR, icon_handle);
 
 			event_delete_window(wimp_ICON_BAR);
 

@@ -20,7 +20,7 @@ void iconbar_initialise(void);
  * \param new_state		TRUE to create an icon; FALSE to remove it.
  */
 
-void iconbar_set_icon(int new_state);
+void iconbar_set_icon(osbool new_state);
 
 #endif
 
