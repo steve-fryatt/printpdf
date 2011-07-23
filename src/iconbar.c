@@ -44,6 +44,7 @@
 
 /* Program Info Window */
 
+#define ICON_PROGINFO_AUTHOR  4
 #define ICON_PROGINFO_VERSION 6
 #define ICON_PROGINFO_WEBSITE 8
 
@@ -64,13 +65,16 @@ static wimp_w		iconbar_info_window = NULL;				/**< The iconbar menu info window 
 
 void iconbar_initialise(void)
 {
+	char*			date = BUILD_DATE;
+
 	iconbar_menu = templates_get_menu(TEMPLATES_MENU_ICONBAR);
 
 	iconbar_info_window = templates_create_window("ProgInfo");
 	templates_link_menu_dialogue("ProgInfo", iconbar_info_window);
 	ihelp_add_window(iconbar_info_window, "ProgInfo", NULL);
 	icons_msgs_param_lookup(iconbar_info_window, ICON_PROGINFO_VERSION, "Version",
-			BUILD_VERSION, BUILD_DATE, NULL, NULL);
+			BUILD_VERSION, date, NULL, NULL);
+	icons_printf(iconbar_info_window, ICON_PROGINFO_AUTHOR, "\xa9 Stephen Fryatt, 2003-%s", date + 7);
 	event_add_window_icon_click(iconbar_info_window, ICON_PROGINFO_WEBSITE, iconbar_proginfo_web_click);
 }
 
