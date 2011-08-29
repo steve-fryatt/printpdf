@@ -15,7 +15,7 @@ Version $$version$$ ($$date$$) 
 #Below
 #Line
 #Align Centre
-{f/:PrintPDF} is {f*:Freeware}: please read the <License>.
+{f/:PrintPDF} is {f*:Freeware}: please read the <Licence>.
 
 #Indent 2
 #Table Columns 4
@@ -84,7 +84,7 @@ PrintPDF - Easy PDF creation with GhostScript                    Version $$versi
 
 
 
-<chapter title="License" file="License">
+<chapter title="Licence" file="Licence">
 
 <cite>PrintPDF</cite> is <strong>freeware</strong>.  Copyright is held by the author, Stephen Fryatt, 2005.
 
