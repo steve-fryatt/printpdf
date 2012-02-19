@@ -239,9 +239,9 @@ void convert_initialise(void)
 	event_add_window_menu_prepare(convert_savepdf_window, convert_save_menu_prepare_handler);
 	event_add_window_menu_selection(convert_savepdf_window, convert_save_menu_selection_handler);
 
-	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_VERSION_MENU, popup_version, -1);
-	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_OPT_MENU, popup_optimize, -1);
-	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_MENU, popup_bookmark, -1);
+	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_VERSION_MENU, popup_version, -1, NULL);
+	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_OPT_MENU, popup_optimize, -1, NULL);
+	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_MENU, popup_bookmark, -1, NULL);
 
 	convert_queue_window = templates_create_window("Queue");
 	ihelp_add_window(convert_queue_window, "Queue", NULL);

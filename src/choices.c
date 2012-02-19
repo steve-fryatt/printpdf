@@ -107,8 +107,8 @@ void choices_initialise(void)
 	event_add_window_menu_prepare(choices_window, choices_menu_prepare_handler);
 	event_add_window_menu_selection(choices_window, choices_menu_selection_handler);
 
-	event_add_window_icon_popup(choices_window, CHOICE_ICON_VERSION_MENU, popup_version, -1);
-	event_add_window_icon_popup(choices_window, CHOICE_ICON_OPTIMIZE_MENU, popup_optimize, -1);
+	event_add_window_icon_popup(choices_window, CHOICE_ICON_VERSION_MENU, popup_version, -1, NULL);
+	event_add_window_icon_popup(choices_window, CHOICE_ICON_OPTIMIZE_MENU, popup_optimize, -1, NULL);
 	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, handle_choices_icon_drop);
 }
 
