@@ -9,6 +9,7 @@
 
 /* OSLib header files */
 
+#include "oslib/os.h"
 #include "oslib/wimp.h"
 
 /* SF-Lib header files. */
@@ -168,12 +169,15 @@ static void iconbar_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 static void iconbar_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection)
 {
 	wimp_pointer		pointer;
+	os_error		*error;
 
 	wimp_get_pointer_info(&pointer);
 
 	switch(selection->items[0]) {
 	case ICONBAR_MENU_HELP:
-		os_cli("%Filer_Run <PrintPDF$Dir>.!Help");
+		error = xos_cli("%Filer_Run <PrintPDF$Dir>.!Help");
+		if (error != NULL)
+			error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
 		break;
 
 	case ICONBAR_MENU_QUEUE:
