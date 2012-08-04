@@ -603,12 +603,11 @@ Update to eighth beta release.
 </list>
 
 
-<subhead title="Test Build">
-
-Alpha release, for feedback and comment.
+<subhead title="0.88 (4 August 2012)">
 
 <list>
 <li>Extensive internal restructuring.
+<li>Rebuilt to confirm ARMv6 compatibility.
 </list>
 
 </chapter>
