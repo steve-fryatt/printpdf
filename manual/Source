@@ -15,7 +15,7 @@ Version $$version$$ ($$date$$) 
 #Below
 #Line
 #Align Centre
-{f/:PrintPDF} is {f*:Freeware}: please read the <Licence>.
+{f/:PrintPDF} is {f*:Open Source}: please read the <Licence>.
 
 #Indent 2
 #Table Columns 4
