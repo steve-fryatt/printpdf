@@ -110,7 +110,7 @@ TEXTHELP := HelpText,fff
 SHHELP := PrintPDF,3d6
 HTMLHELP := manual.html
 README := ReadMe,fff
-LICENSE := License,fff
+LICENSE := Licence,fff
 PRINTERS := Printers
 
 
