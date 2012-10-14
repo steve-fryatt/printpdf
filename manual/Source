@@ -616,6 +616,15 @@ Update to eighth beta release.
 <li>Rebuilt to confirm ARMv6 compatibility.
 </list>
 
+
+<subhead title="1.00 (14 October 2012)">
+
+First stable release.
+
+<list>
+<li>Relicensed as Open Source.
+</list>
+
 </chapter>
 
 
