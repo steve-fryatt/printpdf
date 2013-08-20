@@ -150,12 +150,12 @@ void version_fill_field(wimp_w window, wimp_i icon, version_params *params)
 
 /**
  * Build up a text string in the supplied buffer containing the GS
- * parameters that reflect the contents of the given optimization
+ * parameters that reflect the contents of the given version
  * parameter block.
  *
  * \param *buffer		Buffer to hold the result.
  * \param len			The size of the buffer.
- * \param *params		The optimization parameter block to translate.
+ * \param *params		The version parameter block to translate.
  */
 
 void version_build_params(char *buffer, size_t len, version_params *params)
