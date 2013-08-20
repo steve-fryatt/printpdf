@@ -71,6 +71,7 @@
 #include "ihelp.h"
 #include "main.h"
 #include "optimize.h"
+#include "paper.h"
 #include "pdfmark.h"
 #include "pmenu.h"
 #include "popup.h"
@@ -218,6 +219,7 @@ static optimize_params	optimization;
 static version_params	version;
 static pdfmark_params	pdfmark;
 static bookmark_params	bookmark;
+static paper_params	paper;
 
 static wimp_w		convert_savepdf_window = NULL;
 static wimp_w		convert_queue_window = NULL;
@@ -294,7 +296,7 @@ void convert_initialise(void)
 	version_initialise_settings(&version);
 	pdfmark_initialise_settings(&pdfmark);
 	bookmark_initialise_settings(&bookmark);
-
+	paper_initialise_settings(&paper);
 }
 
 
@@ -810,7 +812,7 @@ static osbool convert_launch_ps2ps(char *file_out)
 
 static osbool convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file)
 {
-	char		command[1024], taskname[32], encrypt_buf[1024], optimize_buf[1024], version_buf[1024];
+	char		command[1024], taskname[32], encrypt_buf[1024], optimize_buf[1024], version_buf[1024], paper_buf[1024];
 	queued_file	*list;
 	FILE		*param_file, *pdfmark_file;
 	os_error	*error = NULL;
@@ -837,10 +839,11 @@ static osbool convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file)
 		version_build_params(version_buf, sizeof(version_buf), &version);
 		optimize_build_params(optimize_buf, sizeof(optimize_buf), &optimization);
 		encryption_build_params(encrypt_buf, sizeof(encrypt_buf), &encryption, version.standard_version >= 2);
+		paper_build_params(paper_buf, sizeof(paper_buf), &paper);
 
-		fprintf(param_file, "-dSAFER %s%s%s -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite "
+		fprintf(param_file, "-dSAFER %s%s%s%s -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite "
 				"-sOutputFile=%s -c .setpdfwrite save pop -f",
-				version_buf, optimize_buf, encrypt_buf, file_out);
+				version_buf, optimize_buf, encrypt_buf, paper_buf, file_out);
 
 		list = queue;
 

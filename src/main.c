@@ -256,6 +256,7 @@ static void main_initialise(void)
 	config_str_init("PDFMarkSubject", "");
 	config_str_init("PDFMarkKeywords", "");
 	config_str_init("PDFMarkUserFile", "");
+	config_opt_init("PaperOverride", FALSE);
 	config_opt_init("PreProcess", FALSE);
 	config_opt_init("ResetParams", FALSE);
 	config_opt_init("IconBarIcon", TRUE);
