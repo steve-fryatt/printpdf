@@ -342,7 +342,7 @@ void pdfmark_write_docinfo_file(FILE *pdfmark_file, pdfmark_params *params)
  * \return			TRUE if data would be generated; else FALSE.
  */
 
-osbool pdfmark_data_available (pdfmark_params *params)
+osbool pdfmark_data_available(pdfmark_params *params)
 {
 	return (*(params->title) != '\0' || *(params->author) != '\0' ||
 			*(params->subject) != '\0' || *(params->keywords)) ? TRUE : FALSE;
