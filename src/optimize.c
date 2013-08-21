@@ -272,7 +272,7 @@ void optimise_save_settings(optimize_params *params)
  * Build and open the optimization values menu.
  *
  * \param *params		The optimization parameter block to use for the menu.
- * \param *menu			The version menu block.
+ * \param *menu			The optimization menu block.
  */
 
 void optimize_set_menu(optimize_params *params, wimp_menu *menu)
@@ -288,7 +288,7 @@ void optimize_set_menu(optimize_params *params, wimp_menu *menu)
  * Handle selections from the optimize menu.
  *
  * \param *params		The optimization parameter block for the menu.
- * \param *menu			The version menu block.
+ * \param *menu			The optimization menu block.
  * \param *selection		The menu selection details.
  */
 
