@@ -82,7 +82,7 @@ void pdfmark_set_dialogue_callback(void (*callback)(void));
 /**
  * Open the PDFMark dialogue for the given parameter block.
  *
- * \param *params		The encryption parameter block to be used.
+ * \param *params		The PDFMark parameter block to be used.
  * \param *pointer		The current pointer state.
  */
 

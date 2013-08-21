@@ -669,7 +669,7 @@ static bool optimize_shade_dialogue(wimp_pointer *pointer)
  * \param *params		The optimization parameter block to use.
  */
 
-void optimize_fill_field (wimp_w window, wimp_i icon, optimize_params *params)
+void optimize_fill_field(wimp_w window, wimp_i icon, optimize_params *params)
 {
 	char		token[20];
 
