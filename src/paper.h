@@ -30,11 +30,18 @@
 #ifndef PRINTPDF_PAPER
 #define PRINTPDF_PAPER
 
+enum paper_units {
+	PAPER_UNITS_MM = 0,
+	PAPER_UNITS_INCH = 1,
+	PAPER_UNITS_POINT = 2
+};
 
 typedef struct paper_params {
-	osbool		override_document;
-	int		width;
-	int		height;
+	osbool			override_document;	/**< TRUE to override the document's page size.		*/
+	int			preset_size;		/**< Index into the list of Ghostscript paper sizes.	*/
+	int			width;			/**< Custom page width.					*/
+	int			height;			/**< Custom page height.				*/
+	enum paper_units	units;			/**< Units for custom page dimensions.			*/
 } paper_params;
 
 

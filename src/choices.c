@@ -100,6 +100,7 @@ static wimp_w			choices_window = NULL;
 
 static wimp_menu		*popup_version;
 static wimp_menu		*popup_optimize;
+static wimp_menu		*popup_paper;
 
 
 static void	choices_close_window(void);
@@ -128,6 +129,7 @@ void choices_initialise(void)
 {
 	popup_version = templates_get_menu(TEMPLATES_MENU_VERSION);
 	popup_optimize = templates_get_menu(TEMPLATES_MENU_OPTIMIZATION);
+	popup_paper = templates_get_menu(TEMPLATES_MENU_PAPER);
 
 	choices_window = templates_create_window("Choices");
 	ihelp_add_window(choices_window, "Choices", NULL);
@@ -139,6 +141,7 @@ void choices_initialise(void)
 
 	event_add_window_icon_popup(choices_window, CHOICE_ICON_VERSION_MENU, popup_version, -1, NULL);
 	event_add_window_icon_popup(choices_window, CHOICE_ICON_OPTIMIZE_MENU, popup_optimize, -1, NULL);
+	event_add_window_icon_popup(choices_window, CHOICE_ICON_PAPER_MENU, popup_paper, -1, NULL);
 	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, handle_choices_icon_drop);
 }
 
@@ -181,6 +184,7 @@ static void choices_set_window(void)
 	optimize_initialise_settings(&optimization);
 	version_initialise_settings(&version);
 	pdfmark_initialise_settings(&pdfmark);
+	paper_initialise_settings(&paper);
 
 	icons_set_selected(choices_window, CHOICE_ICON_RESETEVERY, config_opt_read("ResetParams"));
 	icons_set_selected(choices_window, CHOICE_ICON_IBAR, config_opt_read("IconBarIcon"));
@@ -291,10 +295,10 @@ static void choices_click_handler(wimp_pointer *pointer)
 		pdfmark_open_dialogue(&pdfmark, pointer);
 		break;
 
-	case CHOICE_ICON_PAPER_MENU:
-		paper_set_dialogue_callback(choices_process_paper_dialogue);
-		paper_open_dialogue(&paper, pointer);
-		break;
+//	case CHOICE_ICON_PAPER_MENU:
+//		paper_set_dialogue_callback(choices_process_paper_dialogue);
+//		paper_open_dialogue(&paper, pointer);
+//		break;
 	}
 }
 
@@ -345,6 +349,8 @@ static void choices_menu_prepare_handler(wimp_w w, wimp_menu *menu, wimp_pointer
 		version_set_menu(&version, popup_version);
 	else if (menu == popup_optimize)
 		optimize_set_menu(&optimization, popup_optimize);
+	else if (menu == popup_paper)
+		paper_set_menu(&paper, popup_paper);
 }
 
 
@@ -363,8 +369,12 @@ static void choices_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_selec
 		version_fill_field(w, CHOICE_ICON_VERSION, &version);
 	} else if (menu == popup_optimize) {
 		optimize_set_dialogue_callback(choices_process_optimize_dialogue);
-		optimize_process_menu(&optimization, popup_version, selection);
+		optimize_process_menu(&optimization, popup_optimize, selection);
 		optimize_fill_field(w, CHOICE_ICON_OPTIMIZE, &optimization);
+	} else if (menu == popup_paper) {
+		paper_set_dialogue_callback(choices_process_paper_dialogue);
+		paper_process_menu(&paper, popup_paper, selection);
+		paper_fill_field(w, CHOICE_ICON_PAPER, &paper);
 	}
 }
 

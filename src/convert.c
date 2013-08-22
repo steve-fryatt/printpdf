@@ -272,7 +272,7 @@ void convert_initialise(void)
 
 	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_VERSION_MENU, popup_version, -1, NULL);
 	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_OPT_MENU, popup_optimize, -1, NULL);
-	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_PAPER_MENU, popup_optimize, -1, NULL);
+	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_PAPER_MENU, popup_paper, -1, NULL);
 	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_MENU, popup_bookmark, -1, NULL);
 
 	convert_queue_window = templates_create_window("Queue");
@@ -980,10 +980,10 @@ static void convert_save_click_handler(wimp_pointer *pointer)
 		encrypt_open_dialogue(&encryption, version.standard_version >= 2, pointer);
 		break;
 
-	case SAVE_PDF_ICON_PAPER_MENU:
-		paper_set_dialogue_callback(convert_process_paper_dialogue);
-		paper_open_dialogue(&paper, pointer);
-		break;
+//	case SAVE_PDF_ICON_PAPER_MENU:
+//		paper_set_dialogue_callback(convert_process_paper_dialogue);
+//		paper_open_dialogue(&paper, pointer);
+//		break;
 
 	case SAVE_PDF_ICON_PDFMARK_MENU:
 		pdfmark_set_dialogue_callback(convert_process_pdfmark_dialogue);

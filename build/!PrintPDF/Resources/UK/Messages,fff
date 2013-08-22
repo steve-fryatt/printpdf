@@ -51,8 +51,55 @@ Custom:Custom
 None:None
 Info:Information
 
+# Paper
+
 PaperDoc:Document
 PaperCust:Custom
+PaperIA0:ISO A0
+PaperIA1:ISO A1
+PaperIA2:ISO A2
+PaperIA3:ISO A3
+PaperIA4:ISO A4
+PaperIA5:ISO A5
+PaperIA6:ISO A6
+PaperIA7:ISO A7
+PaperIA8:ISO A8
+PaperIA9:ISO A9
+PaperIB10:ISO A10
+PaperIB0:ISO B0
+PaperIB1:ISO B1
+PaperIB2:ISO B2
+PaperIB3:ISO B3
+PaperIB4:ISO B4
+PaperIB5:ISO B5
+PaperIB6:ISO B6
+PaperIC0:ISO C0
+PaperIC1:ISO C1
+PaperIC2:ISO C2
+PaperIC3:ISO C3
+PaperIC4:ISO C4
+PaperIC5:ISO C5
+PaperIC6:ISO C6
+PaperTab:US Tabloid
+PaperLed:US Ledger
+PaperLeg:US Legal
+PaperLet:US Letter
+PaperHLt:US Half Letter
+PaperSLt:US Small Letter
+PaperAE:Arch E
+PaperAD:Arch D
+PaperAC:Arch C
+PaperAB:Arch B
+PaperAA:Arch A
+PaperUSF:US Foolscap
+PaperEUF:European Foolscap
+PaperJB0:JIS B0
+PaperJB1:JIS B1
+PaperJB2:JIS B2
+PaperJB3:JIS B3
+PaperJB4:JIS B4
+PaperJB5:JIS B5
+PaperJB6:JIS B6
 
 DepthOff:Off
 

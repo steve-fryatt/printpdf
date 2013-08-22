@@ -53,77 +53,86 @@
 #include "ihelp.h"
 #include "templates.h"
 
+#define PAPER_MENU_LENGTH 7
+
+#define PAPER_MENU_DOCUMENT 0
+#define PAPER_MENU_CUSTOM (PAPER_MENU_LENGTH - 1)
 
 /* Paper Window icons. */
 
 #define PAPER_ICON_CANCEL 0
 #define PAPER_ICON_OK 1
-#define PAPER_ICON_USE_DOC 2
-#define PAPER_ICON_SIZE_MENU 3
-#define PAPER_ICON_SIZE 4
+#define PAPER_ICON_SIZE_X 3
+#define PAPER_ICON_SIZE_Y 4
+#define PAPER_ICON_MM 5
+#define PAPER_ICON_INCH 6
+#define PAPER_ICON_POINT 7
+
+
+struct paper_definition {
+	const char	*gsname;	/**< Ghostscript Paper Name			*/
+	const char	*token;		/**< Display Token Name				*/
+	int		submenu;	/**< Submenu containing paper size, or -1	*/
+	int		menuitem;	/**< Menu Entry containing paper size, or -1	*/
+};
 
 /* List of Known (to GhostScript) Paper Sizes
- *
- * This list MUST match the Paper Size pop-up menu order, with
- * an offset back of 1 to allow for the "Custom" entry at the head
- * of the menu. Sizes which do not appear in the menu are added at
- * the end, to potentially allow the screening of the PS file for
- * valid paper sizes.
  */
 
-static char paper_sizes[] = {
-	"a0,"		// ISO A0
-	"a1,"		// ISO A1
-	"a2,"		// ISO A2
-	"a3,"		// ISO A3
-	"a4,"		// ISO A4
-	"a5,"		// ISO A5
-	"a6,"		// ISO A6
-	"a7,"		// ISO A7
-	"a8,"		// ISO A8
-	"a9,"		// ISO A9
-	"a10,"		// ISO A10
-	"isob0,"	// ISO B0
-	"isob1,"	// ISO B1
-	"isob2,"	// ISO B2
-	"isob3,"	// ISO B3
-	"isob4,"	// ISO B4
-	"isob5,"	// ISO B5
-	"isob6,"	// ISO B6
-	"c0,"		// ISO C0
-	"c1,"		// ISO C1
-	"c2,"		// ISO C2
-	"c3,"		// ISO C3
-	"c4,"		// ISO C4
-	"c5,"		// ISO C5
-	"c6,"		// ISO C6
-	"11x17,"	// US 11 x 17
-	"ledger,"	// US Ledger (17 x 11)
-	"legal,"	// US Legal
-	"letter,"	// US Letter
-	"halfletter,"	// US Half Letter
-	"lettersmall,"	// US Small Letter
-	"archE,"	// Arch E
-	"archD,"	// Arch D
-	"archC,"	// Arch C
-	"archB,"	// Arch B
-	"archA,"	// Arch A
-	"flsa,"		// US Foolscap
-	"flse,"		// European Foolscap
-	"jisb0,"	// JIS B0
-	"jisb1,"	// JIS B1
-	"jisb2,"	// JIS B2
-	"jisb3,"	// JIS B3
-	"jisb4,"	// JIS B4
-	"jisb5,"	// JIS B5
-	"jisb6,"	// JIS B6
-	"b0,"		// ISO or JIS B0	* Not In Menu *
-	"b1,"		// ISO or JIS B1	* Not In Menu *
-	"b2,"		// ISO or JIS B2	* Not In Menu *
-	"b3,"		// ISO or JIS B3	* Not In Menu *
-	"b4,"		// ISO or JIS B4	* Not In Menu *
-	"b5,"		// ISO or JIS B5	* Not In Menu *
-	"a4small,"	// A4 Small		* Not In Menu *
+static const struct paper_definition paper_sizes[] = {
+	{"a0",		"PaperIA0",	1,	0},	// ISO A0
+	{"a1",		"PaperIA1",	1,	1},	// ISO A1
+	{"a2",		"PaperIA2",	1,	2},	// ISO A2
+	{"a3",		"PaperIA3",	1,	3},	// ISO A3
+	{"a4",		"PaperIA4",	1,	4},	// ISO A4
+	{"a5",		"PaperIA5",	1,	5},	// ISO A5
+	{"a6",		"PaperIA6",	1,	6},	// ISO A6
+	{"a7",		"PaperIA7",	1,	7},	// ISO A7
+	{"a8",		"PaperIA8",	1,	8},	// ISO A8
+	{"a9",		"PaperIA9",	1,	9},	// ISO A9
+	{"a10",		"PaperIA10",	1,	10},	// ISO A10
+	{"isob0",	"PaperIB0",	1,	11},	// ISO B0
+	{"isob1",	"PaperIB1",	1,	12},	// ISO B1
+	{"isob2",	"PaperIB2",	1,	13},	// ISO B2
+	{"isob3",	"PaperIB3",	1,	14},	// ISO B3
+	{"isob4",	"PaperIB4",	1,	15},	// ISO B4
+	{"isob5",	"PaperIB5",	1,	16},	// ISO B5
+	{"isob6",	"PaperIB6",	1,	17},	// ISO B6
+	{"c0",		"PaperIC0",	1,	18},	// ISO C0
+	{"c1",		"PaperIC1",	1,	19},	// ISO C1
+	{"c2",		"PaperIC2",	1,	20},	// ISO C2
+	{"c3",		"PaperIC3",	1,	21},	// ISO C3
+	{"c4",		"PaperIC4",	1,	22},	// ISO C4
+	{"c5",		"PaperIC5",	1,	23},	// ISO C5
+	{"c6",		"PaperIC6",	1,	24},	// ISO C6
+	{"11x17",	"PaperTab",	2,	0},	// US 11 x 17
+	{"ledger",	"PaperLed",	2,	1},	// US Ledger (17 x 11)
+	{"legal",	"PaperLeg",	2,	2},	// US Legal
+	{"letter",	"PaperLet",	2,	3},	// US Letter
+	{"halfletter",	"PaperHLt",	2,	4},	// US Half Letter
+	{"lettersmall",	"PaperSLt",	2,	5},	// US Small Letter
+	{"archE",	"PaperAE",	3,	0},	// Arch E
+	{"archD",	"PaperAD",	3,	1},	// Arch D
+	{"archC",	"PaperAC",	3,	2},	// Arch C
+	{"archB",	"PaperAB",	3,	3},	// Arch B
+	{"archA",	"PaperAA",	3,	4},	// Arch A
+	{"flsa",	"PaperUSF",	5,	0},	// US Foolscap
+	{"flse",	"PaperEUF",	5,	1},	// European Foolscap
+	{"jisb0",	"PaperJB0",	4,	0},	// JIS B0
+	{"jisb1",	"PaperJB1",	4,	1},	// JIS B1
+	{"jisb2",	"PaperJB2",	4,	2},	// JIS B2
+	{"jisb3",	"PaperJB3",	4,	3},	// JIS B3
+	{"jisb4",	"PaperJB4",	4,	4},	// JIS B4
+	{"jisb5",	"PaperJB5",	4,	5},	// JIS B5
+	{"jisb6",	"PaperJB6",	4,	6},	// JIS B6
+	{"b0",		NULL,		-1,	-1},	// ISO or JIS B0
+	{"b1",		NULL,		-1,	-1},	// ISO or JIS B1
+	{"b2",		NULL,		-1,	-1},	// ISO or JIS B2
+	{"b3",		NULL,		-1,	-1},	// ISO or JIS B3
+	{"b4",		NULL,		-1,	-1},	// ISO or JIS B4
+	{"b5",		NULL,		-1,	-1},	// ISO or JIS B5
+	{"a4small",	NULL,		-1,	-1},	// A4 Small
+	{NULL,		NULL,		-1,	-1}
 };
 
 
@@ -150,7 +159,9 @@ void paper_initialise(void)
 	event_add_window_mouse_event(paper_window, paper_click_handler);
 	event_add_window_key_event(paper_window, paper_keypress_handler);
 	
-//	event_add_window_icon_popup(paper_window, PAPER_ICON_SIZE_MENU, paper_size_menu, PAPER_ICON_SIZE, NULL);
+	event_add_window_icon_radio(paper_window, PAPER_ICON_MM, TRUE);
+	event_add_window_icon_radio(paper_window, PAPER_ICON_INCH, TRUE);
+	event_add_window_icon_radio(paper_window, PAPER_ICON_POINT, TRUE);
 }
 
 
@@ -163,9 +174,11 @@ void paper_initialise(void)
 void paper_initialise_settings(paper_params *params)
 {
 	params->override_document = config_opt_read("PaperOverride");
+	params->preset_size = config_int_read("PaperPreset");
 	
-	params->width = 288;
-	params->height = 576;
+	params->width = config_int_read("PaperWidth");
+	params->height = config_int_read("PaperHeight");
+	params->units = config_int_read("PaperUnits");
 }
 
 
@@ -179,6 +192,10 @@ void paper_initialise_settings(paper_params *params)
 void paper_save_settings(paper_params *params)
 {
 	config_opt_set("PaperOverride", params->override_document);
+	config_int_set("PaperPreset", params->preset_size);
+	config_int_set("PaperWidth", params->width);
+	config_int_set("PaperHeight", params->height);
+	config_int_set("PaperUnits", params->units);
 }
 
 
@@ -191,10 +208,40 @@ void paper_save_settings(paper_params *params)
 
 void paper_set_menu(paper_params *params, wimp_menu *menu)
 {
-	int		i;
+	int		i, menulen[PAPER_MENU_LENGTH];
+	
+	/* Get the submenu lengths and clear the top-level menu's ticks. */
+	
+	for (i = 0; i < PAPER_MENU_LENGTH; i++) {
+		if (menu->entries[i].sub_menu != wimp_NO_SUB_MENU)
+			menulen[i] = menus_get_entries(menu->entries[i].sub_menu);
+		else
+			menulen[i] = 0;
+		
+		menus_tick_entry(menu, i, FALSE);
+	}
 
-	for (i = 0; i < OPTIMIZE_MENU_LENGTH; i++)
-		menus_tick_entry(menu, i, i == optimize_tick_menu(params));
+	/* Scan the paper list, setting/clearing submenu flags as we go. */
+
+	for (i = 0; paper_sizes[i].gsname != NULL; i++) {
+		if (paper_sizes[i].submenu == -1 || paper_sizes[i].menuitem == -1 ||
+				paper_sizes[i].submenu >= PAPER_MENU_LENGTH ||
+				paper_sizes[i].menuitem >= menulen[paper_sizes[i].submenu])
+			continue;
+		
+		menus_tick_entry(menu->entries[paper_sizes[i].submenu].sub_menu, paper_sizes[i].menuitem,
+				(params->override_document && i == params->preset_size) ? TRUE : FALSE);
+
+		/* If the submenu contains the selected paper, tick the parent. */
+
+		if (params->override_document && i == params->preset_size)
+			menus_tick_entry(menu, paper_sizes[i].submenu, TRUE);
+	}
+
+	/* Set ticks for Document and Preset. */
+
+	menus_tick_entry(menu, PAPER_MENU_DOCUMENT, !params->override_document);
+	menus_tick_entry(menu, PAPER_MENU_CUSTOM, params->override_document && (params->preset_size == -1));
 }
 
 
@@ -208,35 +255,24 @@ void paper_set_menu(paper_params *params, wimp_menu *menu)
 
 void paper_process_menu(paper_params *params, wimp_menu *menu, wimp_selection *selection)
 {
-	wimp_pointer		pointer;
+	wimp_pointer	pointer;
+	int		i;
 
-	if (selection->items[0] == OPTIMIZE_MENU_LENGTH - 1) {
+	if (selection->items[0] == PAPER_MENU_CUSTOM) {
 		wimp_get_pointer_info(&pointer);
-		optimize_open_dialogue(params, &pointer);
+		paper_open_dialogue(params, &pointer);
+	} else if (selection->items[0] == PAPER_MENU_DOCUMENT) {
+		params->override_document = FALSE;
 	} else {
-		params->standard_preset = selection->items[0];
+		for (i = 0; paper_sizes[i].gsname != NULL &&
+				(paper_sizes[i].submenu != selection->items[0] || paper_sizes[i].menuitem != selection->items[1]);
+				i++);
+	
+		if (paper_sizes[i].gsname != NULL) {
+			params->override_document = TRUE;
+			params->preset_size = i;
+		}
 	}
-}
-
-
-/**
- * Return the number of the menu item which should be ticked based on the
- * supplied parameter block.
- *
- * \param *params		The paper parameter block to be used.
- * \return			The menu entry to be ticked.
- */
-
-static int paper_tick_menu(paper_params *params)
-{
-	int		item;
-
-	if (params->standard_preset == -1)
-		item = OPTIMIZE_MENU_LENGTH - 1;
-	else
-		item = params->standard_preset;
-
-	return item;
 }
 
 
@@ -317,12 +353,14 @@ static osbool paper_keypress_handler(wimp_key *key)
 
 void paper_open_dialogue(paper_params *params, wimp_pointer *pointer)
 {
-	icons_set_selected(paper_window, PAPER_ICON_USE_DOC, !params->override_document);
+	sprintf(icons_get_indirected_text_addr(paper_window, PAPER_ICON_SIZE_X),
+			"%.2f", (double) params->width / 100.0);
 
-	//strcpy(icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_TITLE), params->title);
-	//strcpy(icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_AUTHOR), params->author);
-	//strcpy(icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_SUBJECT), params->subject);
-	//strcpy(icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_KEYWORDS), params->keywords);
+	sprintf(icons_get_indirected_text_addr(paper_window, PAPER_ICON_SIZE_Y),
+			"%.2f", (double) params->height / 100.0);
+
+	icons_set_radio_group_selected(paper_window, params->units, 3,
+			PAPER_ICON_MM, PAPER_ICON_INCH, PAPER_ICON_POINT);
 
 	paper_shade_dialogue();
 
@@ -339,12 +377,14 @@ void paper_open_dialogue(paper_params *params, wimp_pointer *pointer)
 
 void paper_process_dialogue(paper_params *params)
 {
-	params->override_document = !icons_get_selected(paper_window, PAPER_ICON_USE_DOC);
+	params->override_document = TRUE;
+	params->preset_size = -1;
 
-	//strcpy(params->title, icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_TITLE));
-	//strcpy(params->author, icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_AUTHOR));
-	//strcpy(params->subject, icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_SUBJECT));
-	//strcpy(params->keywords, icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_KEYWORDS));
+	params->width = (int) 100.0 * atof(icons_get_indirected_text_addr(paper_window, PAPER_ICON_SIZE_X));
+	params->height = (int) 100.0 * atof(icons_get_indirected_text_addr(paper_window, PAPER_ICON_SIZE_Y));
+
+	params->units = icons_get_radio_group_selected(paper_window, 3,
+			PAPER_ICON_MM, PAPER_ICON_INCH, PAPER_ICON_POINT);
 
 	wimp_create_menu((wimp_menu *) -1, 0, 0);
 }
@@ -372,15 +412,23 @@ static void paper_shade_dialogue(void)
 
 void paper_fill_field(wimp_w window, wimp_i icon, paper_params *params)
 {
-	char		token[20];
+	const char	*token;
+	int		i;
 
-	if (params->override_document)
-		msgs_lookup("PaperCust", icons_get_indirected_text_addr(window, icon), 20);
-	else
-		msgs_lookup("PaperDoc", icons_get_indirected_text_addr(window, icon), 20);
+	if (!params->override_document)
+		token = "PaperDoc";
+	else if (params->preset_size == -1)
+		token = "PaperCust";
+	else {
+		for (i = 0; paper_sizes[i].gsname != NULL && params->preset_size != i; i++);
+		
+		token = paper_sizes[i].token;
+	}
 
-	//snprintf(token, sizeof(token), "Version%d", params->standard_version);
-	//msgs_lookup(token, icons_get_indirected_text_addr(window, icon), 20);
+	if (token == NULL)
+		return;
+
+	msgs_lookup((char *) token, icons_get_indirected_text_addr(window, icon), 20);
 	wimp_set_icon_state(window, icon, 0, 0);
 }
 
