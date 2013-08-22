@@ -818,12 +818,23 @@ static osbool convert_launch_ps2ps(char *file_out)
 
 static osbool convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file)
 {
-	char		command[1024], taskname[32], encrypt_buf[1024], optimize_buf[1024], version_buf[1024], paper_buf[1024];
+	char		command[1024], taskname[32], encrypt_buf[1024], optimize_buf[1024], version_buf[1024], paper_buf[1024], queue_path[4096];
 	queued_file	*list;
 	FILE		*param_file, *pdfmark_file;
+	int		queue_left;
 	os_error	*error = NULL;
+	
+	/* Get a canonicalised version of the queue pathname. */
+	
+	error = xosfscontrol_canonicalise_path(config_str_read("FileQueue"), queue_path, NULL, NULL, 4096, &queue_left);
+	if (error != NULL || queue_left < 0)
+		return FALSE;
+	
+	/* Find the name to use for the child task. */
 
 	msgs_lookup("ChildTaskName", taskname, sizeof(taskname));
+
+	/* Start to write the parameters file. */
 
 	param_file = fopen(config_str_read("ParamFile"), "w");
 	if (param_file != NULL) {
@@ -855,7 +866,7 @@ static osbool convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file)
 
 		while (list != NULL) {
 			if (list->object_type == BEING_PROCESSED)
-				fprintf(param_file, " %s.%s", config_str_read("FileQueue"), list->filename);
+				fprintf(param_file, " %s.%s", queue_path, list->filename);
 
 			list = list->next;
 		}
