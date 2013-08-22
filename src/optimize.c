@@ -277,10 +277,12 @@ void optimise_save_settings(optimize_params *params)
 
 void optimize_set_menu(optimize_params *params, wimp_menu *menu)
 {
-	int		i;
+	int	i, tick;
+
+	tick = optimize_tick_menu(params);
 
 	for (i = 0; i < OPTIMIZE_MENU_LENGTH; i++)
-		menus_tick_entry(menu, i, i == optimize_tick_menu(params));
+		menus_tick_entry(menu, i, i == tick);
 }
 
 

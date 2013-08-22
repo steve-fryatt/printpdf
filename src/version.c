@@ -94,10 +94,12 @@ void version_save_settings(version_params *params)
 
 void version_set_menu(version_params *params, wimp_menu *menu)
 {
-	int		i;
+	int	i, tick;
+	
+	tick = version_tick_menu(params);
 
 	for (i = 0; i < VERSION_MENU_LENGTH; i++)
-		menus_tick_entry(menu, i, i == version_tick_menu(params));
+		menus_tick_entry(menu, i, i == tick);
 }
 
 
