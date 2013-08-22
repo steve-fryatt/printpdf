@@ -161,7 +161,7 @@ menu(paper_popup, "Paper Size")
 	item("US") {
 		submenu(paper_us);
 	}
-	item("Architechtural") {
+	item("Architectural") {
 		submenu(paper_arch);
 	}
 	item("JIS") {
@@ -212,7 +212,7 @@ menu(paper_us, "US")
 	item("Small Letter");
 }
 
-menu(paper_arch, "Architechtural")
+menu(paper_arch, "Architectural")
 {
 	item("Arch E");
 	item("Arch D");
