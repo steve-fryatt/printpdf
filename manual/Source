@@ -232,6 +232,10 @@ In addition to the custom settings, a number of preset configurations are provid
 
 The <icon>Information</icon> field allows the PDF document information to be set up: document title, subject, author and content keywords. When the field shows 'None' then the default values set by the printing system will be used. Clicking on the pop-up menu to the right of the field gives access to these entries, allowing them to be changed. Most PDF readers show the document title in the titlebar of the display window, while the other fields appear with the document properties or document information.
 
+The paper size of the PDF document can be varied using the <icon>Paper size</icon> field. If <menu>Document</menu> is selected then whatever size is defined in the printer driver will be passed straight through: note that this comes from the <em>name</em> of the paper, and there are some tight limitations on this if <cite>GhostScript</cite> is to recognise it. Alternatively, one of the custom paper sizes supported by <cite>GhostScript</cite> can be selected from the various submenus: these are all internationally accepted 'standard' sizes.
+
+To use a non-standard size, select <menu>Custom...</menu> from the list and enter the required width and height of the page into the <window>Custom paper size</window> dialogue. These can be specified in either mm, inches or points (1/72 inches) by using the radio icons to the right of the fields. Clicking on <icon>Set</icon> will store the custom page size; clicking on <icon>Cancel</icon> will abandon any changes which have been made.
+
 The <icon>Bookmarks</icon> field can be used to attach a bookmarks file to the conversion: these can be used to identify chapter and section headings or other key locations in a document and enable readers to navigate through it easily. The pop-up menu to the right allows a bookmarks file to be selected from those currently open in the bookmark editor; when it shows 'None', no bookmarks will be used. Selecting <menu>Create...</menu> will open a new set of bookmarks in the bookmarks editor, while dragging a bookmarks file to the <window>Create PDF</window> window will load it and set it as the current file in the field. Details of how to use the editor to create or load sets of bookmarks are given in the <link ref="BMark">Bookmark Editor</link> section.
 
 The <icon>Encryption</icon> field allows access to the document encryption, password protection and access limitation features, if <cite>GhostScript</cite> 8.5 or better is being used.  When the field shows 'Unprotected', no encryption is applied; clicking on the pop-up menu icon opens a transient dialogue box to allow the various settings to be changed.
@@ -623,6 +627,15 @@ First stable release.
 
 <list>
 <li>Relicensed as Open Source.
+</list>
+
+
+<subhead title="Test Builds">
+
+Pre-release builds to test new features.
+
+<list>
+<li>Support added for controlling paper size.
 </list>
 
 </chapter>
