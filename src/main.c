@@ -76,6 +76,7 @@
 #include "iconbar.h"
 #include "ihelp.h"
 #include "optimize.h"
+#include "paper.h"
 #include "pdfmark.h"
 #include "pmenu.h"
 #include "popup.h"
@@ -288,6 +289,7 @@ static void main_initialise(void)
 	encrypt_initialise();
 	optimize_initialise();
 	pdfmark_initialise();
+	paper_initialise();
 	iconbar_initialise();
 	convert_initialise();
 	bookmarks_initialise();

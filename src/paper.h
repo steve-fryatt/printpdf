@@ -39,6 +39,13 @@ typedef struct paper_params {
 
 
 /**
+ * Initialise the paper dialogue.
+ */
+
+void paper_initialise(void);
+
+
+/**
  * Initialise the values in a paper settings structure.
  *
  * \param *params		The version params struct to be initialised.
@@ -46,49 +53,79 @@ typedef struct paper_params {
 
 void paper_initialise_settings(paper_params *params);
 
-#if 0
+
 /**
- * Save the settings from a version settings structure back into the
+ * Save the settings from a paper settings structure back into the
  * corresponding config settings.
  *
- * \param *param		The version params struct to be saved.
+ * \param *param		The paper params struct to be saved.
  */
 
-void version_save_settings(version_params *params);
+void paper_save_settings(paper_params *params);
 
 
 /**
- * Build and open the PDF version menu.
+ * Build and open the paper values menu.
  *
- * \param *params		The version parameter block to use for the menu.
- * \param *menu			The version menu block.
+ * \param *params		The paper parameter block to use for the menu.
+ * \param *menu			The paper menu block.
  */
 
-void version_set_menu(version_params *params, wimp_menu *menu);
+void paper_set_menu(paper_params *params, wimp_menu *menu);
 
 
 /**
- * Handle selections from the PDF version menu.
+ * Handle selections from the paper menu.
  *
- * \param *params		The version parameter block for the menu.
- * \param *menu			The version menu block.
+ * \param *params		The paper parameter block for the menu.
+ * \param *menu			The paper menu block.
  * \param *selection		The menu selection details.
  */
 
-void version_process_menu(version_params *params, wimp_menu *menu, wimp_selection *selection);
+void paper_process_menu(paper_params *params, wimp_menu *menu, wimp_selection *selection);
+
+
+/**
+ * Set a callback handler to be called when the OK button of the
+ * paper dialogue is clicked.
+ *
+ * \param callback		The callback function to use, or NULL.
+ */
+
+void paper_set_dialogue_callback(void (*callback)(void));
+
+
+/**
+ * Open the paper dialogue for the given parameter block.
+ *
+ * \param *params		The paper parameter block to be used.
+ * \param *pointer		The current pointer state.
+ */
+
+void paper_open_dialogue(paper_params *params, wimp_pointer *pointer);
+
+
+/**
+ * Store the settings from the currently open paper dialogue box in
+ * a paper parameter block.
+ *
+ * \param *params		The paper parameter block to be used.
+ */
+
+void paper_process_dialogue(paper_params *params);
 
 
 /**
  * Update the given text field icon with a status reflecting the settings
- * in the given PDF version parameter block.
+ * in the given paper parameter block.
  *
  * \param window		The window containing the icon.
  * \param icon			The icon to update.
- * \param *params		The version parameter block to use.
+ * \param *params		The paper parameter block to use.
  */
 
-void version_fill_field (wimp_w window, wimp_i icon, version_params *params);
-#endif
+void paper_fill_field(wimp_w window, wimp_i icon, paper_params *params);
+
 
 /**
  * Build up a text string in the supplied buffer containing the GS

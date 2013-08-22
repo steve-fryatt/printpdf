@@ -51,6 +51,9 @@ Custom:Custom
 None:None
 Info:Information
 
+PaperDoc:Document
+PaperCust:Custom
+
 DepthOff:Off
 
 Yes:Yes

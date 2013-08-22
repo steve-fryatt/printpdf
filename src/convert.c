@@ -111,6 +111,8 @@
 #define SAVE_PDF_ICON_USERFILE       18
 #define SAVE_PDF_ICON_BOOKMARK_MENU  20
 #define SAVE_PDF_ICON_BOOKMARK_FIELD 21
+#define SAVE_PDF_ICON_PAPER_MENU     23
+#define SAVE_PDF_ICON_PAPER_FIELD    24
 
 /* Defer queue window icons. */
 
@@ -172,6 +174,7 @@ static osbool		convert_immediate_window_save(void);
 static void		convert_process_pdfmark_dialogue(void);
 static void		convert_process_encrypt_dialogue(void);
 static void		convert_process_optimize_dialogue(void);
+static void		convert_process_paper_dialogue(void);
 
 static void		convert_remove_current_conversion(void);
 static void		convert_remove_deleted_files(void);
@@ -210,6 +213,7 @@ static int		dragging_start_line;
 
 static wimp_menu	*popup_version;
 static wimp_menu	*popup_optimize;
+static wimp_menu	*popup_paper;
 static wimp_menu	*popup_bookmark;
 
 /* Conversion parameters. */
@@ -256,6 +260,7 @@ void convert_initialise(void)
 
 	popup_version = templates_get_menu(TEMPLATES_MENU_VERSION);
 	popup_optimize = templates_get_menu(TEMPLATES_MENU_OPTIMIZATION);
+	popup_paper = templates_get_menu(TEMPLATES_MENU_PAPER);
 
 	convert_savepdf_window = templates_create_window("SavePDF");
 	ihelp_add_window(convert_savepdf_window, "SavePDF", NULL);
@@ -267,6 +272,7 @@ void convert_initialise(void)
 
 	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_VERSION_MENU, popup_version, -1, NULL);
 	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_OPT_MENU, popup_optimize, -1, NULL);
+	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_PAPER_MENU, popup_optimize, -1, NULL);
 	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_MENU, popup_bookmark, -1, NULL);
 
 	convert_queue_window = templates_create_window("Queue");
@@ -974,6 +980,11 @@ static void convert_save_click_handler(wimp_pointer *pointer)
 		encrypt_open_dialogue(&encryption, version.standard_version >= 2, pointer);
 		break;
 
+	case SAVE_PDF_ICON_PAPER_MENU:
+		paper_set_dialogue_callback(convert_process_paper_dialogue);
+		paper_open_dialogue(&paper, pointer);
+		break;
+
 	case SAVE_PDF_ICON_PDFMARK_MENU:
 		pdfmark_set_dialogue_callback(convert_process_pdfmark_dialogue);
 		pdfmark_open_dialogue(&pdfmark, pointer);
@@ -1027,6 +1038,8 @@ static void convert_save_menu_prepare_handler(wimp_w w, wimp_menu *menu, wimp_po
 		version_set_menu(&version, popup_version);
 	else if (menu == popup_optimize)
 		optimize_set_menu(&optimization, popup_optimize);
+	else if (menu == popup_paper)
+		paper_set_menu(&paper, popup_paper);
 	else if (menu == popup_bookmark) {
 		popup_bookmark = bookmark_build_menu(&bookmark);
 		event_set_menu_block(popup_bookmark);
@@ -1049,8 +1062,12 @@ static void convert_save_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_
 		version_fill_field(w, SAVE_PDF_ICON_VERSION_FIELD, &version);
 	} else if (menu == popup_optimize) {
 		optimize_set_dialogue_callback(convert_process_optimize_dialogue);
-		optimize_process_menu(&optimization, popup_version, selection);
+		optimize_process_menu(&optimization, popup_optimize, selection);
 		optimize_fill_field(w, SAVE_PDF_ICON_OPT_FIELD, &optimization);
+	} else if (menu == popup_paper) {
+		paper_set_dialogue_callback(convert_process_paper_dialogue);
+		paper_process_menu(&paper, popup_paper, selection);
+		paper_fill_field(w, SAVE_PDF_ICON_PAPER_FIELD, &paper);
 	} else if (menu == popup_bookmark) {
 		bookmark_process_menu(&bookmark, selection);
 		bookmark_fill_field(w, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
@@ -1135,6 +1152,18 @@ static void convert_process_optimize_dialogue(void)
 {
 	optimize_process_dialogue(&optimization);
 	optimize_fill_field(convert_savepdf_window, SAVE_PDF_ICON_OPT_FIELD, &optimization);
+}
+
+
+/**
+ * Callback to respond to clicks on the OK button of the paper
+ * dialogue.
+ */
+
+static void convert_process_paper_dialogue(void)
+{
+	paper_process_dialogue(&paper);
+	paper_fill_field(convert_savepdf_window, SAVE_PDF_ICON_PAPER_FIELD, &paper);
 }
 
 

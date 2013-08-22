@@ -146,3 +146,95 @@ menu(optimize_popup, "Optimization")
 	item("Custom...");
 }
 
+/**
+ * Paper Menu
+ */
+
+menu(paper_popup, "Paper Size")
+{
+	item("Document") {
+		dotted;
+	}
+	item("ISO") {
+		submenu(paper_iso);
+	}
+	item("US") {
+		submenu(paper_us);
+	}
+	item("Architechtural") {
+		submenu(paper_arch);
+	}
+	item("JIS") {
+		submenu(paper_jis);
+	}
+	item("Other") {
+		submenu(paper_other);
+		dotted;
+	}
+	item("Custom...");
+}
+
+menu(paper_iso, "ISO") {
+	item("A0");
+	item("A1");
+	item("A2");
+	item("A3");
+	item("A4");
+	item("A5");
+	item("A6");
+	item("A7");
+	item("A8");
+	item("A9");
+	item("A10");
+	item("B0");
+	item("B1");
+	item("B2");
+	item("B3");
+	item("B4");
+	item("B5");
+	item("B6");
+	item("C0");
+	item("C1");
+	item("C2");
+	item("C3");
+	item("C4");
+	item("C5");
+	item("C6");
+}
+
+menu(paper_us, "US")
+{
+	item("Tabloid"); /* 11 x 7 */
+	item("Ledger");
+	item("Legal");
+	item("Letter");
+	item("Half Letter");
+	item("Small Letter");
+}
+
+menu(paper_arch, "Architechtural")
+{
+	item("Arch E");
+	item("Arch D");
+	item("Arch C");
+	item("Arch B");
+	item("Arch A");
+}
+
+menu(paper_jis, "JIS")
+{
+	item("B0");
+	item("B1");
+	item("B2");
+	item("B3");
+	item("B4");
+	item("B5");
+	item("B6");
+}
+
+menu(paper_other, "Other")
+{
+	item("US Foolscap");
+	item("European Foolscap");
+}
+

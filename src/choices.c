@@ -58,6 +58,7 @@
 #include "ihelp.h"
 #include "main.h"
 #include "optimize.h"
+#include "paper.h"
 #include "pdfmark.h"
 #include "pmenu.h"
 #include "templates.h"
@@ -83,6 +84,8 @@
 #define CHOICE_ICON_RESETEVERY 18
 #define CHOICE_ICON_IBAR 19
 #define CHOICE_ICON_MEMORY 21
+#define CHOICE_ICON_PAPER 27
+#define CHOICE_ICON_PAPER_MENU 28
 
 
 /* Global variables */
@@ -91,6 +94,7 @@ static encrypt_params		encryption;
 static optimize_params		optimization;
 static version_params		version;
 static pdfmark_params		pdfmark;
+static paper_params		paper;
 
 static wimp_w			choices_window = NULL;
 
@@ -113,6 +117,7 @@ static osbool	handle_choices_icon_drop(wimp_message *message);
 static void	choices_process_encrypt_dialogue(void);
 static void	choices_process_pdfmark_dialogue(void);
 static void	choices_process_optimize_dialogue(void);
+static void	choices_process_paper_dialogue(void);
 
 
 /**
@@ -188,6 +193,7 @@ static void choices_set_window(void)
 	optimize_fill_field(choices_window, CHOICE_ICON_OPTIMIZE, &optimization);
 	encrypt_fill_field(choices_window, CHOICE_ICON_ENCRYPT, &encryption);
 	pdfmark_fill_field(choices_window, CHOICE_ICON_INFO, &pdfmark);
+	paper_fill_field(choices_window, CHOICE_ICON_PAPER, &paper);
 }
 
 
@@ -212,6 +218,7 @@ static void choices_read_window(void)
 	encrypt_save_settings(&encryption);
 	optimise_save_settings(&optimization);
 	pdfmark_save_settings(&pdfmark);
+	paper_save_settings(&paper);
 
 	/* Make any immediate changes that depend on the choices. */
 
@@ -282,6 +289,11 @@ static void choices_click_handler(wimp_pointer *pointer)
 	case CHOICE_ICON_INFO_MENU:
 		pdfmark_set_dialogue_callback(choices_process_pdfmark_dialogue);
 		pdfmark_open_dialogue(&pdfmark, pointer);
+		break;
+
+	case CHOICE_ICON_PAPER_MENU:
+		paper_set_dialogue_callback(choices_process_paper_dialogue);
+		paper_open_dialogue(&paper, pointer);
 		break;
 	}
 }
@@ -422,6 +434,18 @@ static void choices_process_pdfmark_dialogue(void)
 {
 	pdfmark_process_dialogue(&pdfmark);
 	pdfmark_fill_field(choices_window, CHOICE_ICON_INFO, &pdfmark);
+}
+
+
+/**
+ * Callback to respond to clicks on the OK button of the paper
+ * dialogue.
+ */
+
+static void choices_process_paper_dialogue(void)
+{
+	paper_process_dialogue(&paper);
+	paper_fill_field(choices_window, CHOICE_ICON_PAPER, &paper);
 }
 
 

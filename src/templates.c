@@ -199,6 +199,8 @@ char *templates_get_current_menu_name(char *buffer)
 		strcpy(buffer, "VersionMenu");
 	else if (menu_up == templates_menu_list[TEMPLATES_MENU_OPTIMIZATION])
 		strcpy(buffer, "OptimizeMenu");
+	else if (menu_up == templates_menu_list[TEMPLATES_MENU_PAPER])
+		strcpy(buffer, "PaperMenu");
 	else
 		strcpy(buffer, "BookmarkListMenu");
 
