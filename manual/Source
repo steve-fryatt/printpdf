@@ -35,7 +35,7 @@ If you have any comments about {f/:PrintPDF}, or would like to report any bugs t
 Updates to {f/:PrintPDF} and more applications for RISC OS computers can be found on my website at <http://www.stevefryatt.org.uk/software/=>#url>.
 
 #Align Centre
-© Stephen Fryatt, 2005-2012 (<steve@stevefryatt.org.uk=>#url mailto:steve@stevefryatt.org.uk>)
+© Stephen Fryatt, 2005-2013 (<steve@stevefryatt.org.uk=>#url mailto:steve@stevefryatt.org.uk>)
 RISC OS 4 and 5 Iconsprites by Richard Hallas
 
 A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$HelpText\>>.
@@ -78,7 +78,7 @@ A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$Hel
 =============================================================================
 PrintPDF - Easy PDF creation with GhostScript                    Version $$version$$
 
-(c) Stephen Fryatt, 2005-2012                  $$date$$
+(c) Stephen Fryatt, 2005-2013                  $$date$$
 =============================================================================
 </literal>
 
