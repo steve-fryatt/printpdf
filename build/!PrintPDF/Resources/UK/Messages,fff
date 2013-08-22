@@ -65,7 +65,7 @@ PaperIA6:ISO A6
 PaperIA7:ISO A7
 PaperIA8:ISO A8
 PaperIA9:ISO A9
-PaperIB10:ISO A10
+PaperIA10:ISO A10
 PaperIB0:ISO B0
 PaperIB1:ISO B1
 PaperIB2:ISO B2
@@ -85,14 +85,14 @@ PaperLed:US Ledger
 PaperLeg:US Legal
 PaperLet:US Letter
 PaperHLt:US Half Letter
-PaperSLt:US Small Letter
+PaperSLt:US Sm. Letter
 PaperAE:Arch E
 PaperAD:Arch D
 PaperAC:Arch C
 PaperAB:Arch B
 PaperAA:Arch A
 PaperUSF:US Foolscap
-PaperEUF:European Foolscap
+PaperEUF:Eur. Foolscap
 PaperJB0:JIS B0
 PaperJB1:JIS B1
 PaperJB2:JIS B2
