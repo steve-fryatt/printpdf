@@ -445,11 +445,37 @@ void paper_fill_field(wimp_w window, wimp_i icon, paper_params *params)
 
 void paper_build_params(char *buffer, size_t len, paper_params *params)
 {
+	int	i;
+	double	width, height;
+	
 	*buffer = '\0';
 
 	if (!params->override_document)
 		return;
-
-	snprintf(buffer, len, "-dFIXEDMEDIA -dDEVICEWIDTHPOINTS=%d -dDEVICEHEIGHTPOINTS=%d", params->width, params->height);
+	
+	if (params->preset_size == -1) {
+		width = (double) params->width / 100.0;
+		height = (double) params->height / 100.0;
+		
+		switch (params->units) {
+		case PAPER_UNITS_MM:
+			width *= 2.83464567;
+			height *= 2.83464567;
+			break;
+		case PAPER_UNITS_INCH:
+			width *= 72;
+			height *= 72;
+			break;
+		default:
+			break;
+		}
+		
+		snprintf(buffer, len, "-dFIXEDMEDIA -dDEVICEWIDTHPOINTS=%.0f -dDEVICEHEIGHTPOINTS=%.0f", width, height);
+	} else {
+		for (i = 0; paper_sizes[i].gsname != NULL && params->preset_size != i; i++);
+		
+		if (paper_sizes[i].gsname != NULL)
+			snprintf(buffer, len, "-dFIXEDMEDIA -sPAPERSIZE=%s", paper_sizes[i].gsname);
+	}
 }
 
