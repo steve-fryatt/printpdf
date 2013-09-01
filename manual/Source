@@ -68,6 +68,8 @@ A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$Hel
 <div class="container">
 <div class="chapter">
 <h1>PrintPDF</h1>
+<p align="center"><b>Easy PDF creation with GhostScript</b> - &copy; Stephen Fryatt, 2001-2013<br>
+Version $$version$$ ($$date$$)</p>
 </div>
 </literal>
 
@@ -90,7 +92,7 @@ PrintPDF - Easy PDF creation with GhostScript                    Version $$versi
 
 You may obtain a copy of the Licence at <link ref="#url http://joinup.ec.europa.eu/software/page/eupl">http://joinup.ec.europa.eu/software/page/eupl</link>
 
-Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an &quot;<strong>as is</strong>&quot; basis, <strong>without warranties or conditions of any kind</strong>, either express or implied.
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an &ldquo;<strong>as is</strong>&rdquo; basis, <strong>without warranties or conditions of any kind</strong>, either express or implied.
 
 See the Licence for the specific language governing permissions and limitations under the Licence.
 
@@ -151,7 +153,7 @@ There are several alternative ways to set things up, and two or more can be used
 <list spacing="1">
 <li>Use the standard PoScript2 driver; while this works fine, it means that the icon used to indicate the &ldquo;PDF printer&rdquo; is fairly nondescript. This uses PostScript2 to send data to the printer.
 
-<li>Use a slightly modified version of the PoScript2 driver (supplied in the <file>Printers</file> folder of the <cite>PrintPDF</cite> archive), which allows a different &quot;PDF&quot; icon to be displayed but is otherwise identical and also results in PS2 data being used.
+<li>Use a slightly modified version of the PoScript2 driver (supplied in the <file>Printers</file> folder of the <cite>PrintPDF</cite> archive), which allows a different &ldquo;PDF&rdquo; icon to be displayed but is otherwise identical and also results in PS2 data being used.
 
 <li>Use the <file>PDF3</file> driver supplied in the <file>PrintDefs.PrintPDF</file> folder of the PS3 Driver download from Martin Wuerthner and John Tytgat (this is commercial software - see <link ref="#url http://www.mw-software.com/software/ps3/ps3.html">http://www.mw-software.com/software/ps3/ps3.html</link>). This allows PrintPDF to send PostScript3 data to GhostScript.
 </list>
@@ -163,11 +165,11 @@ To set up by any of these methods, first load <cite>PrintPDF</cite> so that its 
 Locate the printer definition file to be used, and drag it into the <window>Printer control</window> window.  This will be one of three:
 
 <list spacing="1">
-<li>For the standard PostScript2 driver, locate the printer definitions supplied with your machine, and drag the <file>PoScript2</file> file from the <file>Postscript</file> directory to the window.  This should add a new printer, with the name &quot;PoScript2&quot;.
+<li>For the standard PostScript2 driver, locate the printer definitions supplied with your machine, and drag the <file>PoScript2</file> file from the <file>Postscript</file> directory to the window.  This should add a new printer, with the name &ldquo;PoScript2&rdquo;.
 
-<li>For the &quot;PDF printer&quot; using PS2, find the <file>PDF</file> definition from the <file>Printers</file> folder of the <cite>PrintPDF</cite> archive and drag it to the window: this should add a new printer with the name &quot;PDF&quot;.
+<li>For the &ldquo;PDF printer&rdquo; using PS2, find the <file>PDF</file> definition from the <file>Printers</file> folder of the <cite>PrintPDF</cite> archive and drag it to the window: this should add a new printer with the name &ldquo;PDF&rdquo;.
 
-<li>For the PostScript3 driver, find the <file>PDF3</file> definition from the <file>PrintDefs/PrintPDF</file> folder of the <cite>PS3</cite> archive from Martin Wuerthner and John Tytgat, and drag it to the window: this should add a new printer with the name &quot;PDF3&quot;.
+<li>For the PostScript3 driver, find the <file>PDF3</file> definition from the <file>PrintDefs/PrintPDF</file> folder of the <cite>PS3</cite> archive from Martin Wuerthner and John Tytgat, and drag it to the window: this should add a new printer with the name &ldquo;PDF3&rdquo;.
 </list>
 
 Click <mouse>menu</mouse> over the new printer&rsquo;s line, and select <menu>Connection...</menu> to open the <window>Connections</window> dialogue. Select <icon>File</icon> at the bottom of the list, click on the pop-up menu icon to the right of the field, and drag the file from the save dialogue to the <cite>PrintPDF</cite> icon on the iconbar; this should update the filename shown by <cite>Printers</cite>. Make sure that <icon>Append to file</icon> is not ticked, then click on <icon>Set</icon> to update the details.
@@ -272,20 +274,20 @@ It is also possible to convert PostScript files which already exist on disc, by 
 
 <chapter title="Bookmark Editor" file="BMark">
 
-The bookmark editor is used to create sets of bookmarks, which can be attached to PDF files when they are created. Bookmarks are links to pages within a PDF document, and most PDF viewers can be made to display them and allow the user to follow them. The popular <cite>!PDF</cite> viewer on RISC&nbsp;OS refers to bookmarks as the &quot;document outline&quot;, and displays them through the left-hand icon on its toolbar.
+The bookmark editor is used to create sets of bookmarks, which can be attached to PDF files when they are created. Bookmarks are links to pages within a PDF document, and most PDF viewers can be made to display them and allow the user to follow them. The popular <cite>!PDF</cite> viewer on RISC&nbsp;OS refers to bookmarks as the &ldquo;document outline&rdquo;, and displays them through the left-hand icon on its toolbar.
 
 To enable PDFs to be generated with bookmarks in them, <cite>PrintPDF</cite> allows files containing sets of bookmarks to be created and maintained: these can then be loaded back into the bookmark editor when their associated document is printed to PDF, and used in the conversion. To create a new bookmarks file, click <mouse>select</mouse> on <cite>PrintPDF</cite>&rsquo;s iconbar icon.
 
 A bookmarks file contains of a series of bookmark entries, each consisting of a title in the left-hand column and a page number in the right. Page numbers always count from 1, and refer to pages in the finished PDF document. If a document consists of several files joined together via <cite>PrintPDF</cite>&rsquo;s <link ref="Queue">queue</link>, then the numbers continue in sequence through each of the source documents in turn. Page numbering as understood by software such as <cite>Impression</cite> or <cite>Ovation Pro</cite> is not seen by <cite>PrintPDF</cite>, and so can not be used.
 
-A new file initially contains a single line, but more can be inserted using <menu>Insert - Before row</menu> and <menu>Insert - After row</menu> from the bookmarks menu, by pressing <key>tab</key> in the page number column, or by pressing <key>return</key>. Lines can be deleted by using <menu>Delete row</menu> from the menu, or by pressing <key>backspace</key> in an empty title cell (ie. deleting back out of the empty cell).
+A new file initially contains a single line, but more can be inserted using <menu>Insert &msep; Before row</menu> and <menu>Insert &msep; After row</menu> from the bookmarks menu, by pressing <key>tab</key> in the page number column, or by pressing <key>return</key>. Lines can be deleted by using <menu>Delete row</menu> from the menu, or by pressing <key>backspace</key> in an empty title cell (ie. deleting back out of the empty cell).
 
 A set of bookmarks is given a name using the <icon>name</icon> field at the right-hand side of the toolbar: this is used to identify the bookmarks during PDF creation.
 
 
 <subhead title="Saving and loading bookmarks">
 
-Sets of bookmarks can be saved using the <icon>save</icon> button in the toolbar or by selecting <menu>File - Save</menu> from the menu. Once saved, files can be loaded back into the editor by double-clicking on them in the usual manner.
+Sets of bookmarks can be saved using the <icon>save</icon> button in the toolbar or by selecting <menu>File &msep; Save</menu> from the menu. Once saved, files can be loaded back into the editor by double-clicking on them in the usual manner.
 
 An asterisk to the right of the <window>bookmark editor</window> window&rsquo;s titlebar indicates that there are unsaved changes within it.
 
@@ -294,13 +296,13 @@ In order to use a set of bookmarks in the PDF creation process, the bookmarks fi
 
 <subhead title="Nesting bookmarks">
 
-Although bookmarks can consist of a simple list of references, the PDF format allows them to be nested. This means that top-level bookmarks (chapter headings, for example) can have children under them (sub headings, perhaps) and these can in turn have their own children, and so on. In this chapter of the <cite>PrintPDF</cite> manual, for example, the top-level bookmark would be &quot;Bookmark Editor&quot;, while it would have children of &quot;Saving and loading bookmarks&quot; and &quot;Nesting bookmarks&quot;.
+Although bookmarks can consist of a simple list of references, the PDF format allows them to be nested. This means that top-level bookmarks (chapter headings, for example) can have children under them (sub headings, perhaps) and these can in turn have their own children, and so on. In this chapter of the <cite>PrintPDF</cite> manual, for example, the top-level bookmark would be &ldquo;Bookmark Editor&rdquo;, while it would have children of &ldquo;Saving and loading bookmarks&rdquo; and &ldquo;Nesting bookmarks&rdquo;.
 
-To produce nested bookmark entries, create a normal bookmark entry and use <menu>Level - Promote</menu> from the menu or click on the <icon>promote</icon> toolbar button to indent it. The bookmark above will gain a <icon>node</icon> to its left, showing that it now has a child: as such, the first bookmark in the list can never be indented. The process can be reversed using <menu>Level - Demote</menu> or the <icon>demote</icon> button in the toolbar.
+To produce nested bookmark entries, create a normal bookmark entry and use <menu>Level &msep; Promote</menu> from the menu or click on the <icon>promote</icon> toolbar button to indent it. The bookmark above will gain a <icon>node</icon> to its left, showing that it now has a child: as such, the first bookmark in the list can never be indented. The process can be reversed using <menu>Level &msep; Demote</menu> or the <icon>demote</icon> button in the toolbar.
 
-The <menu>Promote all</menu> and <menu>Demote all</menu> options are similar in action, but try to promote and demote logical groups of bookmarks following the selected one. In general, they will promote or demote all of the nodes following the selected one at the same level, and any of their children. When demoting, it may sometimes be necessary to demote additional nodes so as to avoid breaking the bookmark structure: this will happen regardless of whether or not &quot;all&quot; is used.
+The <menu>Promote all</menu> and <menu>Demote all</menu> options are similar in action, but try to promote and demote logical groups of bookmarks following the selected one. In general, they will promote or demote all of the nodes following the selected one at the same level, and any of their children. When demoting, it may sometimes be necessary to demote additional nodes so as to avoid breaking the bookmark structure: this will happen regardless of whether or not &ldquo;all&rdquo; is used.
 
-Clicking on the <icon>node</icon> buttons to the left of the parent bookmarks allows their children to be hidden or revealed. These settings are saved in the file and carried across to the finished PDF, so toggling these affects the unsaved status of the bookmarks file. <menu>View - Expand all</menu> and <menu>View - Contract all</menu>, along with the associated toolbar buttons, can be used to fully expand or fully contract the set of bookmarks.
+Clicking on the <icon>node</icon> buttons to the left of the parent bookmarks allows their children to be hidden or revealed. These settings are saved in the file and carried across to the finished PDF, so toggling these affects the unsaved status of the bookmarks file. <menu>View &msep; Expand all</menu> and <menu>View &msep; Contract all</menu>, along with the associated toolbar buttons, can be used to fully expand or fully contract the set of bookmarks.
 
 </chapter>
 
@@ -681,6 +683,8 @@ f22 = Corpus.Medium.Oblique   14   Bold 21  Italic 22  Both 23
 f23 = Corpus.Bold.Oblique     14   Bold 21  Italic 22  Both 23
 
 # Fonts 24 to 31 are reserved for the manuals themselves.
+
+f31 = Selwyn                  14
 
 # The styles..
 
