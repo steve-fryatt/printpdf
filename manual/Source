@@ -69,7 +69,7 @@ A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$Hel
 | <a href="index.html" class="breadcrumb">Locate</a>
 | <span class="breadcrumb-here">Manual</span> ]</p>
 
-<img src="images/locate.gif" alt="" width=34 height=34 class="list-image">
+<img src="images/printpdf.gif" alt="" width=34 height=34 class="list-image">
 
 <p><b>Easy PDF creation with GhostScript</b> &ndash; &copy; Stephen Fryatt, 2005-2013<br>
 Version $$version$$ ($$date$$)</p>
