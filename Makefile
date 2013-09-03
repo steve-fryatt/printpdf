@@ -185,7 +185,7 @@ $(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR
 	$(TEXTMERGE) $(OUTDIR)/$(README) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR) 5
 
 $(OUTDIR)/$(HTMLHELP): $(MANUAL)/$(MANSRC)
-	$(MANTOOLS) -MHTML -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(HTMLHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
+	$(MANTOOLS) -MHTML -C../images/ -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(HTMLHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 
 
 # Build the release Zip file.
@@ -213,4 +213,5 @@ clean:
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP)
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
 	$(RM) $(OUTDIR)/$(README)
+	$(RM) $(OUTDIR)/$(HTMLHELP)
 
