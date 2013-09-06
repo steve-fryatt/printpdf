@@ -1,6 +1,7 @@
 <document title="PrintPDF">
 <define name="version" value="">
 <define name="date" value="" length=30 align="right">
+<define name="sprites" value="Sprites">
 
 
 
@@ -127,13 +128,13 @@ In addition to this manual, interactive help is fully supported.
 
 To install <cite>PrintPDF</cite>, drag the <file>!PrintPDF</file> application directory from the archive to a suitable location on your hard disc; the directory containing your other printing utilities may be a good place.
 
-Once the application has been copied, it should be set to be seen by the filer when the machine starts: the easiest way to achieve this is to add it to the list of applications in <cite>Configure</cite>. Start <cite>Configure</cite> by double-clicking on <file>!Boot</file>, then select <icon>Boot</icon> and finally <icon>Look at</icon>. Drag the <file>!PrintPDF</file> application from your hard disc into the list of applications.
+Once the application has been copied, it should be set to be seen by the filer when the machine starts: the easiest way to achieve this is to add it to the list of applications in <cite>Configure</cite>. Start <cite>Configure</cite> by double-clicking on <file>!Boot</file> (or selecting <menu>Configure...</menu> from the Task Manager&rsquo;s iconbar menu on recent versions of RISC&nbsp;OS), then select <icon>Boot</icon> and finally <icon>Look at</icon>. Drag the <file>!PrintPDF</file> application from your hard disc into the list of applications.
 
 <cite>PrintPDF</cite> is 32-bit neutral, and requires the 32-bit Shared C Library from Castle to be installed.  If you do not have this, it can be obtained from <link ref="#url http://www.iyonix.com/32bit/system.shtml">http://www.iyonix.com/32bit/system.shtml</link> with full installation instructions.
 
 If you are already using R-Comp&rsquo;s <cite>PDFsuite</cite>, then this is all the installation that is required.  Running <cite>PrintPDF</cite> instead of <cite>PDFmaker</cite> will result in PDF generation being controlled by <cite>PrintPDF</cite>; now read the section on <link ref="Use">Using PrintPDF</link>.
 
-If <cite>PDFsuite</cite> has not been installed, then before <cite>PrintPDF</cite> can be used, a copy of <cite>GhostScript</cite> must be installed on the machine. In addition, it is a good idea (although not essential) to add a new &ldquo;PDF&rdquo; printer definition to <cite>Printers</cite>, so that PDFs can be created automatically when documents are printed.
+If <cite>PDFsuite</cite> is not present, then before <cite>PrintPDF</cite> can be used, a copy of <cite>GhostScript</cite> must be installed on the machine. In addition, it is a good idea (although not essential) to add a new &ldquo;PDF&rdquo; printer definition to <cite>Printers</cite>, so that PDFs can be created automatically when documents are printed.
 
 
 <subhead title="Installing GhostScript">
@@ -192,7 +193,7 @@ To use <cite>PrintPDF</cite>, double-click to install it on the iconbar in the u
 
 For <cite>PrintPDF</cite> to be able to convert PostScript files into PDFs, a copy of <cite>GhostScript</cite> must have been seen by the Filer: it is recommended that <cite>Ghostscript</cite> is included in the list of applications to boot when the machine starts (see the instructions for <link ref="Install">Installing PrintPDF</link>).
 
-Load <cite>Printers</cite>, and select on the iconbar the printer definition set up to work with <cite>PrintPDF</cite>. Open the document you wish to create a PDF from, and print it in the usual way.
+Load <cite>Printers</cite>, and select on the iconbar the printer definition set up to work with <cite>PrintPDF</cite>. Open the document from which you wish to create a PDF, and print it in the usual way.
 
 Instead of being sent to a printer, after a short pause the <window>Create PDF</window> dialogue should open. This contains options to determine how the conversion is carried out, a file icon and a field for the filename. With the options set correctly, enter a suitable filename and drag the file icon to the directory where the PDF is to be saved. This will start the conversion process.
 
@@ -209,31 +210,7 @@ A number of options can be set to control how the conversion is carried out. The
 
 The <icon>PDF version</icon> field allows the version of PDF file to be set, to target different versions of PDF reader. Versions 1.2 (Acrobat 3), 1.3 (Acrobat 4) and 1.4 (Acrobat 5) are currently supported by <cite>GhostScript</cite>, although a number of features in version 1.4 are not yet implemented (see the documentation supplied with <cite>GhostScript</cite> for more details).
 
-The <icon>Optimization</icon> of the file controls aspects of the conversion such as the use of compression and the resolution of any images that are included. A number of preset options are provided by <cite>GhostScript</cite>, or the various parameters can be set manually.
-
-To set the parameters manually, select <menu>Custom...</menu> from the list to open the <window>Custom optimization</window> dialogue. If <icon>Set</icon> is clicked on, the settings in the dialogue box will be used by the conversion; clicking <icon>Cancel</icon>, or closing the dialogue by clicking outside it, will leave the existing settings in force. The options control the downsampling of images to reduce their resolution, image compression, page rotation and compression of the overall page data.
-
-Downsampling can be enabled independently for colour, greyscale and mono images, using the three switches in the <icon>Image downsampling</icon> section. For each type of image, a target resolution in DPI can be set, and the method used to reduce the size can be selected from subsampling or averaging.
-
-The threshold can be used to limit downsampling to images which are more than a given resolution, and is specified in terms of a ratio of the target resolution. That is,  if the threshold is 1.5 and the target resolution is 300, then the resolution of the original image must be more than 1.5 &times; 300, or 450, for downsampling to take place. The colour depth of the resulting images (in bits per colour per pixel) can also be set; &lsquo;Off&rsquo; indicates that the original depth will be retained.
-
-Compression can also be enabled for each type of image, using the <icon>Image compression</icon> section. The switches on the left turn compression on or off for each category, and the algorithm to be used can be specified.  In addition to the images, compression of the overall page data can also be enabled using <icon>Compress pages</icon>.
-
-Finally, the orientation of individual pages can specified in the <icon>Auto page rotation</icon> section. <icon>None</icon> leaves all the pages as they are in the printed document, while <icon>All</icon> will rotate all the pages to the same position to suit the predominant text orientation in the file. <icon>Page by page</icon> will rotate each page individually, based on the predominant text orientation on it.
-
-In addition to the custom settings, a number of preset configurations are provided by <cite>GhostScript</cite>, as follows. Page data is always compressed; colour and greyscale images always use DCT (JPEG) compression, while mono images use CCITT Fax encoding.  Where applicable, downsampling is always done using the bicubic method with a threshold of 1.5 and depth set to off.
-
-<list spacing="1">
-<li><menu>Default</menu> does not downsample images. Pages are rotated page by page.
-
-<li><menu>Screen</menu> downsamples colour and greyscale images to 72dpi, and mono images to 300dpi. Pages are rotated page by page.
-
-<li><menu>EBook</menu> downsamples colour and greyscale images to 150dpi, and mono images to 300dpi. Pages are rotated using &lsquo;all&rsquo;.
-
-<li><menu>Printer</menu> does not downsample images. Pages are not rotated.
-
-<li><menu>Prepress</menu> does not downsample images. Pages are not rotated.
-</list>
+The <icon>Optimization</icon> of the file controls aspects of the conversion such as the use of compression and the resolution of any images that are included. A number of preset options are provided by <cite>GhostScript</cite> or the various parameters can be set manually, as described in the <link ref="Optimize">Document Optimization</link> chapter.
 
 The <icon>Information</icon> field allows the PDF document information to be set up: document title, subject, author and content keywords. When the field shows &lsquo;None&rsquo; then the default values set by the printing system will be used. Clicking on the pop-up menu to the right of the field gives access to these entries, allowing them to be changed. Most PDF readers show the document title in the titlebar of the display window, while the other fields appear with the document properties or document information.
 
@@ -269,6 +246,45 @@ The <icon>Text printing options</icon> at the bottom of the dialogue control the
 <subhead title="Converting existing PostScript files">
 
 It is also possible to convert PostScript files which already exist on disc, by dragging them to the <cite>PrintPDF</cite> icon on the iconbar. They will be added to the queue of files for conversion, and processed in turn.
+
+</chapter>
+
+
+
+
+<chapter title="Document Optimization" file="Optimize">
+
+The <icon>Optimization</icon> field allows control over aspects of the conversion such as the use of compression and the resolution of any images that are included. A number of preset options are provided by <cite>GhostScript</cite>, or the various parameters can be set manually.
+
+The presets on offer are Default, Screen, EBook, Printer and Prepress. When in use, page data is always compressed; colour and greyscale images always use DCT (JPEG) compression, while mono images use CCITT Fax encoding. Where applicable, downsampling is always done using the bicubic method with a threshold of 1.5 and depth set to off.
+
+<list spacing="1">
+<li><menu>Default</menu> does not downsample images. Pages are rotated page by page.
+
+<li><menu>Screen</menu> downsamples colour and greyscale images to 72dpi, and mono images to 300dpi. Pages are rotated page by page.
+
+<li><menu>EBook</menu> downsamples colour and greyscale images to 150dpi, and mono images to 300dpi. Pages are rotated using &lsquo;all&rsquo;.
+
+<li><menu>Printer</menu> does not downsample images. Pages are not rotated.
+
+<li><menu>Prepress</menu> does not downsample images. Pages are not rotated.
+</list>
+
+<box type="warning">
+Several of the preset options can interact badly with the RISC&nbsp;OS printing system. In many cases it is better to avoid their use and set the optimization manually with the <menu>Custom...</menu> option described below.
+</box>
+
+
+To set the parameters manually, select <menu>Custom...</menu> from the list to open the <window>Custom optimization</window> dialogue. If <icon>Set</icon> is clicked on, the settings in the dialogue box will be used by the conversion; clicking <icon>Cancel</icon>, or closing the dialogue by clicking outside it, will leave the existing settings in force. The options control the downsampling of images to reduce their resolution, image compression, page rotation and compression of the overall page data.
+
+Downsampling can be enabled independently for colour, greyscale and mono images, using the three switches in the <icon>Image downsampling</icon> section. For each type of image, a target resolution in DPI can be set, and the method used to reduce the size can be selected from subsampling or averaging.
+
+The threshold can be used to limit downsampling to images which are more than a given resolution, and is specified in terms of a ratio of the target resolution. That is,  if the threshold is 1.5 and the target resolution is 300, then the resolution of the original image must be more than 1.5 &times; 300, or 450, for downsampling to take place. The colour depth of the resulting images (in bits per colour per pixel) can also be set; &lsquo;Off&rsquo; indicates that the original depth will be retained.
+
+Compression can also be enabled for each type of image, using the <icon>Image compression</icon> section. The switches on the left turn compression on or off for each category, and the algorithm to be used can be specified.  In addition to the images, compression of the overall page data can also be enabled using <icon>Compress pages</icon>.
+
+Finally, the orientation of individual pages can specified in the <icon>Auto page rotation</icon> section. <icon>None</icon> leaves all the pages as they are in the printed document, while <icon>All</icon> will rotate all the pages to the same position to suit the predominant text orientation in the file. <icon>Page by page</icon> will rotate each page individually, based on the predominant text orientation on it.
+
 
 </chapter>
 
