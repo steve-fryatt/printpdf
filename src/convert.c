@@ -85,12 +85,6 @@
 
 #define QUEUE_ICON_HEIGHT 48
 
-/* Conversion progress stages. */
-
-#define CONVERSION_STOPPED     0
-#define CONVERSION_STARTING    1
-#define CONVERSION_PS2PS       2
-#define CONVERSION_PS2PDF      3
 
 /* Save PDF Window icons. */
 
@@ -124,19 +118,29 @@
 #define QUEUE_PANE_FILE    1
 #define QUEUE_PANE_DELETE  2
 
+/* Conversion progress stages. */
+
+enum conversion_state {
+	CONVERSION_STOPPED,
+	CONVERSION_STARTING,
+	CONVERSION_PS2PS,
+	CONVERSION_PS2PDF
+};
+
 /* Queue entry types. */
 
-#define PENDING_ATTENTION 1
-#define BEING_PROCESSED   2
-#define HELD_IN_QUEUE     3
-#define DISCARDED         4
-#define DELETED           5
-
+enum queue_type {
+	PENDING_ATTENTION,
+	BEING_PROCESSED,
+	HELD_IN_QUEUE,
+	DISCARDED,
+	DELETED
+};
 
 typedef struct queued_file {
 	char			filename[MAX_QUEUE_NAME];
 	char			display_name[MAX_DISPLAY_NAME];
-	int			object_type;
+	enum queue_type		object_type;
 	int			include;
 
 	struct queued_file	*next;
@@ -671,14 +675,14 @@ static osbool convert_handle_save_icon_drop(wimp_message *message)
 
 static osbool convert_progress(conversion_params *params)
 {
-	static int		conversion_state = CONVERSION_STOPPED;
-	static char		output_file[MAX_FILENAME];
-	static char		pdfmark_file[MAX_FILENAME];
-	static int		preprocess_in_ps2ps;
+	static enum conversion_state	conversion_state = CONVERSION_STOPPED;
+	static char			output_file[MAX_FILENAME];
+	static char			pdfmark_file[MAX_FILENAME];
+	static int			preprocess_in_ps2ps;
 
-	char			intermediate_file[MAX_FILENAME], *intermediate_leaf="inter";
-	queued_file		*list, *new, **end = NULL;
-	os_error		*err;
+	char				intermediate_file[MAX_FILENAME], *intermediate_leaf="inter";
+	queued_file			*list, *new, **end = NULL;
+	os_error			*err;
 
 	/* If conversion parameters have been passed in and the conversion is stopped, reset and start a new process.
 	 */
@@ -747,6 +751,9 @@ static osbool convert_progress(conversion_params *params)
 
 			conversion_state = CONVERSION_STOPPED;
 			break;
+	
+	case CONVERSION_STOPPED:
+		break;
 	}
 
 	/* Exit, signalling true if the process has ended. */
