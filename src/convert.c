@@ -735,7 +735,7 @@ static osbool convert_progress(conversion_params *params)
 			list = list->next;
 		}
 
-		new = malloc (sizeof (queued_file));
+		new = malloc(sizeof(queued_file));
 
 		if (new != NULL) {
 			strcpy(new->filename, intermediate_leaf);
@@ -759,7 +759,7 @@ static osbool convert_progress(conversion_params *params)
 	case CONVERSION_PS2PDF:
 			osfile_set_type(output_file, 0xadf);
 
-			if (config_opt_read ("PopUpAfter"))
+			if (config_opt_read("PopUpAfter"))
 				popup_open(config_int_read("PopUpTime"));
 
 			conversion_state = CONVERSION_STOPPED;
