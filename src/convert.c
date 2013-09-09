@@ -121,10 +121,12 @@
 /* Conversion progress stages. */
 
 enum conversion_state {
-	CONVERSION_STOPPED,
-	CONVERSION_STARTING,
-	CONVERSION_PS2PS,
-	CONVERSION_PS2PDF
+	CONVERSION_STOPPED,		/**< No Conversion in action.		*/
+	CONVERSION_STARTING,		/**< Conversion ready to start.		*/
+	CONVERSION_PS2PS_PENDING,	/**< *ps2ps process is starting.	*/
+	CONVERSION_PS2PS,		/**< *ps2ps process is running.		*/
+	CONVERSION_PS2PDF_PENDING,	/**< *ps2pdf process is starting.	*/
+	CONVERSION_PS2PDF		/**< *ps2pdf process is running.	*/
 };
 
 /* Queue entry types. */
@@ -196,6 +198,7 @@ static void		convert_queue_pane_click_handler(wimp_pointer *pointer);
 static void		convert_start_queue_entry_drag(int line);
 static void		convert_terminate_queue_entry_drag(wimp_dragged *drag, void *data);
 
+static osbool		convert_check_for_conversion_start(wimp_message *message);
 static osbool		convert_check_for_conversion_end(wimp_message *message);
 
 static void		convert_decode_queue_pane_help(char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons);
@@ -292,6 +295,7 @@ void convert_initialise(void)
 	event_add_window_redraw_event(convert_queue_pane, convert_queue_pane_redraw_handler);
 	event_add_window_mouse_event(convert_queue_pane, convert_queue_pane_click_handler);
 
+	event_add_message_handler(message_TASK_INITIALISE, EVENT_MESSAGE_INCOMING, convert_check_for_conversion_start);
 	event_add_message_handler(message_TASK_CLOSE_DOWN, EVENT_MESSAGE_INCOMING, convert_check_for_conversion_end);
 	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, convert_handle_save_icon_drop);
 
@@ -669,7 +673,8 @@ static osbool convert_handle_save_icon_drop(wimp_message *message)
  * This function maintains state between calls, so it can be called to move
  * the conversion on from one stage to the next as the child tasks terminate.
  *
- * \param *params		The parameters for the conversion to be progressed.
+ * \param *params		The parameters for the conversion to be launched,
+ *				or NULL for none.
  * \return			TRUE if the conversion is complete; else FALSE.
  */
 
@@ -705,14 +710,18 @@ static osbool convert_progress(conversion_params *params)
 		if (err == NULL) {
 			if (preprocess_in_ps2ps) {
 				sprintf(intermediate_file, "%s.%s", config_str_read("FileQueue"), intermediate_leaf);
-				conversion_state = (convert_launch_ps2ps(intermediate_file)) ? CONVERSION_PS2PS : CONVERSION_STOPPED;
+				conversion_state = (convert_launch_ps2ps(intermediate_file)) ? CONVERSION_PS2PS_PENDING : CONVERSION_STOPPED;
 			} else {
-				conversion_state = (convert_launch_ps2pdf(output_file, pdfmark_file)) ? CONVERSION_PS2PDF : CONVERSION_STOPPED;
+				conversion_state = (convert_launch_ps2pdf(output_file, pdfmark_file)) ? CONVERSION_PS2PDF_PENDING : CONVERSION_STOPPED;
 			}
 		} else {
 			error_msgs_report_error("FOpenFailed");
 			conversion_state = CONVERSION_STOPPED;
 		}
+		break;
+
+	case CONVERSION_PS2PS_PENDING:
+		conversion_state = CONVERSION_PS2PS;
 		break;
 
 	case CONVERSION_PS2PS:
@@ -737,10 +746,14 @@ static osbool convert_progress(conversion_params *params)
 			if (end != NULL)
 				*end = new;
 
-			conversion_state = (convert_launch_ps2pdf(output_file, pdfmark_file)) ? CONVERSION_PS2PDF : CONVERSION_STOPPED;
+			conversion_state = (convert_launch_ps2pdf(output_file, pdfmark_file)) ? CONVERSION_PS2PDF_PENDING : CONVERSION_STOPPED;
 		} else {
 			conversion_state = CONVERSION_STOPPED;
 		}
+		break;
+	
+	case CONVERSION_PS2PDF_PENDING:
+		conversion_state = CONVERSION_PS2PDF;
 		break;
 
 	case CONVERSION_PS2PDF:
@@ -756,7 +769,7 @@ static osbool convert_progress(conversion_params *params)
 		break;
 	}
 
-	/* Exit, signalling true if the process has ended. */
+	/* Exit, signalling FALSE if the process has ended. */
 
 	return (conversion_state != CONVERSION_STOPPED) ? TRUE : FALSE;
 }
@@ -776,6 +789,7 @@ static osbool convert_launch_ps2ps(char *file_out)
 	queued_file	*list;
 	FILE		*param_file;
 	os_error	*error = NULL;
+	wimp_t		started_task;
 
 	msgs_lookup("ChildTaskName", taskname, sizeof(taskname));
 
@@ -804,10 +818,10 @@ static osbool convert_launch_ps2ps(char *file_out)
 
 		/* Launch the conversion task. */
 
-		error = xwimp_start_task(command, &conversion_task);
+		error = xwimp_start_task(command, &started_task);
 	}
 
-	return (error == NULL && conversion_task != 0) ? TRUE : FALSE;
+	return (error == NULL && started_task != 0) ? TRUE : FALSE;
 }
 
 
@@ -830,6 +844,7 @@ static osbool convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file)
 	FILE		*param_file, *pdfmark_file;
 	int		queue_left;
 	os_error	*error = NULL;
+	wimp_t		started_task;
 	
 	/* Get a canonicalised version of the queue pathname. */
 	
@@ -902,10 +917,44 @@ static osbool convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file)
 
 		/* Launch the conversion task. */
 
-		error = xwimp_start_task(command, &conversion_task);
+		error = xwimp_start_task(command, &started_task);
 	}
 
-	return (error == NULL && conversion_task != 0) ? TRUE : FALSE;
+	return (error == NULL && started_task != 0) ? TRUE : FALSE;
+}
+
+
+/**
+ * Process Message_TaskInitialise, to see if the task that has started has the name
+ * of our child task. If it has, make note of its handle and move the conversion
+ * state machine on a step.
+ *
+ * \param *message		The message data block.
+ * \return			FALSE to allow other claimants to see the message.
+ */
+
+static osbool convert_check_for_conversion_start(wimp_message *message)
+{
+	char	taskname[32];
+	wimp_full_message_task_initialise *task_initialise = (wimp_full_message_task_initialise *) message;
+	
+	/* Find the name to use for the child task. */
+
+	msgs_lookup("ChildTaskName", taskname, sizeof(taskname));
+
+	if (task_initialise == NULL || strcmp(task_initialise->task_name, taskname) != 0)
+		return FALSE;
+	
+	if (convert_progress(NULL)) {
+		conversion_task = task_initialise->sender;
+		debug_printf("\\GTask seen starting: 0x%x", task_initialise->sender);
+	} else {
+		conversion_task = 0;
+		conversion_in_progress = CONVERSION_STOPPED;
+		convert_remove_current_conversion();
+	}
+
+	return FALSE;
 }
 
 
