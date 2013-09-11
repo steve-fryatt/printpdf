@@ -122,9 +122,9 @@ MANSPR := ManSprite
 READMEHDR := Header
 MENUSRC := menudef
 
-OBJS := bookmark.o choices.o convert.o dataxfer.o encrypt.o ihelp.o iconbar.o main.o \
-        optimize.o paper.o pdfmark.o pmenu.o popup.o taskman.o templates.o version.o
-
+OBJS := bookmark.o choices.o convert.o dataxfer.o encrypt.o ihelp.o iconbar.o \
+        main.o optimize.o paper.o pdfmark.o pmenu.o popup.o ps2paper.o        \
+        taskman.o templates.o version.o
 
 # Build everything, but don't package it for release.
 
