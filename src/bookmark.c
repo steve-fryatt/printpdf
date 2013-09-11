@@ -461,14 +461,14 @@ void bookmark_fill_field(wimp_w window, wimp_i icon, bookmark_params *params)
 	params->bookmarks = bookmark_find_block(params->bookmarks);
 
 	if (params == NULL || params->bookmarks == NULL) {
-		msgs_lookup ("None", icons_get_indirected_text_addr (window, icon), MAX_BOOKMARK_FIELD_LEN);
+		msgs_lookup ("None", icons_get_indirected_text_addr(window, icon), MAX_BOOKMARK_FIELD_LEN);
 	} else {
-		strncpy(icons_get_indirected_text_addr (window, icon), params->bookmarks->name, MAX_BOOKMARK_FIELD_LEN);
+		strncpy(icons_get_indirected_text_addr(window, icon), params->bookmarks->name, MAX_BOOKMARK_FIELD_LEN);
 		if (strlen(params->bookmarks->name) >= MAX_BOOKMARK_FIELD_LEN)
-			strcpy(icons_get_indirected_text_addr (window, icon) + MAX_BOOKMARK_FIELD_LEN - 4, "...");
+			strcpy(icons_get_indirected_text_addr(window, icon) + MAX_BOOKMARK_FIELD_LEN - 4, "...");
 	}
 
-	wimp_set_icon_state (window, icon, 0, 0);
+	wimp_set_icon_state(window, icon, 0, 0);
 }
 
 
