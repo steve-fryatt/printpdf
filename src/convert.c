@@ -947,7 +947,6 @@ static osbool convert_check_for_conversion_start(wimp_message *message)
 	
 	if (convert_progress(NULL)) {
 		conversion_task = task_initialise->sender;
-		debug_printf("\\GTask seen starting: 0x%x", task_initialise->sender);
 	} else {
 		conversion_task = 0;
 		conversion_in_progress = CONVERSION_STOPPED;
