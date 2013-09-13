@@ -101,6 +101,10 @@ PaperJB4:JIS B4
 PaperJB5:JIS B5
 PaperJB6:JIS B6
 
+PaperFileM:Master
+PaperFileU:User
+PaperFileD:Device
+
 DepthOff:Off
 
 Yes:Yes
@@ -128,6 +132,8 @@ FilesNotSaved:There are unsaved bookmarks files: do you want to quit anyway?
 FilesNotSavedB:Discard,Cancel
 PendingJobs:There are print jobs queued: do you want to quit anyway?
 PendingJobsB:Discard,Cancel
+
+PaperNoMem:There was not enough memory to create the paper list.
 
 # ps2pdf command-line option lists.
 
