@@ -105,6 +105,11 @@ PaperFileM:Master
 PaperFileU:User
 PaperFileD:Device
 
+PaperStatMiss:Missing
+PaperStatUnkn:Unknown
+PaperStatOK:Correct
+PaperStatNOK:Incorrect
+
 DepthOff:Off
 
 Yes:Yes
