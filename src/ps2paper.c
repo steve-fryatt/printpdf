@@ -363,7 +363,9 @@ static void ps2paper_click_handler(wimp_pointer *pointer)
 static void ps2paper_read_definitions(void)
 {
 	struct ps2paper_size	*paper;
-	int			i;
+	wimp_window_state	state;
+	os_box			extent;
+	int			i, visible_extent, new_extent, new_scroll;
 	char			source[PS2PAPER_SOURCE_LEN];
 
 	ps2paper_clear_definitions();
@@ -389,6 +391,44 @@ static void ps2paper_read_definitions(void)
 		redraw_list[--i] = paper;
 		paper = paper->next;
 	}
+
+	/* Set the window extent. */
+
+	state.w = ps2paper_pane;
+	wimp_get_window_state(&state);
+
+	visible_extent = state.yscroll + (state.visible.y0 - state.visible.y1);
+
+	new_extent = -PS2PAPER_ICON_HEIGHT * paper_count;
+
+	if (new_extent > (state.visible.y0 - state.visible.y1))
+		new_extent = state.visible.y0 - state.visible.y1;
+
+	if (new_extent > visible_extent) {
+		/* Calculate the required new scroll offset.  If this is greater than zero, the current window is too
+		 * big and will need shrinking down.  Otherwise, just set the new scroll offset.
+		 */
+
+		new_scroll = new_extent - (state.visible.y0 - state.visible.y1);
+
+		if (new_scroll > 0) {
+			state.visible.y0 += new_scroll;
+			state.yscroll = 0;
+		} else {
+			state.yscroll = new_scroll;
+		}
+
+		wimp_open_window((wimp_open *) &state);
+	}
+
+	extent.x0 = 0;
+	extent.y1 = 0;
+	extent.x1 = state.visible.x1 - state.visible.x0;
+	extent.y0 = new_extent;
+
+	wimp_set_extent(ps2paper_pane, &extent);
+
+
 }
 
 static void ps2paper_clear_definitions(void)
