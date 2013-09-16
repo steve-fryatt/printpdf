@@ -570,7 +570,7 @@ static osbool ps2paper_update_files(void)
 	paper = paper_sizes;
 
 	while (paper != NULL) {
-		if (paper->ps2_file_status == PS2PAPER_STATUS_MISSING)
+		if (paper->ps2_file_status == PS2PAPER_STATUS_MISSING || paper->ps2_file_status == PS2PAPER_STATUS_INCORRECT)
 			ps2paper_write_pagesize(paper, file_path);
 
 		paper = paper->next;
@@ -613,6 +613,8 @@ static enum ps2paper_status ps2paper_read_pagesize(struct ps2paper_size *paper, 
 	}
 
 	sscanf(line, "<< /PageSize [ %lf %lf ] >> setpagedevice \n", &width, &height);
+
+	fclose(in);
 
 	if (width * 1000.0 != paper->width || height * 1000.0 != paper->height)
 		return PS2PAPER_STATUS_INCORRECT;
