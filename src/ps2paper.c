@@ -206,7 +206,7 @@ static void ps2paper_pane_redraw_handler(wimp_draw *redraw)
 
 	switch (page_display_unit) {
 	case PS2PAPER_UNITS_MM:
-		unit_scale = 2836.42567;
+		unit_scale = 2834.64567;
 		unit_format = "%.1f";
 		break;
 	case PS2PAPER_UNITS_INCH:
