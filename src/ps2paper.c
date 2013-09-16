@@ -122,6 +122,7 @@ static void	ps2paper_clear_definitions(void);
 static void	ps2paper_read_definitions(void);
 static osbool	ps2paper_read_def_file(char *file, char *source);
 static osbool	ps2paper_update_files(void);
+static enum ps2paper_status	ps2paper_read_pagesize(struct ps2paper_size *paper, char *file);
 static osbool	ps2paper_write_pagesize(struct ps2paper_size *paper, char *file_path);
 
 
@@ -520,7 +521,7 @@ static osbool ps2paper_read_def_file(char *file, char *source)
 					error = xosfile_read_no_path(line, &type, NULL, NULL, NULL, NULL);
 
 					if (error == NULL && type == fileswitch_IS_FILE)
-						paper_definition->ps2_file_status = PS2PAPER_STATUS_UNKNOWN;
+						paper_definition->ps2_file_status = ps2paper_read_pagesize(paper_definition, line);
 				}
 
 				paper_definition->next = paper_sizes;
@@ -576,6 +577,47 @@ static osbool ps2paper_update_files(void)
 	}
 
 	return TRUE;
+}
+
+static enum ps2paper_status ps2paper_read_pagesize(struct ps2paper_size *paper, char *file)
+{
+	FILE	*in;
+	char	line[1024];
+	double	width, height;
+
+	if (file == NULL)
+		return PS2PAPER_STATUS_UNKNOWN;
+
+	in = fopen(file, "r");
+	if (in == NULL)
+		return PS2PAPER_STATUS_UNKNOWN;
+
+	if (fgets(line, sizeof(line), in) == NULL) {
+		fclose(in);
+		return PS2PAPER_STATUS_UNKNOWN;
+	}
+
+	if (strcmp(line, "% Created by PrintPDF\n") != 0) {
+		fclose(in);
+		return PS2PAPER_STATUS_UNKNOWN;
+	}
+
+	if (fgets(line, sizeof(line), in) == NULL) {
+		fclose(in);
+		return PS2PAPER_STATUS_UNKNOWN;
+	}
+
+	if (fgets(line, sizeof(line), in) == NULL) {
+		fclose(in);
+		return PS2PAPER_STATUS_UNKNOWN;
+	}
+
+	sscanf(line, "<< /PageSize [ %lf %lf ] >> setpagedevice \n", &width, &height);
+
+	if (width * 1000.0 != paper->width || height * 1000.0 != paper->height)
+		return PS2PAPER_STATUS_INCORRECT;
+
+	return PS2PAPER_STATUS_CORRECT;
 }
 
 static osbool ps2paper_write_pagesize(struct ps2paper_size *paper, char *file_path)
