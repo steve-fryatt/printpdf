@@ -121,6 +121,9 @@ static void	ps2paper_click_handler(wimp_pointer *pointer);
 static void	ps2paper_clear_definitions(void);
 static void	ps2paper_read_definitions(void);
 static osbool	ps2paper_read_def_file(char *file, char *source);
+static osbool	ps2paper_update_files(void);
+static osbool	ps2paper_write_pagesize(struct ps2paper_size *paper, char *file_path);
+
 
 /**
  * Initialise the ps2paper dialogue.
@@ -353,8 +356,8 @@ static void ps2paper_click_handler(wimp_pointer *pointer)
 		break;
 
 	case PS2PAPER_ICON_UPDATE:
+		ps2paper_update_files();
 		ps2paper_close_window();
-		//convert_start_held_conversion();
 		break;
 	}
 }
@@ -510,6 +513,8 @@ static osbool ps2paper_read_def_file(char *file, char *source)
 				paper_definition->ps2_file[i] = '\0';
 				paper_definition->ps2_file_status = PS2PAPER_STATUS_MISSING;
 
+				string_tolower(paper_definition->ps2_file);
+
 				if (paper_definition->ps2_file[0] != '\0') {
 					snprintf(line, sizeof(line), "Printers:ps.Paper.%s", paper_definition->ps2_file);
 					error = xosfile_read_no_path(line, &type, NULL, NULL, NULL, NULL);
@@ -531,6 +536,69 @@ static osbool ps2paper_read_def_file(char *file, char *source)
 	}
 
 	fclose(in);
+
+	return TRUE;
+}
+
+static osbool ps2paper_update_files(void)
+{
+	struct ps2paper_size	*paper;
+	int			var_len;
+	char			file_path[1024];
+
+
+	*file_path = '\0';
+
+	os_read_var_val_size("Choices$Write", 0, os_VARTYPE_STRING, &var_len, NULL);
+
+	if (var_len == 0)
+		return FALSE;
+
+	snprintf(file_path, sizeof(file_path), "<Choices$Write>.Printers");
+	if (osfile_read_no_path(file_path, NULL, NULL, NULL, NULL) == fileswitch_NOT_FOUND)
+		osfile_create_dir(file_path, 0);
+
+	snprintf(file_path, sizeof(file_path), "<Choices$Write>.Printers.ps");
+	if (osfile_read_no_path(file_path, NULL, NULL, NULL, NULL) == fileswitch_NOT_FOUND)
+		osfile_create_dir(file_path, 0);
+
+	snprintf(file_path, sizeof(file_path), "<Choices$Write>.Printers.ps.Paper");
+	if (osfile_read_no_path(file_path, NULL, NULL, NULL, NULL) == fileswitch_NOT_FOUND)
+		osfile_create_dir(file_path, 0);
+
+	paper = paper_sizes;
+
+	while (paper != NULL) {
+		if (paper->ps2_file_status == PS2PAPER_STATUS_MISSING)
+			ps2paper_write_pagesize(paper, file_path);
+
+		paper = paper->next;
+	}
+
+	return TRUE;
+}
+
+static osbool ps2paper_write_pagesize(struct ps2paper_size *paper, char *file_path)
+{
+	FILE	*out;
+	char	filename[1024];
+
+	if (paper == NULL)
+		return FALSE;
+
+	snprintf(filename, sizeof(filename), "%s.%s", file_path, paper->ps2_file);
+
+	out = fopen(filename, "w");
+	if (out == NULL)
+		return FALSE;
+
+	fprintf(out, "%% Created by PrintPDF\n");
+	fprintf(out, "%%%%BeginFeature: PageSize %s\n", paper->name);
+	fprintf(out, "<< /PageSize [ %.3f %.3f ] >> setpagedevice\n", (double) paper->width / 1000.0, (double) paper->height / 1000.0);
+	fprintf(out, "%%%%EndFeature\n");
+
+	fclose(out);
+	osfile_set_type (filename, (bits) 0xff5);
 
 	return TRUE;
 }
