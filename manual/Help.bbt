@@ -1,0 +1,54 @@
+REM >!Help
+REM
+REM Copyright 2001-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+REM
+REM This file is part of PrintPDF:
+REM
+REM   http://www.stevefryatt.org.uk/software/
+REM
+REM Licensed under the EUPL, Version 1.1 only (the "Licence");
+REM You may not use this work except in compliance with the
+REM Licence.
+REM
+REM You may obtain a copy of the Licence at:
+REM
+REM   http://joinup.ec.europa.eu/software/page/eupl
+REM
+REM Unless required by applicable law or agreed to in
+REM writing, software distributed under the Licence is
+REM distributed on an "AS IS" basis, WITHOUT WARRANTIES
+REM OR CONDITIONS OF ANY KIND, either express or implied.
+REM
+REM See the Licence for the specific language governing
+REM permissions and limitations under the Licence.REM >!Help
+
+REM Select help file based on available readers and selected territory.
+:
+ON ERROR PRINT REPORT$+" at line "+STR$(ERL) : END
+:
+REM Change this direcrtory and the names of the target files and variables as required.
+:
+strong_help$="PrintPDF"
+text_help$="HelpText"
+resource_dir$="<PrintPDF$Dir>.Resources"
+help_text_var$="PrintPDF$HelpText"
+:
+DIM b% 255
+:
+SYS "Territory_Number" TO territory%
+SYS "Territory_NumberToName",territory%,b%,256
+SYS "XOS_GenerateError", b% TO territory_name$
+:
+resource_path$=resource_dir$+"."+territory_name$
+SYS "XOS_File",5,resource_path$ TO type%
+IF type%<2 OR type%>3 THEN resource_path$=resource_dir$+".UK." ELSE resource_path$+="."
+:
+SYS "XOS_SetVarVal",help_text_var$,resource_path$+text_help$,LEN(resource_path$+text_help$),0,0
+:
+SYS "XOS_ReadVarVal","Alias$@RunType_3d6",b%,256,0,0 TO ;flags%
+IF (flags% AND 1) THEN file$=text_help$ ELSE file$=strong_help$
+:
+OSCLI("%Filer_Run "+resource_path$+file$)
+:
+END
+
