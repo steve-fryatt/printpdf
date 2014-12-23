@@ -2883,9 +2883,10 @@ bookmark_block *bookmarks_load_file(char *filename)
 	FILE			*in;
 	bookmark_block		*block;
 	bookmark_node		*current, *new;
-	int			result, bookmarks = 0, unknown_data = 0, unknown_format = 0, version = 100;
+	int			bookmarks = 0, unknown_data = 0, unknown_format = 0, version = 100;
 	char			section[BOOKMARK_FILE_LINE_LEN], token[BOOKMARK_FILE_LINE_LEN], value[BOOKMARK_FILE_LINE_LEN];
 	bits			load, exec;
+	enum config_read_status	result;
 
 
 	block = bookmark_create_block();
@@ -2921,8 +2922,8 @@ bookmark_block *bookmarks_load_file(char *filename)
 
 	current = NULL;
 
-	while ((result = config_read_token_pair(in, token, value, section)) != sf_READ_CONFIG_EOF) {
-		if (result == sf_READ_CONFIG_NEW_SECTION)
+	while ((result = config_read_token_pair(in, token, value, section)) != sf_CONFIG_READ_EOF) {
+		if (result == sf_CONFIG_READ_NEW_SECTION)
 			bookmarks = (string_nocase_strcmp(section, "Bookmarks") == 0);
 
 		if (bookmarks) {
