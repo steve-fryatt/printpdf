@@ -563,7 +563,8 @@ void convert_save_dialogue_end(char *output_file)
 	/* Read and store the options from the window. */
 
 	params.preprocess_in_ps2ps = icons_get_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS);
-	string_ctrl_strcpy(params.pdfmark_userfile, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE));
+	string_ctrl_strncpy(params.pdfmark_userfile, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), MAX_FILENAME);
+	params.pdfmark_userfile[MAX_FILENAME - 1] = '\0';
 
 	/* Launch the conversion process. */
 
@@ -590,7 +591,8 @@ static void convert_save_dialogue_queue(void)
 
 	/* Sort out the filenames. */
 
-	string_ctrl_strcpy(filename, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME));
+	string_ctrl_strncpy(filename, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME), MAX_FILENAME);
+	filename[MAX_FILENAME - 1] = '\0';
 	leafname = string_find_leafname(filename);
 
 	list = queue;

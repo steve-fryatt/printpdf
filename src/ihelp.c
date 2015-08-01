@@ -244,7 +244,7 @@ static char *ihelp_get_text(char *buffer, wimp_w window, wimp_i icon, os_coord p
 		 * If the icon isn't validated, make a string of the form IconX where X is the number.
 		 */
 
-		if (*icon_name == '\0' && icon >= 0 && !icons_get_validation_command(icon_name, window, icon, 'N'))
+		if (*icon_name == '\0' && icon >= 0 && !icons_get_validation_command(icon_name, IHELP_INAME_LEN, window, icon, 'N'))
 			snprintf(icon_name, IHELP_INAME_LEN, "Icon%d", icon);
 
 		/* If an icon name was found from somewhere, look up a token based on that name. */
