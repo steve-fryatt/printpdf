@@ -1,4 +1,4 @@
-/* Copyright 2005-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2005-2015, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
