@@ -22,7 +22,7 @@
  */
 
 /**
- * \file: dataxfer.h
+ * \file: olddataxfer.h
  *
  * Save dialogues and data transfer implementation.
  */
@@ -47,7 +47,7 @@
  * Initialise the data transfer system.
  */
 
-void dataxfer_initialise(void);
+void olddataxfer_initialise(void);
 
 
 /**

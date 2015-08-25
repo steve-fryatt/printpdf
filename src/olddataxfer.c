@@ -22,7 +22,7 @@
  */
 
 /**
- * \file: dataxfer.c
+ * \file: olddataxfer.c
  *
  * Save dialogues and data transfer implementation.
  */
@@ -55,7 +55,7 @@
 
 /* Application header files */
 
-#include "dataxfer.h"
+#include "olddataxfer.h"
 
 #include "bookmark.h"
 #include "choices.h"
@@ -96,7 +96,7 @@ static osbool		start_data_open_load(wimp_message *message);
  * Initialise the data transfer system.
  */
 
-void dataxfer_initialise(void)
+void olddataxfer_initialise(void)
 {
 	event_add_message_handler(message_DATA_SAVE, EVENT_MESSAGE_INCOMING, message_data_save_reply);
 	event_add_message_handler(message_DATA_SAVE_ACK, EVENT_MESSAGE_INCOMING, message_data_save_ack_reply);

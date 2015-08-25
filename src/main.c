@@ -71,7 +71,7 @@
 #include "bookmark.h"
 #include "choices.h"
 #include "convert.h"
-#include "dataxfer.h"
+#include "olddataxfer.h"
 #include "encrypt.h"
 #include "iconbar.h"
 #include "ihelp.h"
@@ -289,7 +289,7 @@ static void main_initialise(void)
 	ihelp_initialise();
 	taskman_initialise();
 	popup_initialise();
-	dataxfer_initialise();
+	olddataxfer_initialise();
 	choices_initialise();
 	encrypt_initialise();
 	optimize_initialise();

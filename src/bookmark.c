@@ -62,7 +62,7 @@
 #include "bookmark.h"
 
 #include "convert.h"
-#include "dataxfer.h"
+#include "olddataxfer.h"
 #include "ihelp.h"
 #include "main.h"
 #include "pdfmark.h"

@@ -120,7 +120,7 @@ READMEHDR := Header
 MENUSRC := menudef
 FINDHELPSRC := Help.bbt
 
-OBJS := bookmark.o choices.o convert.o dataxfer.o encrypt.o ihelp.o iconbar.o \
+OBJS := bookmark.o choices.o convert.o olddataxfer.o encrypt.o ihelp.o iconbar.o \
         main.o optimize.o paper.o pdfmark.o pmenu.o popup.o ps2paper.o        \
         taskman.o templates.o version.o
 

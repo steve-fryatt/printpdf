@@ -66,7 +66,7 @@
 
 #include "bookmark.h"
 #include "choices.h"
-#include "dataxfer.h"
+#include "olddataxfer.h"
 #include "encrypt.h"
 #include "ihelp.h"
 #include "main.h"
@@ -1022,6 +1022,8 @@ static void convert_save_click_handler(wimp_pointer *pointer)
 	switch ((int) pointer->i) {
 	case SAVE_PDF_ICON_FILE:
 		if (pointer->buttons == wimp_DRAG_SELECT)
+//			dataxfer_save_window_drag(pointer->w, SAVE_PDF_ICON_FILE, convert_drag_end_handler, NULL);
+
 			start_save_window_drag(DRAG_SAVE_PDF, convert_savepdf_window, SAVE_PDF_ICON_FILE,
 					icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME));
 		break;
@@ -1060,6 +1062,42 @@ static void convert_save_click_handler(wimp_pointer *pointer)
 		break;
 	}
 }
+
+
+
+
+
+
+/**
+ * Process the termination of icon drags from the Convert dialogue.
+ *
+ * \param *pointer		The pointer location at the end of the drag.
+ * \param *data			The saveas_savebox data for the drag.
+ */
+/*
+static void convert_drag_end_handler(wimp_pointer *pointer, void *data)
+{
+	struct saveas_block	*handle = data;
+	char			*leafname;
+
+	if (handle == NULL)
+		return;
+
+	if (handle->window == saveas_window) {
+		icons_copy_text(handle->window, SAVEAS_ICON_FILENAME, handle->full_filename, SAVEAS_MAX_FILENAME);
+		handle->selected = FALSE;
+	} else {
+		handle->selected = icons_get_selected(handle->window, SAVEAS_ICON_SELECTION);
+		icons_copy_text(handle->window, SAVEAS_ICON_FILENAME, (handle->selected) ? handle->selection_filename : handle->full_filename, SAVEAS_MAX_FILENAME);
+	}
+
+	leafname = string_find_leafname((handle->selected) ? handle->selection_filename : handle->full_filename);
+
+	dataxfer_start_save(pointer, leafname, 0, 0xffffffffu, 0, saveas_save_handler, handle);
+}
+*/
+
+
 
 
 /**
