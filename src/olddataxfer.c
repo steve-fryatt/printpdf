@@ -187,9 +187,6 @@ static void terminate_user_drag(wimp_dragged *drag, void *data)
 	wimp_get_pointer_info (&pointer);
 
 	switch (drag_type) {
-	case DRAG_SAVE_PDF:
-		transfer_save_start_callback(pointer.w, pointer.i, pointer.pos, 0, drag_end_save_pdf, 0, PDF_FILE_TYPE, drag_save_leafname);
-		break;
 	case DRAG_SAVE_SAVEAS:
 		transfer_save_start_callback(pointer.w, pointer.i, pointer.pos, 0, drag_end_save_saveas, 0, PRINTPDF_FILE_TYPE, drag_save_leafname);
 		break;

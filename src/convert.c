@@ -67,6 +67,7 @@
 #include "bookmark.h"
 #include "choices.h"
 #include "olddataxfer.h"
+#include "dataxfer.h"
 #include "encrypt.h"
 #include "ihelp.h"
 #include "main.h"
@@ -162,6 +163,7 @@ typedef struct conversion_params {
 
 static void		convert_start_held_conversion(void);
 static void		convert_open_save_dialogue(void);
+static void		convert_save_dialogue_end(char *output_file);
 static void		convert_save_dialogue_queue(void);
 
 static osbool		convert_handle_save_icon_drop(wimp_message *message);
@@ -176,6 +178,8 @@ static osbool		convert_save_keypress_handler(wimp_key *key);
 static void		convert_save_menu_prepare_handler(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void		convert_save_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 static osbool		convert_immediate_window_save(void);
+static void		convert_drag_end_handler(wimp_pointer *pointer, void *data);
+static osbool		convert_drag_end_save_handler(char *filename, void *data);
 
 static void		convert_process_pdfmark_dialogue(void);
 static void		convert_process_encrypt_dialogue(void);
@@ -549,7 +553,7 @@ static void convert_open_save_dialogue(void)
  * \param *output_file		The file to save the PDF as.
  */
 
-void convert_save_dialogue_end(char *output_file)
+static void convert_save_dialogue_end(char *output_file)
 {
 	conversion_params	params;
 
@@ -1022,10 +1026,7 @@ static void convert_save_click_handler(wimp_pointer *pointer)
 	switch ((int) pointer->i) {
 	case SAVE_PDF_ICON_FILE:
 		if (pointer->buttons == wimp_DRAG_SELECT)
-//			dataxfer_save_window_drag(pointer->w, SAVE_PDF_ICON_FILE, convert_drag_end_handler, NULL);
-
-			start_save_window_drag(DRAG_SAVE_PDF, convert_savepdf_window, SAVE_PDF_ICON_FILE,
-					icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME));
+			dataxfer_save_window_drag(pointer->w, SAVE_PDF_ICON_FILE, convert_drag_end_handler, NULL);
 		break;
 
 	case SAVE_PDF_ICON_OK:
@@ -1062,42 +1063,6 @@ static void convert_save_click_handler(wimp_pointer *pointer)
 		break;
 	}
 }
-
-
-
-
-
-
-/**
- * Process the termination of icon drags from the Convert dialogue.
- *
- * \param *pointer		The pointer location at the end of the drag.
- * \param *data			The saveas_savebox data for the drag.
- */
-/*
-static void convert_drag_end_handler(wimp_pointer *pointer, void *data)
-{
-	struct saveas_block	*handle = data;
-	char			*leafname;
-
-	if (handle == NULL)
-		return;
-
-	if (handle->window == saveas_window) {
-		icons_copy_text(handle->window, SAVEAS_ICON_FILENAME, handle->full_filename, SAVEAS_MAX_FILENAME);
-		handle->selected = FALSE;
-	} else {
-		handle->selected = icons_get_selected(handle->window, SAVEAS_ICON_SELECTION);
-		icons_copy_text(handle->window, SAVEAS_ICON_FILENAME, (handle->selected) ? handle->selection_filename : handle->full_filename, SAVEAS_MAX_FILENAME);
-	}
-
-	leafname = string_find_leafname((handle->selected) ? handle->selection_filename : handle->full_filename);
-
-	dataxfer_start_save(pointer, leafname, 0, 0xffffffffu, 0, saveas_save_handler, handle);
-}
-*/
-
-
 
 
 /**
@@ -1209,6 +1174,23 @@ static osbool convert_immediate_window_save(void)
 
 
 /**
+ * Process the termination of icon drags from the Convert dialogue.
+ *
+ * \param *pointer		The pointer location at the end of the drag.
+ * \param *data			The saveas_savebox data for the drag.
+ */
+
+static void convert_drag_end_handler(wimp_pointer *pointer, void *data)
+{
+	char			*leafname;
+	
+	leafname = string_find_leafname(icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME));
+
+	dataxfer_start_save(pointer, leafname, 0, PDF_FILE_TYPE, 0, convert_drag_end_save_handler, NULL);
+}
+
+
+/**
  * Callback handler for DataSave completion on PDF save drags: start the
  * conversion using the filename returned.
  *
@@ -1216,12 +1198,12 @@ static osbool convert_immediate_window_save(void)
  * \return			0 if the save was started OK.
  */
 
-int drag_end_save_pdf(char *filename)
+static osbool convert_drag_end_save_handler(char *filename, void *data)
 {
 	convert_save_dialogue_end(filename);
 	wimp_close_window(convert_savepdf_window);
 
-	return 0;
+	return TRUE;
 }
 
 

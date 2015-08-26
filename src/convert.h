@@ -101,27 +101,6 @@ void convert_check_for_pending_files(void);
 
 
 /**
- * Callback handler for DataSave completion on PDF save drags: start the
- * conversion using the filename returned.
- *
- * \param *filename		The filename returned by the DataSave protocol.
- * \return			0 if the save was started OK.
- */
-
-int drag_end_save_pdf(char *filename);
-
-
-/**
- * Handle the closure of the file save dialogue following a successful data xfer protocol or similar.
- * The settings are retrieved, and a conversion process is started.
- *
- * \param *output_file		The file to save the PDF as.
- */
-
-void convert_save_dialogue_end(char *filename);
-
-
-/**
  * Called by modules to ask the converion system to re-validate its parameters.
  */
 

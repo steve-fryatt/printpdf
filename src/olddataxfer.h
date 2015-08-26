@@ -27,8 +27,8 @@
  * Save dialogues and data transfer implementation.
  */
 
-#ifndef PRINTPDF_DATAXFER
-#define PRINTPDF_DATAXFER
+#ifndef PRINTPDF_OLDDATAXFER
+#define PRINTPDF_OLDDATAXFER
 
 /* ==================================================================================================================
  * Static constants

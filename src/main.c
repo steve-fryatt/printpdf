@@ -289,7 +289,8 @@ static void main_initialise(void)
 	ihelp_initialise();
 	taskman_initialise();
 	popup_initialise();
-	olddataxfer_initialise();
+	dataxfer_initialise();
+	olddataxfer_initialise();	// \TODO -- Remove!
 	choices_initialise();
 	encrypt_initialise();
 	optimize_initialise();
