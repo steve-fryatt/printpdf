@@ -47,6 +47,7 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
+#include "sflib/dataxfer.h"
 #include "sflib/icons.h"
 #include "sflib/general.h"
 #include "sflib/msgs.h"
@@ -2678,7 +2679,7 @@ static void bookmark_prepare_save_window(bookmark_block *bm)
 				SAVEAS_ICON_NAME), MAX_BOOKMARK_FILENAME);
 
 	snprintf(icons_get_indirected_text_addr(bookmark_window_saveas, SAVEAS_ICON_FILE),
-			MAX_BOOKMARK_FILESPR, "file_%3x", PRINTPDF_FILE_TYPE);
+			MAX_BOOKMARK_FILESPR, "file_%3x", dataxfer_TYPE_PRINTPDF);
 
 	event_add_window_user_data(bookmark_window_saveas, bm);
 	event_add_window_mouse_event(bookmark_window_saveas, bookmark_save_as_click);
@@ -2855,7 +2856,7 @@ static void bookmarks_save_file(bookmark_block *bm, char *filename)
 	}
 
 	fclose(out);
-	osfile_set_type (filename, (bits) PRINTPDF_FILE_TYPE);
+	osfile_set_type(filename, (bits) dataxfer_TYPE_PRINTPDF);
 
 	osfile_read_stamped(filename, &load, &exec, NULL, NULL, NULL);
 	bm->datestamp[0] = exec & 0xff;

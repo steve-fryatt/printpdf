@@ -639,7 +639,7 @@ static osbool convert_handle_save_icon_drop(wimp_message *message)
 	if (dataload->w != convert_savepdf_window)
 		return FALSE;
 
-	if (dataload != NULL && dataload->w == convert_savepdf_window && dataload->file_type == PRINTPDF_FILE_TYPE) {
+	if (dataload != NULL && dataload->w == convert_savepdf_window && dataload->file_type == dataxfer_TYPE_PRINTPDF) {
 		if (bookmark_load_and_select_file(&bookmark, dataload->file_name))
 			bookmark_fill_field(convert_savepdf_window, SAVE_PDF_ICON_BOOKMARK_FIELD, &bookmark);
 	} else if (dataload != NULL && dataload->w == convert_savepdf_window) {
@@ -1177,7 +1177,7 @@ static osbool convert_immediate_window_save(void)
  * Process the termination of icon drags from the Convert dialogue.
  *
  * \param *pointer		The pointer location at the end of the drag.
- * \param *data			The saveas_savebox data for the drag.
+ * \param *data			Data pointer (unused).
  */
 
 static void convert_drag_end_handler(wimp_pointer *pointer, void *data)
@@ -1186,7 +1186,7 @@ static void convert_drag_end_handler(wimp_pointer *pointer, void *data)
 	
 	leafname = string_find_leafname(icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME));
 
-	dataxfer_start_save(pointer, leafname, 0, PDF_FILE_TYPE, 0, convert_drag_end_save_handler, NULL);
+	dataxfer_start_save(pointer, leafname, 0, dataxfer_TYPE_PDF, 0, convert_drag_end_save_handler, NULL);
 }
 
 
@@ -1195,7 +1195,8 @@ static void convert_drag_end_handler(wimp_pointer *pointer, void *data)
  * conversion using the filename returned.
  *
  * \param *filename		The filename returned by the DataSave protocol.
- * \return			0 if the save was started OK.
+ * \param *data			Data pointer (unused).
+ * \return			TRUE if the save was started OK; else FALSE.
  */
 
 static osbool convert_drag_end_save_handler(char *filename, void *data)
