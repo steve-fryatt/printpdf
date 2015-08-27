@@ -51,6 +51,7 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
+#include "sflib/dataxfer.h"
 #include "sflib/debug.h"
 #include "sflib/event.h"
 #include "sflib/string.h"
@@ -67,7 +68,6 @@
 #include "bookmark.h"
 #include "choices.h"
 #include "olddataxfer.h"
-#include "dataxfer.h"
 #include "encrypt.h"
 #include "ihelp.h"
 #include "main.h"

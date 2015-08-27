@@ -49,6 +49,7 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
+#include "sflib/dataxfer.h"
 #include "sflib/resources.h"
 #include "sflib/heap.h"
 #include "sflib/windows.h"
@@ -289,7 +290,7 @@ static void main_initialise(void)
 	ihelp_initialise();
 	taskman_initialise();
 	popup_initialise();
-	dataxfer_initialise();
+	dataxfer_initialise(main_task_handle, NULL);
 	olddataxfer_initialise();	// \TODO -- Remove!
 	choices_initialise();
 	encrypt_initialise();
