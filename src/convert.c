@@ -1,4 +1,4 @@
-/* Copyright 2005-2015, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2005-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -53,13 +53,15 @@
 #include "sflib/config.h"
 #include "sflib/dataxfer.h"
 #include "sflib/debug.h"
-#include "sflib/event.h"
-#include "sflib/string.h"
-#include "sflib/windows.h"
-#include "sflib/menus.h"
-#include "sflib/icons.h"
-#include "sflib/msgs.h"
 #include "sflib/errors.h"
+#include "sflib/event.h"
+#include "sflib/icons.h"
+#include "sflib/ihelp.h"
+#include "sflib/menus.h"
+#include "sflib/msgs.h"
+#include "sflib/string.h"
+#include "sflib/templates.h"
+#include "sflib/windows.h"
 
 /* Application header files */
 
@@ -69,14 +71,12 @@
 #include "choices.h"
 #include "olddataxfer.h"
 #include "encrypt.h"
-#include "ihelp.h"
 #include "main.h"
 #include "optimize.h"
 #include "paper.h"
 #include "pdfmark.h"
 #include "pmenu.h"
 #include "popup.h"
-#include "templates.h"
 #include "version.h"
 
 
@@ -177,6 +177,7 @@ static void		convert_save_click_handler(wimp_pointer *pointer);
 static osbool		convert_save_keypress_handler(wimp_key *key);
 static void		convert_save_menu_prepare_handler(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void		convert_save_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static void		convert_save_menu_close_handler(wimp_w w, wimp_menu *menu);
 static osbool		convert_immediate_window_save(void);
 static void		convert_drag_end_handler(wimp_pointer *pointer, void *data);
 static osbool		convert_drag_end_save_handler(char *filename, void *data);
@@ -269,9 +270,12 @@ void convert_initialise(void)
 
 	/* Create the windows and menus. */
 
-	popup_version = templates_get_menu(TEMPLATES_MENU_VERSION);
-	popup_optimize = templates_get_menu(TEMPLATES_MENU_OPTIMIZATION);
-	popup_paper = templates_get_menu(TEMPLATES_MENU_PAPER);
+	popup_version = templates_get_menu("VersionMenu");
+	ihelp_add_menu(popup_version, "VersionMenu");
+	popup_optimize = templates_get_menu("OptimizeMenu");
+	ihelp_add_menu(popup_optimize, "OptimizeMenu");
+	popup_paper = templates_get_menu("PaperMenu");
+	ihelp_add_menu(popup_paper, "PaperMenu");
 
 	convert_savepdf_window = templates_create_window("SavePDF");
 	ihelp_add_window(convert_savepdf_window, "SavePDF", NULL);
@@ -280,6 +284,7 @@ void convert_initialise(void)
 	event_add_window_key_event(convert_savepdf_window, convert_save_keypress_handler);
 	event_add_window_menu_prepare(convert_savepdf_window, convert_save_menu_prepare_handler);
 	event_add_window_menu_selection(convert_savepdf_window, convert_save_menu_selection_handler);
+	event_add_window_menu_close(convert_savepdf_window, convert_save_menu_close_handler);
 
 	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_VERSION_MENU, popup_version, -1, NULL);
 	event_add_window_icon_popup(convert_savepdf_window, SAVE_PDF_ICON_OPT_MENU, popup_optimize, -1, NULL);
@@ -1114,6 +1119,7 @@ static void convert_save_menu_prepare_handler(wimp_w w, wimp_menu *menu, wimp_po
 	else if (menu == popup_bookmark) {
 		popup_bookmark = bookmark_build_menu(&bookmark);
 		event_set_menu_block(popup_bookmark);
+		ihelp_add_menu(popup_bookmark, "BookmarkListMenu");
 	}
 }
 
@@ -1145,6 +1151,20 @@ static void convert_save_menu_selection_handler(wimp_w w, wimp_menu *menu, wimp_
 	}
 }
 
+
+/**
+ * Process monu close events in the SavePDF window.
+ *
+ * \param w		The handle of the owning window.
+ * \param *menu		The menu handle.
+ */
+
+static void convert_save_menu_close_handler(wimp_w w, wimp_menu *menu)
+{
+	if (menu == popup_bookmark) {
+		ihelp_remove_menu(popup_bookmark);
+	}
+}
 
 /**
  * Try to save in response to a click on 'OK' in the Save dialogue.

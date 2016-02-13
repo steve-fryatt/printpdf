@@ -1,4 +1,4 @@
-/* Copyright 2005-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2005-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -52,6 +52,7 @@
 #include "sflib/event.h"
 #include "sflib/general.h"
 #include "sflib/config.h"
+#include "sflib/templates.h"
 
 /* Application header files */
 
@@ -61,7 +62,6 @@
 #include "choices.h"
 #include "convert.h"
 #include "main.h"
-#include "templates.h"
 
 /* ==================================================================================================================
  * Global variables.

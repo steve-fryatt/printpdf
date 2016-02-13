@@ -1,4 +1,4 @@
-/* Copyright 2005-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2005-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -39,14 +39,14 @@
 /* SF-Lib header files. */
 
 #include "sflib/event.h"
+#include "sflib/ihelp.h"
+#include "sflib/templates.h"
 #include "sflib/windows.h"
 
 /* Application header files */
 
 #include "popup.h"
 
-#include "ihelp.h"
-#include "templates.h"
 
 static int	popup_is_open = FALSE;
 static os_t	popup_close_time = 0;

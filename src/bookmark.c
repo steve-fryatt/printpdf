@@ -1,4 +1,4 @@
-/* Copyright 2010-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2010-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -48,15 +48,17 @@
 
 #include "sflib/config.h"
 #include "sflib/dataxfer.h"
-#include "sflib/icons.h"
+#include "sflib/debug.h"
+#include "sflib/errors.h"
+#include "sflib/event.h"
 #include "sflib/general.h"
+#include "sflib/icons.h"
+#include "sflib/ihelp.h"
+#include "sflib/menus.h"
 #include "sflib/msgs.h"
 #include "sflib/string.h"
-#include "sflib/menus.h"
+#include "sflib/templates.h"
 #include "sflib/windows.h"
-#include "sflib/debug.h"
-#include "sflib/event.h"
-#include "sflib/errors.h"
 
 /* Application header files */
 
@@ -64,11 +66,9 @@
 
 #include "convert.h"
 #include "olddataxfer.h"
-#include "ihelp.h"
 #include "main.h"
 #include "pdfmark.h"
 #include "pmenu.h"
-#include "templates.h"
 
 
 typedef struct bookmark_node {
@@ -251,10 +251,11 @@ static wimp_menu	*bookmark_menu_view = NULL;
 
 void bookmarks_initialise(void)
 {
-	bookmark_menu = templates_get_menu(TEMPLATES_MENU_BOOKMARKS);
-	bookmark_menu_insert = templates_get_menu(TEMPLATES_MENU_BOOKMARKS_INSERT);
-	bookmark_menu_view = templates_get_menu(TEMPLATES_MENU_BOOKMARKS_VIEW);
-	bookmark_menu_level = templates_get_menu(TEMPLATES_MENU_BOOKMARKS_LEVEL);
+	bookmark_menu = templates_get_menu("BookmarksMenu");
+	ihelp_add_menu(bookmark_menu, "BookmarkMenu");
+	bookmark_menu_insert = templates_get_menu("BookmarksInsertSubmenu");
+	bookmark_menu_view = templates_get_menu("BookmarksViewSubmenu");
+	bookmark_menu_level = templates_get_menu("BookmarksLevelSubmenu");
 
 	bookmark_window_fileinfo = templates_create_window("FileInfo");
 	templates_link_menu_dialogue("FileInfo", bookmark_window_fileinfo);

@@ -1,4 +1,4 @@
-/* Copyright 2010-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2010-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -42,21 +42,21 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
+#include "sflib/debug.h"
 #include "sflib/event.h"
 #include "sflib/icons.h"
+#include "sflib/ihelp.h"
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
 #include "sflib/string.h"
+#include "sflib/templates.h"
 #include "sflib/windows.h"
-#include "sflib/debug.h"
 
 /* Application header files */
 
 #include "pdfmark.h"
 
-#include "ihelp.h"
 #include "pmenu.h"
-#include "templates.h"
 
 
 /* PDFMark Window icons. */

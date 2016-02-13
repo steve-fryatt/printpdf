@@ -1,4 +1,4 @@
-/* Copyright 2013, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2013-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -46,17 +46,17 @@
 #include "sflib/errors.h"
 #include "sflib/event.h"
 #include "sflib/icons.h"
+#include "sflib/ihelp.h"
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
 #include "sflib/string.h"
+#include "sflib/templates.h"
 #include "sflib/windows.h"
 
 /* Application header files */
 
 #include "ps2paper.h"
 
-#include "ihelp.h"
-#include "templates.h"
 
 #define PS2PAPER_NAME_LEN 128
 #define PS2PAPER_SOURCE_LEN 32

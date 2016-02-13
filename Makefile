@@ -1,4 +1,4 @@
-# Copyright 2010-2015, Stephen Fryatt (info@stevefryatt.org.uk)
+# Copyright 2010-2016, Stephen Fryatt (info@stevefryatt.org.uk)
 #
 # This file is part of PrintPDF:
 #
@@ -78,7 +78,7 @@ ZIPFLAGS := -x "*/.svn/*" -r -, -9
 SRCZIPFLAGS := -x "*/.svn/*" -r -9
 BUZIPFLAGS := -x "*/.svn/*" -r -9
 BINDHELPFLAGS := -f -r -v
-MENUGENFLAGS := -d
+MENUGENFLAGS := -d -m
 TOKENIZEFLAGS := -warn p
 
 
@@ -120,9 +120,9 @@ READMEHDR := Header
 MENUSRC := menudef
 FINDHELPSRC := Help.bbt
 
-OBJS := bookmark.o choices.o convert.o encrypt.o ihelp.o iconbar.o main.o	\
-	optimize.o paper.o pdfmark.o pmenu.o popup.o ps2paper.o taskman.o	\
-	templates.o version.o olddataxfer.o
+OBJS := bookmark.o choices.o convert.o encrypt.o iconbar.o main.o optimize.o	\
+	paper.o pdfmark.o pmenu.o popup.o ps2paper.o taskman.o version.o	\
+	olddataxfer.o
 
 # Build everything, but don't package it for release.
 

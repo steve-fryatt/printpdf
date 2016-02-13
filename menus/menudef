@@ -1,4 +1,4 @@
-/* Copyright 2005-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2005-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -26,7 +26,7 @@
  * Icon bar menu.
  */
 
-menu(iconbar_menu, "PrintPDF")
+menu(IconbarMenu, "PrintPDF")
 {
 	item("Info") {
 		d_box(ProgInfo);
@@ -46,22 +46,22 @@ menu(iconbar_menu, "PrintPDF")
  * Bookmarks Window Menu.
  */
 
-menu(bookmarks, "PrintPDF")
+menu(BookmarksMenu, "PrintPDF")
 {
 	item("File") {
-		submenu(bm_file);
+		submenu(BookmarksFileSubmenu);
 	}
 	item("View") {
-		submenu(bm_view);
+		submenu(BookmarksViewSubmenu);
 		dotted;
 	}
 	item("Level") {
-		submenu(bm_level) {
+		submenu(BookmarksLevelSubmenu) {
 			always;
 		}
 	}
 	item("Insert") {
-		submenu(bm_insert) {
+		submenu(BookmarksInsertSubmenu) {
 			always;
 		}
 	}
@@ -72,7 +72,7 @@ menu(bookmarks, "PrintPDF")
  * Bookmarks Window -- File Submenu.
  */
 
-menu(bm_file, "File")
+menu(BookmarksFileSubmenu, "File")
 {
 	item("Info") {
 		d_box(FileInfo) {
@@ -90,7 +90,7 @@ menu(bm_file, "File")
  * Bookmarks Window -- View Submenu.
  */
 
-menu(bm_view, "View")
+menu(BookmarksViewSubmenu, "View")
 {
 	item("Expand all");
 	item("Contract all");
@@ -100,7 +100,7 @@ menu(bm_view, "View")
  * Bookmarks Window -- Level Submenu.
  */
 
-menu(bm_level, "Level")
+menu(BookmarksLevelSubmenu, "Level")
 {
 	item("Promote");
 	item("Demote") {
@@ -114,7 +114,7 @@ menu(bm_level, "Level")
  * Bookmarks Window -- Insert Submenu.
  */
 
-menu(bm_insert, "Insert")
+menu(BookmarksInsertSubmenu, "Insert")
 {
 	item("Before row");
 	item("After row");
@@ -124,7 +124,7 @@ menu(bm_insert, "Insert")
  * PDF Version Menu.
  */
 
-menu(version_popup, "PDF Version")
+menu(VersionMenu, "PDF Version")
 {
 	item("1.2 (Acrobat 3)");
 	item("1.3 (Acrobat 4)");
@@ -135,7 +135,7 @@ menu(version_popup, "PDF Version")
  * PDF Optimization Menu.
  */
 
-menu(optimize_popup, "Optimization")
+menu(OptimizeMenu, "Optimization")
 {
 	item("Default");
 	item("Prepress");
@@ -151,31 +151,31 @@ menu(optimize_popup, "Optimization")
  * Paper Menu
  */
 
-menu(paper_popup, "Paper Size")
+menu(PaperMenu, "Paper Size")
 {
 	item("Document") {
 		dotted;
 	}
 	item("ISO") {
-		submenu(paper_iso);
+		submenu(PaperIsoSubmenu);
 	}
 	item("US") {
-		submenu(paper_us);
+		submenu(PaperUsSubmenu);
 	}
 	item("Architectural") {
-		submenu(paper_arch);
+		submenu(PaperArchSubmenu);
 	}
 	item("JIS") {
-		submenu(paper_jis);
+		submenu(PaperJisSubmenu);
 	}
 	item("Other") {
-		submenu(paper_other);
+		submenu(PaperOtherSubmenu);
 		dotted;
 	}
 	item("Custom...");
 }
 
-menu(paper_iso, "ISO") {
+menu(PaperIsoSubmenu, "ISO") {
 	item("A0");
 	item("A1");
 	item("A2");
@@ -203,7 +203,7 @@ menu(paper_iso, "ISO") {
 	item("C6");
 }
 
-menu(paper_us, "US")
+menu(PaperUsSubmenu, "US")
 {
 	item("Tabloid"); /* 11 x 7 */
 	item("Ledger");
@@ -213,7 +213,7 @@ menu(paper_us, "US")
 	item("Small Letter");
 }
 
-menu(paper_arch, "Architectural")
+menu(PaperArchSubmenu, "Architectural")
 {
 	item("Arch E");
 	item("Arch D");
@@ -222,7 +222,7 @@ menu(paper_arch, "Architectural")
 	item("Arch A");
 }
 
-menu(paper_jis, "JIS")
+menu(PaperJisSubmenu, "JIS")
 {
 	item("B0");
 	item("B1");
@@ -233,7 +233,7 @@ menu(paper_jis, "JIS")
 	item("B6");
 }
 
-menu(paper_other, "Other")
+menu(PaperOtherSubmenu, "Other")
 {
 	item("US Foolscap");
 	item("European Foolscap");

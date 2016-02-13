@@ -1,4 +1,4 @@
-/* Copyright 2007-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2007-2015, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -43,6 +43,7 @@
 #include "sflib/icons.h"
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
+#include "sflib/templates.h"
 #include "sflib/windows.h"
 
 /* Application header files */
@@ -50,7 +51,6 @@
 #include "version.h"
 
 #include "pmenu.h"
-#include "templates.h"
 
 
 #define VERSION_MENU_LENGTH 3

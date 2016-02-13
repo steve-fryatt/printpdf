@@ -1,4 +1,4 @@
-/* Copyright 2007-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2007-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -43,11 +43,13 @@
 /* SF-Lib Header files. */
 
 #include "sflib/config.h"
+#include "sflib/debug.h"
 #include "sflib/event.h"
 #include "sflib/icons.h"
-#include "sflib/windows.h"
-#include "sflib/debug.h"
+#include "sflib/ihelp.h"
 #include "sflib/string.h"
+#include "sflib/templates.h"
+#include "sflib/windows.h"
 
 /* Application header files. */
 
@@ -55,13 +57,11 @@
 
 #include "encrypt.h"
 #include "iconbar.h"
-#include "ihelp.h"
 #include "main.h"
 #include "optimize.h"
 #include "paper.h"
 #include "pdfmark.h"
 #include "pmenu.h"
-#include "templates.h"
 #include "version.h"
 
 
@@ -127,9 +127,12 @@ static void	choices_process_paper_dialogue(void);
 
 void choices_initialise(void)
 {
-	popup_version = templates_get_menu(TEMPLATES_MENU_VERSION);
-	popup_optimize = templates_get_menu(TEMPLATES_MENU_OPTIMIZATION);
-	popup_paper = templates_get_menu(TEMPLATES_MENU_PAPER);
+	popup_version = templates_get_menu("VersionMenu");
+	ihelp_add_menu(popup_version, "VersionMenu");
+	popup_optimize = templates_get_menu("OptimizeMenu");
+	ihelp_add_menu(popup_optimize, "OptimizeMenu");
+	popup_paper = templates_get_menu("PaperMenu");
+	ihelp_add_menu(popup_paper, "PaperMenu");
 
 	choices_window = templates_create_window("Choices");
 	ihelp_add_window(choices_window, "Choices", NULL);
