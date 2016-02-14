@@ -29,16 +29,20 @@
 
 /* ANSI C header files */
 
+#include <string.h>
+
 /* Acorn C header files */
 
 /* OSLib header files */
 
 #include "oslib/os.h"
+#include "oslib/osfile.h"
 #include "oslib/wimp.h"
 
 /* SF-Lib header files. */
 
 #include "sflib/debug.h"
+#include "sflib/dataxfer.h"
 #include "sflib/errors.h"
 #include "sflib/event.h"
 #include "sflib/icons.h"
@@ -58,7 +62,6 @@
 #include "convert.h"
 #include "ps2paper.h"
 #include "main.h"
-
 
 /* Iconbar menu */
 
@@ -80,6 +83,8 @@ static void	iconbar_click_handler(wimp_pointer *pointer);
 static void	iconbar_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void	iconbar_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 static osbool	iconbar_proginfo_web_click(wimp_pointer *pointer);
+static osbool	iconbar_load_bookmark_file(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data);
+static osbool	iconbar_load_postscript_file(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data);
 
 
 static wimp_menu	*iconbar_menu = NULL;					/**< The iconbar menu handle.			*/
@@ -92,7 +97,7 @@ static wimp_w		iconbar_info_window = NULL;				/**< The iconbar menu info window 
 
 void iconbar_initialise(void)
 {
-	char*			date = BUILD_DATE;
+	char*	date = BUILD_DATE, queue_file[CONVERT_MAX_FILENAME];
 
 	iconbar_menu = templates_get_menu("IconBarMenu");
 	ihelp_add_menu(iconbar_menu, "IconBarMenu");
@@ -104,6 +109,12 @@ void iconbar_initialise(void)
 			BUILD_VERSION, date, NULL, NULL);
 	icons_printf(iconbar_info_window, ICON_PROGINFO_AUTHOR, "\xa9 Stephen Fryatt, 2005-%s", date + 7);
 	event_add_window_icon_click(iconbar_info_window, ICON_PROGINFO_WEBSITE, iconbar_proginfo_web_click);
+
+	dataxfer_set_drop_target(dataxfer_TYPE_PRINTPDF, wimp_ICON_BAR, -1, NULL, iconbar_load_bookmark_file, NULL);
+	dataxfer_set_load_type(dataxfer_TYPE_PRINTPDF, iconbar_load_bookmark_file, NULL);
+
+	convert_build_queue_filename(queue_file, CONVERT_MAX_FILENAME, CONVERT_QUEUE_FILENAME);
+	dataxfer_set_drop_target(osfile_TYPE_POSTSCRIPT, wimp_ICON_BAR, -1, queue_file, iconbar_load_postscript_file, NULL);
 }
 
 
@@ -243,6 +254,61 @@ static osbool iconbar_proginfo_web_click(wimp_pointer *pointer)
 
 	if (pointer->buttons == wimp_CLICK_SELECT)
 		wimp_create_menu((wimp_menu *) -1, 0, 0);
+
+	return TRUE;
+}
+
+
+/**
+ * Handle attempts to load Bookmark files to the iconbar.
+ *
+ * \param w			The target window handle.
+ * \param i			The target icon handle.
+ * \param filetype		The filetype being loaded.
+ * \param *filename		The name of the file being loaded.
+ * \param *data			Unused NULL pointer.
+ * \return			TRUE on loading; FALSE on passing up.
+ */
+
+static osbool iconbar_load_bookmark_file(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data)
+{
+	if (filetype != dataxfer_TYPE_PRINTPDF)
+		return FALSE;
+
+	bookmarks_load_file(filename);
+
+	return TRUE;
+}
+
+
+/**
+ * Handle attempts to load Postscript files to the iconbar.
+ *
+ * \param w			The target window handle.
+ * \param i			The target icon handle.
+ * \param filetype		The filetype being loaded.
+ * \param *filename		The name of the file being loaded.
+ * \param *data			Unused NULL pointer.
+ * \return			TRUE on loading; FALSE on passing up.
+ */
+
+static osbool iconbar_load_postscript_file(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data)
+{
+	char	queue_file[CONVERT_MAX_FILENAME];
+
+	debug_printf("Loading PS file, type=0x%x", filetype);
+
+	if (filetype != osfile_TYPE_POSTSCRIPT)
+		return FALSE;
+
+	debug_printf("Build a queue file name...");
+
+	convert_build_queue_filename(queue_file, CONVERT_MAX_FILENAME, CONVERT_QUEUE_FILENAME);
+
+	debug_printf("Created queue file: '%s'", queue_file);
+
+	if (strcmp(queue_file, filename) != 0)
+		convert_queue_ps_file(filename);
 
 	return TRUE;
 }

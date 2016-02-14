@@ -26,7 +26,7 @@
  * Icon bar menu.
  */
 
-menu(IconbarMenu, "PrintPDF")
+menu(IconBarMenu, "PrintPDF")
 {
 	item("Info") {
 		d_box(ProgInfo);

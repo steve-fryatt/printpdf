@@ -69,7 +69,6 @@
 
 #include "bookmark.h"
 #include "choices.h"
-#include "olddataxfer.h"
 #include "encrypt.h"
 #include "main.h"
 #include "optimize.h"
@@ -81,7 +80,6 @@
 
 
 #define MAX_QUEUE_NAME 32
-#define MAX_FILENAME 512
 #define MAX_DISPLAY_NAME 64
 
 #define QUEUE_ICON_HEIGHT 48
@@ -150,9 +148,9 @@ typedef struct queued_file {
 } queued_file;
 
 typedef struct conversion_params {
-	char			input_filename[MAX_FILENAME];
-	char			output_filename[MAX_FILENAME];
-	char			pdfmark_userfile[MAX_FILENAME];
+	char			input_filename[CONVERT_MAX_FILENAME];
+	char			output_filename[CONVERT_MAX_FILENAME];
+	char			pdfmark_userfile[CONVERT_MAX_FILENAME];
 
 	int			preprocess_in_ps2ps;
 } conversion_params;
@@ -572,8 +570,8 @@ static void convert_save_dialogue_end(char *output_file)
 	/* Read and store the options from the window. */
 
 	params.preprocess_in_ps2ps = icons_get_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS);
-	string_ctrl_strncpy(params.pdfmark_userfile, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), MAX_FILENAME);
-	params.pdfmark_userfile[MAX_FILENAME - 1] = '\0';
+	string_ctrl_strncpy(params.pdfmark_userfile, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), CONVERT_MAX_FILENAME);
+	params.pdfmark_userfile[CONVERT_MAX_FILENAME - 1] = '\0';
 
 	/* Launch the conversion process. */
 
@@ -595,13 +593,13 @@ static void convert_save_dialogue_end(char *output_file)
 
 static void convert_save_dialogue_queue(void)
 {
-	char			*leafname, filename[MAX_FILENAME];
+	char			*leafname, filename[CONVERT_MAX_FILENAME];
 	queued_file		*list;
 
 	/* Sort out the filenames. */
 
-	string_ctrl_strncpy(filename, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME), MAX_FILENAME);
-	filename[MAX_FILENAME - 1] = '\0';
+	string_ctrl_strncpy(filename, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME), CONVERT_MAX_FILENAME);
+	filename[CONVERT_MAX_FILENAME - 1] = '\0';
 	leafname = string_find_leafname(filename);
 
 	list = queue;
@@ -692,11 +690,11 @@ static osbool convert_handle_save_icon_drop(wimp_message *message)
 static osbool convert_progress(conversion_params *params)
 {
 	static enum conversion_state	conversion_state = CONVERSION_STOPPED;
-	static char			output_file[MAX_FILENAME];
-	static char			pdfmark_file[MAX_FILENAME];
+	static char			output_file[CONVERT_MAX_FILENAME];
+	static char			pdfmark_file[CONVERT_MAX_FILENAME];
 	static int			preprocess_in_ps2ps;
 
-	char				intermediate_file[MAX_FILENAME], *intermediate_leaf="inter";
+	char				intermediate_file[CONVERT_MAX_FILENAME], *intermediate_leaf="inter";
 	queued_file			*list, *new, **end = NULL;
 	os_error			*err;
 
@@ -1003,6 +1001,31 @@ static void convert_cancel_conversion(void)
 	conversion_in_progress = FALSE;
 
 	convert_remove_current_conversion();
+}
+
+
+/**
+ * Create a full pathname for a file in the processing queue folder.
+ *
+ * \param *buffer		Pointer to the buffer to hold the pathname.
+ * \param len			The size of the supplied buffer.
+ * \param *leaf			Pointer to the leafname to use.
+ * \return			Pointer to the pathname in the buffer, or NULL.
+ */
+
+char *convert_build_queue_filename(char *buffer, size_t len, char *leaf)
+{
+	if (buffer == NULL || len == 0)
+		return NULL;
+
+	if (leaf != NULL) {
+		snprintf(buffer, len, "%s.%s", config_str_read("FileQueue"), leaf);
+		buffer[len - 1] = '\0';
+	} else {
+		*buffer = '\0';
+	}
+
+	return buffer;
 }
 
 

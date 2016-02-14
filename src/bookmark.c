@@ -56,6 +56,7 @@
 #include "sflib/ihelp.h"
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
+#include "sflib/saveas.h"
 #include "sflib/string.h"
 #include "sflib/templates.h"
 #include "sflib/windows.h"
@@ -65,7 +66,6 @@
 #include "bookmark.h"
 
 #include "convert.h"
-#include "olddataxfer.h"
 #include "main.h"
 #include "pdfmark.h"
 #include "pmenu.h"
@@ -192,15 +192,12 @@ static void		bookmark_prepare_file_info_window(bookmark_block *bm);
 
 /* SaveAs Dialogue Handling */
 
-static void		bookmark_prepare_save_window(bookmark_block *bm);
-static void		bookmark_save_as_click(wimp_pointer *pointer);
-static osbool		bookmark_save_as_keypress(wimp_key *key);
-static int		bookmark_start_direct_dialog_save(void);
+static void		bookmark_prepare_save_window(bookmark_block *bm, wimp_pointer *pointer);
 static void		bookmark_start_direct_menu_save(bookmark_block *bm);
 
 /* Bookmark Data Processing */
 
-static void		bookmarks_save_file(bookmark_block *bm, char *filename);
+static osbool		bookmarks_save_file(char *filename, osbool selection, bookmark_block *bm);
 static void		bookmark_rebuild_data(bookmark_block *bm);
 
 /* ****************************************************************************
@@ -219,26 +216,27 @@ static void		bookmark_rebuild_data(bookmark_block *bm);
 
 /* Pointer to bookmark window data list. */
 
-static bookmark_block	*bookmarks_list = NULL;
-static int		untitled_number = 1;
+static bookmark_block		*bookmarks_list = NULL;
+static int			untitled_number = 1;
 
-static bookmark_block	*bookmarks_edit = NULL;
-static char		*bookmarks_edit_buffer = NULL;
+static bookmark_block		*bookmarks_edit = NULL;
+static char			*bookmarks_edit_buffer = NULL;
 
-static wimp_menu	*bookmarks_list_menu = NULL;
-static bookmark_block	**bookmarks_list_menu_links = NULL;
-static int		bookmarks_list_menu_size = 0;
+static wimp_menu		*bookmarks_list_menu = NULL;
+static bookmark_block		**bookmarks_list_menu_links = NULL;
+static int			bookmarks_list_menu_size = 0;
 
-static wimp_window	*bookmark_window_def = NULL;
-static wimp_window	*bookmark_pane_def = NULL;
+static wimp_window		*bookmark_window_def = NULL;
+static wimp_window		*bookmark_pane_def = NULL;
 
-static wimp_w		bookmark_window_fileinfo = NULL;
-static wimp_w		bookmark_window_saveas = NULL;
+static wimp_w			bookmark_window_fileinfo = NULL;
 
-static wimp_menu	*bookmark_menu = NULL;
-static wimp_menu	*bookmark_menu_insert = NULL;
-static wimp_menu	*bookmark_menu_level = NULL;
-static wimp_menu	*bookmark_menu_view = NULL;
+static struct saveas_block	*bookmark_saveas_file = NULL;
+
+static wimp_menu		*bookmark_menu = NULL;
+static wimp_menu		*bookmark_menu_insert = NULL;
+static wimp_menu		*bookmark_menu_level = NULL;
+static wimp_menu		*bookmark_menu_view = NULL;
 
 
 /* ****************************************************************************
@@ -261,9 +259,7 @@ void bookmarks_initialise(void)
 	templates_link_menu_dialogue("FileInfo", bookmark_window_fileinfo);
 	ihelp_add_window(bookmark_window_fileinfo, "FileInfo", NULL);
 
-	bookmark_window_saveas = templates_create_window("SaveAs");
-	templates_link_menu_dialogue("SaveAs", bookmark_window_saveas);
-	ihelp_add_window(bookmark_window_saveas, "SaveAs", NULL);
+	bookmark_saveas_file = saveas_create_dialogue(FALSE, "file_1d8", bookmarks_save_file);
 
 	bookmark_window_def = templates_load_window("BMark");
 	bookmark_window_def->icon_count = 0;
@@ -968,12 +964,13 @@ static void bookmark_close_window(wimp_close *close)
 
 	if (bm->unsaved && !(pointer.buttons == wimp_CLICK_ADJUST && shift) &&
 			(button = error_msgs_report_question("FileNotSaved", "FileNotSavedB")) >= 2) {
-		if (button == 3) {
-			if (xwimp_get_pointer_info(&pointer) == NULL) {
-				bookmark_prepare_save_window(bm);
-				menus_create_standard_menu((wimp_menu *) bookmark_window_saveas, &pointer);
-			}
-		}
+		if (button != 3)
+			return;
+
+		/* Re-grab the pointer info, as the pointer has been moved by the Message Box. */
+
+		if (xwimp_get_pointer_info(&pointer) == NULL)
+			bookmark_prepare_save_window(bm, &pointer);
 
 		return;
 	}
@@ -2350,9 +2347,9 @@ static void bookmark_toolbar_click_handler(wimp_pointer *pointer)
 
 	switch (pointer->i) {
 	case BOOKMARK_TB_SAVE:
-		bookmark_prepare_save_window(bm);
+		
 		if (pointer->buttons == wimp_CLICK_SELECT)
-			menus_create_standard_menu((wimp_menu *) bookmark_window_saveas, pointer);
+			bookmark_prepare_save_window(bm, pointer);
 		else if (pointer->buttons == wimp_CLICK_ADJUST)
 			bookmark_start_direct_menu_save(bm);
 		break;
@@ -2483,6 +2480,8 @@ static void bookmark_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *point
 
 	/* Set up the menu itself. */
 
+	saveas_initialise_dialogue(bookmark_saveas_file, (strlen(bm->filename) > 0) ? bm->filename : NULL, "BMFileName", NULL, FALSE, FALSE, bm);
+
 	bookmark_toolbar_set_expansion_icons(bm, &expand, &contract);
 
 	menus_shade_entry(bookmark_menu, BOOKMARK_MENU_LEVEL, row == -1);
@@ -2530,7 +2529,7 @@ static void bookmark_menu_warning(wimp_w w, wimp_menu *menu, wimp_message_menu_w
 				bookmark_prepare_file_info_window(bm);
 				break;
 			case BOOKMARK_MENU_FILE_SAVE:
-				bookmark_prepare_save_window(bm);
+				saveas_prepare_dialogue(bookmark_saveas_file);
 				break;
 		}
 		break;
@@ -2670,100 +2669,16 @@ static void bookmark_prepare_file_info_window(bookmark_block *bm)
  * \param  *bm			The bookmark file to which the window applies.
  */
 
-static void bookmark_prepare_save_window(bookmark_block *bm)
+static void bookmark_prepare_save_window(bookmark_block *bm, wimp_pointer *pointer)
 {
-	if (strlen(bm->filename) > 0)
-		strncpy(icons_get_indirected_text_addr(bookmark_window_saveas, SAVEAS_ICON_NAME),
-				bm->filename, MAX_BOOKMARK_FILENAME);
-	else
-		msgs_lookup("BMFileName", icons_get_indirected_text_addr(bookmark_window_saveas,
-				SAVEAS_ICON_NAME), MAX_BOOKMARK_FILENAME);
+	if (bm == NULL || pointer == NULL)
+		return;
 
-	snprintf(icons_get_indirected_text_addr(bookmark_window_saveas, SAVEAS_ICON_FILE),
-			MAX_BOOKMARK_FILESPR, "file_%3x", dataxfer_TYPE_PRINTPDF);
-
-	event_add_window_user_data(bookmark_window_saveas, bm);
-	event_add_window_mouse_event(bookmark_window_saveas, bookmark_save_as_click);
-	event_add_window_key_event(bookmark_window_saveas, bookmark_save_as_keypress);
+	saveas_initialise_dialogue(bookmark_saveas_file, (strlen(bm->filename) > 0) ? bm->filename : NULL, "BMFileName", NULL, FALSE, FALSE, bm);
+	saveas_prepare_dialogue(bookmark_saveas_file);
+	saveas_open_dialogue(bookmark_saveas_file, pointer);
 }
 
-
-/**
- * Callback to handle clicks in the SaveAs window.
- *
- * \param  *pointer	The relevant Wimp pointer data block.
- */
-
-static void bookmark_save_as_click(wimp_pointer *pointer)
-{
-	switch ((int) pointer->i)
-	{
-	case SAVEAS_ICON_FILE:
-		if (pointer->buttons == wimp_DRAG_SELECT)
-			start_save_window_drag(DRAG_SAVE_SAVEAS, bookmark_window_saveas, SAVEAS_ICON_FILE,
-					icons_get_indirected_text_addr(bookmark_window_saveas, SAVEAS_ICON_NAME));
-		break;
-	case SAVEAS_ICON_OK:
-		if (bookmark_start_direct_dialog_save())
-			wimp_create_menu((wimp_menu *) -1, 0, 0);
-		break;
-	case SAVEAS_ICON_CANCEL:
-		wimp_create_menu((wimp_menu *) -1, 0, 0);
-		break;
-	}
-}
-
-
-/**
- * Process keypresses in the SaveAs window.
- *
- * \param *key		The keypress data to handle.
- * \return		TRUE if the keypress was handled; FALSE if not.
- */
-
-static osbool bookmark_save_as_keypress(wimp_key *key)
-{
-	switch (key->c) {
-	case wimp_KEY_RETURN:
-		if (bookmark_start_direct_dialog_save())
-			wimp_create_menu((wimp_menu *) -1, 0, 0);
-		break;
-	case wimp_KEY_ESCAPE:
-		wimp_create_menu((wimp_menu *) -1, 0, 0);
-		break;
-	default:
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
-/**
- * Start a direct save from the SaveAs dialog.
- *
- * \return		1 if the save completed; else 0.
- */
-
-static int bookmark_start_direct_dialog_save(void)
-{
-	bookmark_block		*bm;
-	char			*filename;
-
-	bm = event_get_window_user_data(bookmark_window_saveas);
-	if (bm == NULL)
-		return 0;
-
-	filename = icons_get_indirected_text_addr(bookmark_window_saveas, SAVEAS_ICON_NAME);
-
-	if (strchr(filename, '.') == NULL)
-		error_msgs_report_info("DragSave");
-	else {
-		bookmarks_save_file(bm, filename);
-		return 1;
-	}
-
-	return 0;
-}
 
 /**
  * Process a click File->Save menu selection, or Adjust-click on the
@@ -2774,38 +2689,20 @@ static int bookmark_start_direct_dialog_save(void)
 
 static void bookmark_start_direct_menu_save(bookmark_block *bm)
 {
-	wimp_pointer		pointer;
-
-	if (strlen(bm->filename) > 0) {
-		bookmarks_save_file(bm, bm->filename);
-	} else {
-		wimp_get_pointer_info(&pointer);
-		bookmark_prepare_save_window(bm);
-		menus_create_standard_menu((wimp_menu *) bookmark_window_saveas, &pointer);
-	}
-}
-
-
-/**
- * Callback to terminate a dragging filesave.
- *
- * \param  *filename	The filename to save under.
- * \return		0 if the save completes OK; else non-0.
- */
-
-int drag_end_save_saveas(char *filename)
-{
-	bookmark_block			*bm;
-
-	bm = event_get_window_user_data(bookmark_window_saveas);
+	wimp_pointer	pointer;
 
 	if (bm == NULL)
-		return 0;
+		return;
 
-	bookmarks_save_file(bm, filename);
-	wimp_create_menu((wimp_menu *) -1, 0, 0);
+	if (strlen(bm->filename) > 0) {
+		bookmarks_save_file(bm->filename, FALSE, bm);
+	} else {
+		wimp_get_pointer_info(&pointer);
 
-	return 0;
+		saveas_initialise_dialogue(bookmark_saveas_file, (strlen(bm->filename) > 0) ? bm->filename : NULL, "BMFileName", NULL, FALSE, FALSE, bm);
+		saveas_prepare_dialogue(bookmark_saveas_file);
+		saveas_open_dialogue(bookmark_saveas_file, &pointer);
+	}
 }
 
 
@@ -2816,19 +2713,19 @@ int drag_end_save_saveas(char *filename)
  * \param  *filename	The filename to save to.
  */
 
-static void bookmarks_save_file(bookmark_block *bm, char *filename)
+static osbool bookmarks_save_file(char *filename, osbool selection, bookmark_block *bm)
 {
 	FILE			*out;
 	bookmark_node		*node;
 	bits			load, exec;
 
 	if (bm == NULL)
-		return;
+		return FALSE;
 
 	out = fopen(filename, "w");
 	if (out == NULL) {
 		// \TODO -- Add an error report here.
-		return;
+		return FALSE;
 	}
 
 	/* Write the file header. */
@@ -2869,6 +2766,8 @@ static void bookmarks_save_file(bookmark_block *bm, char *filename)
 	strncpy(bm->filename, filename, MAX_BOOKMARK_FILENAME);
 	bm->unsaved = 1; /* Force the titlebar to update, even if the file was already saved. */
 	bookmark_set_unsaved_state(bm, 0);
+
+	return TRUE;
 }
 
 

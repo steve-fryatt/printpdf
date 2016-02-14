@@ -34,6 +34,14 @@
  * Static constants
  */
 
+/**
+ * The maximum size of a filename buffer.
+ */
+
+#define CONVERT_MAX_FILENAME 512
+
+#define CONVERT_QUEUE_FILENAME "printout/ps"
+
 #define AUTO_SCROLL_MARGIN 100
 
 /* Save PDF Window icons. */
@@ -98,6 +106,18 @@ osbool convert_queue_ps_file(char *filename);
  */
 
 void convert_check_for_pending_files(void);
+
+
+/**
+ * Create a full pathname for a file in the processing queue folder.
+ *
+ * \param *buffer		Pointer to the buffer to hold the pathname.
+ * \param len			The size of the supplied buffer.
+ * \param *leaf			Pointer to the leafname to use.
+ * \return			Pointer to the pathname in the buffer, or NULL.
+ */
+
+char *convert_build_queue_filename(char *buffer, size_t len, char *leaf);
 
 
 /**

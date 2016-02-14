@@ -60,9 +60,9 @@
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
 #include "sflib/resources.h"
+#include "sflib/saveas.h"
 #include "sflib/string.h"
 #include "sflib/templates.h"
-#include "sflib/transfer.h"
 #include "sflib/url.h"
 #include "sflib/windows.h"
 
@@ -73,7 +73,6 @@
 #include "bookmark.h"
 #include "choices.h"
 #include "convert.h"
-#include "olddataxfer.h"
 #include "encrypt.h"
 #include "iconbar.h"
 #include "optimize.h"
@@ -290,7 +289,7 @@ static void main_initialise(void)
 	taskman_initialise();
 	popup_initialise();
 	dataxfer_initialise(main_task_handle, NULL);
-	olddataxfer_initialise();	// \TODO -- Remove!
+	saveas_initialise("SaveAs", NULL);
 	choices_initialise();
 	encrypt_initialise();
 	optimize_initialise();

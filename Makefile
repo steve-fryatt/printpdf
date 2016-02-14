@@ -121,8 +121,7 @@ MENUSRC := menudef
 FINDHELPSRC := Help.bbt
 
 OBJS := bookmark.o choices.o convert.o encrypt.o iconbar.o main.o optimize.o	\
-	paper.o pdfmark.o pmenu.o popup.o ps2paper.o taskman.o version.o	\
-	olddataxfer.o
+	paper.o pdfmark.o pmenu.o popup.o ps2paper.o taskman.o version.o
 
 # Build everything, but don't package it for release.
 
