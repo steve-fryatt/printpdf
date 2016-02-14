@@ -332,9 +332,9 @@ void convert_check_for_ps_file(void)
 {
 	fileswitch_object_type		type;
 	int				size;
-	char				check_file[512];
+	char				check_file[CONVERT_MAX_FILENAME];
 
-	snprintf(check_file, sizeof(check_file), "%s.printout/ps", config_str_read("FileQueue"));
+	convert_build_queue_filename(check_file, CONVERT_MAX_FILENAME, CONVERT_QUEUE_FILENAME);
 
 	xosfile_read_stamped_no_path(check_file, &type, NULL, NULL, &size, NULL, NULL);
 
@@ -368,7 +368,7 @@ void convert_check_for_ps_file(void)
 osbool convert_queue_ps_file(char *filename)
 {
 	queued_file		*new, **list = NULL;
-	char			queued_filename[512];
+	char			queued_filename[CONVERT_MAX_FILENAME];
 	os_error		*error;
 	os_fw			file;
 
@@ -402,7 +402,7 @@ osbool convert_queue_ps_file(char *filename)
 
 	*list = new;
 
-	snprintf(queued_filename, sizeof(queued_filename), "%s.%s", config_str_read("FileQueue"), new->filename);
+	convert_build_queue_filename(queued_filename, CONVERT_MAX_FILENAME, new->filename);
 	error = xosfscontrol_copy(filename, queued_filename, osfscontrol_COPY_FORCE, 0, 0, 0, 0, NULL);
 
 	if (error != NULL) {
@@ -718,7 +718,7 @@ static osbool convert_progress(conversion_params *params)
 
 		if (err == NULL) {
 			if (preprocess_in_ps2ps) {
-				sprintf(intermediate_file, "%s.%s", config_str_read("FileQueue"), intermediate_leaf);
+				convert_build_queue_filename(intermediate_file, CONVERT_MAX_FILENAME, intermediate_leaf);
 				conversion_state = (convert_launch_ps2ps(intermediate_file)) ? CONVERSION_PS2PS_PENDING : CONVERSION_STOPPED;
 			} else {
 				conversion_state = (convert_launch_ps2pdf(output_file, pdfmark_file)) ? CONVERSION_PS2PDF_PENDING : CONVERSION_STOPPED;
@@ -1307,14 +1307,14 @@ static void convert_process_paper_dialogue(void)
 static void convert_remove_current_conversion(void)
 {
 	queued_file		**list, *old;
-	char			old_file[512];
+	char			old_file[CONVERT_MAX_FILENAME];
 
 	list = &queue;
 
 	while (*list != NULL) {
 		if ((*list)->object_type == BEING_PROCESSED || (*list)->object_type == DISCARDED) {
 			old = (*list);
-			snprintf(old_file, sizeof(old_file), "%s.%s", config_str_read("FileQueue"), old->filename);
+			convert_build_queue_filename(old_file, CONVERT_MAX_FILENAME, old->filename);
 			xosfile_delete(old_file, NULL, NULL, NULL, NULL, NULL);
 
 			*list = ((*list)->next);
@@ -1341,7 +1341,7 @@ static void convert_remove_deleted_files(void)
 	while (*list != NULL) {
 		if ((*list)->object_type == DELETED) {
 			old = (*list);
-			snprintf(old_file, sizeof(old_file), "%s.%s", config_str_read("FileQueue"), old->filename);
+			convert_build_queue_filename(old_file, CONVERT_MAX_FILENAME, old->filename);
 			xosfile_delete(old_file, NULL, NULL, NULL, NULL, NULL);
 
 			*list = ((*list)->next);
@@ -1364,7 +1364,7 @@ void convert_remove_first_conversion(void)
 	char		old_file[512];
 
 	old = queue;
-	snprintf(old_file, sizeof(old_file), "%s.%s", config_str_read("FileQueue"), old->filename);
+	convert_build_queue_filename(old_file, CONVERT_MAX_FILENAME, old->filename);
 	xosfile_delete(old_file, NULL, NULL, NULL, NULL, NULL);
 
 	queue = old->next;
