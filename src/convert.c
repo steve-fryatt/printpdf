@@ -1334,7 +1334,7 @@ static void convert_remove_current_conversion(void)
 static void convert_remove_deleted_files(void)
 {
 	queued_file	**list, *old;
-	char		old_file[512];
+	char		old_file[CONVERT_MAX_FILENAME];
 
 	list = &queue;
 
@@ -1361,7 +1361,7 @@ static void convert_remove_deleted_files(void)
 void convert_remove_first_conversion(void)
 {
 	queued_file	*old;
-	char		old_file[512];
+	char		old_file[CONVERT_MAX_FILENAME];
 
 	old = queue;
 	convert_build_queue_filename(old_file, CONVERT_MAX_FILENAME, old->filename);
