@@ -197,7 +197,7 @@ static void		bookmark_start_direct_menu_save(bookmark_block *bm);
 
 /* Bookmark Data Processing */
 
-static osbool		bookmarks_save_file(char *filename, osbool selection, bookmark_block *bm);
+static osbool		bookmarks_save_file(char *filename, osbool selection, void *data);
 static void		bookmark_rebuild_data(bookmark_block *bm);
 
 /* ****************************************************************************
@@ -2709,15 +2709,19 @@ static void bookmark_start_direct_menu_save(bookmark_block *bm)
 /**
  * Save a bookmark file from memory to disc.
  *
- * \param  *bm		The bookmark block to save.
- * \param  *filename	The filename to save to.
+ * \param *filename	The filename to save to.
+ * \param selection	DataXFer selection flag (unused).
+ * \param *data		Pointer to the bookmark block to save (void* to allow
+ *			this function to be used as a data load callback for DataXFer).
+ * \return		TRUE on success; FALSE on failure.
  */
 
-static osbool bookmarks_save_file(char *filename, osbool selection, bookmark_block *bm)
+static osbool bookmarks_save_file(char *filename, osbool selection, void *data)
 {
 	FILE			*out;
 	bookmark_node		*node;
 	bits			load, exec;
+	bookmark_block		*bm = data;
 
 	if (bm == NULL)
 		return FALSE;
