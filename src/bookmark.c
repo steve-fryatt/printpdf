@@ -96,7 +96,7 @@ struct bookmark_block {
 	char			window_title[MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10];
 	os_date_and_time	datestamp;
 
-	int			unsaved;
+	osbool			unsaved;
 
 	wimp_w			window;
 	wimp_w			toolbar;
@@ -134,7 +134,7 @@ static bookmark_block	*bookmark_create_block(void);
 static void		bookmark_delete_block(bookmark_block *bookmark);
 static bookmark_node	*bookmark_insert_node(bookmark_block *bm, bookmark_node *before);
 static void		bookmark_delete_node(bookmark_block *bm, bookmark_node *node);
-static void		bookmark_set_unsaved_state(bookmark_block *bm, int unsaved);
+static void		bookmark_set_unsaved_state(bookmark_block *bm, osbool unsaved);
 
 static bookmark_block	*bookmark_find_window(wimp_w window);
 static bookmark_block	*bookmark_find_toolbar(wimp_w window);
@@ -533,7 +533,7 @@ static bookmark_block *bookmark_create_block(void)
 		strncpy(new->name, name, MAX_BOOKMARK_BLOCK_NAME);
 		strncpy(new->filename, "", MAX_BOOKMARK_FILENAME);
 		strncpy(new->window_title, "", MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10);
-		new->unsaved = 0;
+		new->unsaved = FALSE;
 		new->window = NULL;
 		new->toolbar = NULL;
 		new->redraw = NULL;
@@ -684,10 +684,10 @@ static void bookmark_delete_node(bookmark_block *bm, bookmark_node *node)
  * Set the 'unsaved' status of a bookmark block.
  *
  * \param  *bm			The block to update.
- * \param  unsaved		The unsaved status (1 = unsaved; 0 = saved).
+ * \param  unsaved		The unsaved status (TRUE = unsaved; FALSE = saved).
  */
 
-static void bookmark_set_unsaved_state(bookmark_block *bm, int unsaved)
+static void bookmark_set_unsaved_state(bookmark_block *bm, osbool unsaved)
 {
 	if (unsaved != bm->unsaved) {
 		bm->unsaved = unsaved;
@@ -1189,7 +1189,7 @@ static void bookmark_click_handler(wimp_pointer *pointer)
 			node->expanded = !node->expanded;
 			bookmark_rebuild_data(bm);
 			bookmark_force_window_redraw(bm, row, -1);
-			bookmark_set_unsaved_state(bm, 1);
+			bookmark_set_unsaved_state(bm, TRUE);
 		} else if (col >= BOOKMARK_ICON_TITLE && pointer->buttons == wimp_CLICK_SELECT) {
 			if (bm->drag_complete) {
 				bm->drag_complete = FALSE;
@@ -1504,7 +1504,7 @@ static int bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int
 			new->level = node->level;
 			bookmark_rebuild_data(bm);
 			bookmark_force_window_redraw(bm, line, -1);
-			bookmark_set_unsaved_state(bm, 1);
+			bookmark_set_unsaved_state(bm, TRUE);
 			status = 0;
 		}
 	} else if (direction == BOOKMARK_BELOW) {
@@ -1513,7 +1513,7 @@ static int bookmark_insert_edit_row(bookmark_block *bm, bookmark_node *node, int
 			new->level = bm->redraw[line].node->level;
 			bookmark_rebuild_data(bm);
 			bookmark_force_window_redraw(bm, line + 1, -1);
-			bookmark_set_unsaved_state(bm, 1);
+			bookmark_set_unsaved_state(bm, TRUE);
 			status = 0;
 		}
 	}
@@ -1579,7 +1579,7 @@ static void bookmark_delete_edit_row(bookmark_block *bm, bookmark_node *node)
 	bookmark_delete_node(bm, node);
 	bookmark_rebuild_data(bm);
 	bookmark_force_window_redraw(bm, line, -1);
-	bookmark_set_unsaved_state(bm, 1);
+	bookmark_set_unsaved_state(bm, TRUE);
 }
 
 
@@ -1659,7 +1659,7 @@ static void bookmark_change_edit_row_indentation(bookmark_block *bm, bookmark_no
 
 	if (redraw_from != -1 || redraw_to != -1) {
 		bookmark_rebuild_data(bm);
-		bookmark_set_unsaved_state(bm, 1);
+		bookmark_set_unsaved_state(bm, TRUE);
 		bookmark_force_window_redraw(bm, redraw_from, redraw_to);
 	}
 }
@@ -1727,7 +1727,7 @@ static void bookmark_tree_node_expansion(bookmark_block *bm, osbool expanded)
 	}
 
 	bookmark_rebuild_data(bm);
-	bookmark_set_unsaved_state(bm, 1);
+	bookmark_set_unsaved_state(bm, TRUE);
 	bookmark_force_window_redraw(bm, -1, -1);
 }
 
@@ -1858,7 +1858,7 @@ static void bookmark_resync_edit_with_file(void)
 	case BOOKMARK_ICON_TITLE:
 		if (strcmp(bookmarks_edit->redraw[bookmarks_edit->caret_row].node->title, bookmarks_edit_buffer) != 0) {
 			strncpy(bookmarks_edit->redraw[bookmarks_edit->caret_row].node->title, bookmarks_edit_buffer, MAX_BOOKMARK_LEN);
-			bookmark_set_unsaved_state(bookmarks_edit, 1);
+			bookmark_set_unsaved_state(bookmarks_edit, TRUE);
 		}
 		break;
 	case BOOKMARK_ICON_PAGE:
@@ -1866,7 +1866,7 @@ static void bookmark_resync_edit_with_file(void)
 
 		if (page != bookmarks_edit->redraw[bookmarks_edit->caret_row].node->page) {
 			bookmarks_edit->redraw[bookmarks_edit->caret_row].node->page = page;
-			bookmark_set_unsaved_state(bookmarks_edit, 1);
+			bookmark_set_unsaved_state(bookmarks_edit, TRUE);
 		}
 		break;
 	}
@@ -2315,7 +2315,7 @@ static void bookmark_terminate_line_drag(wimp_dragged *drag, void *data)
 			node->level = target->level;
 
 		bookmark_rebuild_data(bm);
-		bookmark_set_unsaved_state(bm, 1);
+		bookmark_set_unsaved_state(bm, TRUE);
 
 		bookmark_force_window_redraw(bm, (row < bm->drag_row) ? row-1 : bm->drag_row-1, -1);
 	} else {
@@ -2424,7 +2424,7 @@ static void bookmark_resync_toolbar_name_with_file(bookmark_block *bm)
 			bm->name) != 0) {
 		strncpy(bm->name, icons_get_indirected_text_addr(bm->toolbar, BOOKMARK_TB_NAME),
 				MAX_BOOKMARK_BLOCK_NAME);
-		bookmark_set_unsaved_state(bm, 1);
+		bookmark_set_unsaved_state(bm, TRUE);
 	}
 }
 
@@ -2764,8 +2764,8 @@ static osbool bookmarks_save_file(char *filename, osbool selection, bookmark_blo
 	bm->datestamp[4] = load & 0xff;
 
 	strncpy(bm->filename, filename, MAX_BOOKMARK_FILENAME);
-	bm->unsaved = 1; /* Force the titlebar to update, even if the file was already saved. */
-	bookmark_set_unsaved_state(bm, 0);
+	bm->unsaved = TRUE; /* Force the titlebar to update, even if the file was already saved. */
+	bookmark_set_unsaved_state(bm, FALSE);
 
 	return TRUE;
 }
