@@ -60,7 +60,6 @@
 #include "bookmark.h"
 #include "choices.h"
 #include "convert.h"
-#include "ps2paper.h"
 #include "main.h"
 
 /* Iconbar menu */
@@ -68,9 +67,8 @@
 #define ICONBAR_MENU_INFO 0
 #define ICONBAR_MENU_HELP 1
 #define ICONBAR_MENU_QUEUE 2
-#define ICONBAR_MENU_PAPER 3
-#define ICONBAR_MENU_CHOICES 4
-#define ICONBAR_MENU_QUIT 5
+#define ICONBAR_MENU_CHOICES 3
+#define ICONBAR_MENU_QUIT 4
 
 /* Program Info Window */
 
@@ -221,10 +219,6 @@ static void iconbar_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 	case ICONBAR_MENU_QUEUE:
 		convert_open_queue_window(&pointer);
 		break;
- 
-	case ICONBAR_MENU_PAPER:
-		ps2paper_open_window(&pointer);
-		break; 
 
 	case ICONBAR_MENU_CHOICES:
 		choices_open_window(&pointer);

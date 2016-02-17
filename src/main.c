@@ -80,7 +80,6 @@
 #include "pdfmark.h"
 #include "pmenu.h"
 #include "popup.h"
-#include "ps2paper.h"
 #include "taskman.h"
 #include "version.h"
 
@@ -297,7 +296,6 @@ static void main_initialise(void)
 	paper_initialise();
 	iconbar_initialise();
 	convert_initialise();
-	ps2paper_initialise();
 	bookmarks_initialise();
 	url_initialise();
 

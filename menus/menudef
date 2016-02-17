@@ -35,7 +35,6 @@ menu(IconBarMenu, "PrintPDF")
 		dotted;
 	}
 	item("Queue...");
-	item("Paper sizes...");
 	item("Choices...") {
 		dotted;
 	}
