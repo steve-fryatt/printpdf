@@ -41,7 +41,7 @@ SYS "XOS_GenerateError", b% TO territory_name$
 
 resource_path$ = resource_dir$ + "." + territory_name$
 SYS "XOS_File", 5, resource_path$ TO type%
-IF type% < 2 OR type% > 3 THEN resource_path$ = resource_dir$ + ".UK." ELSE resource_path$ + ="."
+IF type% < 2 OR type% > 3 THEN resource_path$ = resource_dir$ + ".UK." ELSE resource_path$ += "."
 
 SYS "XOS_SetVarVal", help_text_var$, resource_path$ + text_help$, LEN(resource_path$ + text_help$), 0, 0
 
