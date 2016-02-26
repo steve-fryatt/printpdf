@@ -653,6 +653,8 @@ First stable release.
 
 <subhead title="1.10 (26 February 2016)">
 
+Second stable release.
+
 <list>
 <li>Support added for controlling paper size (ticket&nbsp;#392).
 <li>Don&rsquo;t assume that child task will start immediately, to avoid problems when launching Zap to handle task windows (ticket&nbsp;#356).
