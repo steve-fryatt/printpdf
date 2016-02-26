@@ -651,13 +651,11 @@ First stable release.
 </list>
 
 
-<subhead title="Test Builds">
-
-Pre-release builds to test new features.
+<subhead title="1.10 (26 February 2016)">
 
 <list>
-<li>Support added for controlling paper size.
-<li>Don&rsquo;t assume that child task will start immediately, to avoid problems when launching Zap to handle task windows.
+<li>Support added for controlling paper size (ticket&nbsp;#392).
+<li>Don&rsquo;t assume that child task will start immediately, to avoid problems when launching Zap to handle task windows (ticket&nbsp;#356).
 </list>
 
 </chapter>
