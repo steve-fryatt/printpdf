@@ -1,0 +1,785 @@
+<document title="PrintPDF">
+<define name="version" value="">
+<define name="date" value="" length=30 align="right">
+<define name="sprites" value="Sprites">
+
+
+
+
+<literal mode="Strong" file="!Root">
+PrintPDF
+#SpriteFile Sprites
+#Sprite 8,0 Logo
+#Align Right
+{f*/:Easy PDF creation with GhostScript†}
+Version $$version$$ ($$date$$)†
+#Below
+#Line
+#Align Centre
+{f/:PrintPDF} is {f*:Open Source}: please read the <Licence>.
+
+#Indent 2
+#Table Columns 4
+è <Introduction>
+è <Installing PrintPDF=>Install>
+è <Using PrintPDF=>Use>
+è <The Bookmark Editor=>BMark>
+è <Using the Queue=>Queue>
+è <Setting Choices=>Choices>
+è <Version History=>History>
+#Endtable
+#Indent
+#Line
+#Align Left
+If you have any comments about {f/:PrintPDF}, or would like to report any bugs that you find, you can email me at the address below.
+
+Updates to {f/:PrintPDF} and more applications for RISC OS computers can be found on my website at <http://www.stevefryatt.org.uk/software/=>#url>.
+
+#Align Centre
+© Stephen Fryatt, 2005-2016 (<steve@stevefryatt.org.uk=>#url mailto:steve@stevefryatt.org.uk>)
+RISC OS 4 and 5 Iconsprites by Richard Hallas
+
+A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$HelpText\>>.
+#Align Left
+</literal>
+
+
+
+
+<literal mode="HTML">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" type="text/css" href="../../style/base.css" media="screen">
+<title>RISC&nbsp;OS Software &ndash; PrintPDF &ndash; Manual</title>
+</head>
+
+<body bgcolor="#ffffff" text="#000000">
+<div id="container">
+<div id="header">
+<h1>PrintPDF &ndash; Manual</h1>
+</div>
+
+<div id="content">
+
+<p class="breadcrumb">[ <a href="../../" class="breadcrumb">Home</a>
+| <a href="../" class="breadcrumb">RISC OS Software</a>
+| <a href="index.html" class="breadcrumb">Locate</a>
+| <span class="breadcrumb-here">Manual</span> ]</p>
+
+<img src="images/printpdf.gif" alt="" width=34 height=34 class="list-image">
+
+<p><b>Easy PDF creation with GhostScript</b> &ndash; &copy; Stephen Fryatt, 2005-2016<br>
+Version $$version$$ ($$date$$)</p>
+
+</literal>
+
+
+
+
+<literal mode="Text">
+=============================================================================
+PrintPDF - Easy PDF creation with GhostScript                    Version $$version$$
+
+(c) Stephen Fryatt, 2005-2016                  $$date$$
+=============================================================================
+</literal>
+
+
+
+<chapter title="Licence" file="Licence">
+
+<cite>PrintPDF</cite> is licensed under the EUPL, Version&nbsp;1.1 only (the &ldquo;Licence&rdquo;); you may not use this work except in compliance with the Licence.
+
+You may obtain a copy of the Licence at <link ref="#url http://joinup.ec.europa.eu/software/page/eupl">http://joinup.ec.europa.eu/software/page/eupl</link>
+
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an &ldquo;<strong>as is</strong>&rdquo; basis, <strong>without warranties or conditions of any kind</strong>, either express or implied.
+
+See the Licence for the specific language governing permissions and limitations under the Licence.
+
+The source for <cite>PrintPDF</cite> can be found alongside this binary download, at <link ref="#url http://www.stevefryatt.org.uk/software">http://www.stevefryatt.org.uk/software</link>
+
+The necessary libraries and build tools can be found at <link ref="#url http://www.stevefryatt.org.uk/software/build">http://www.stevefryatt.org.uk/software/build</link>
+
+</chapter>
+
+
+
+
+<chapter title="Introduction" file="Introduction">
+
+<cite>PrintPDF</cite> provides a front-end to the <code>*ps2pdf</code> command in <cite>GhostScript</cite>, allowing PDF documents to be produced more easily. Normally, the process requires a document to be &lsquo;printed&rsquo; to a postscript file, before that file is passed through <cite>GhostScript</cite> and converted into a PDF. This two stage process is complicated by the fact that the RISC&nbsp;OS printer drivers can only &lsquo;print&rsquo; to a file in a single location, so care has to be taken not to overwrite an existing postscript file before it has been converted.
+
+By setting up a dedicated postscript driver in <cite>Printers</cite>, which prints to a specific location, <cite>PrintPDF</cite> can watch out for new documents being printed and add them to a queue. These are processed in turn, with the resulting PDF files being saved using drag-and-drop from a dialogue box. To the user, printing from an application while this printer driver is selected will result in a <window>Create PDF</window> dialogue box opening; the PDF is saved directly, and no postscript files need be seen.
+
+As the process behind the scenes still involves creating a postscript file and then converting that to a PDF, <cite>PrintPDF</cite> also provides a quick way to convert any of these files which already exist by dragging them to its icon.
+
+In addition to this manual, interactive help is fully supported.
+
+</chapter>
+
+
+
+
+<chapter title="Installing PrintPDF" file="Install">
+
+To install <cite>PrintPDF</cite>, drag the <file>!PrintPDF</file> application directory from the archive to a suitable location on your hard disc; the directory containing your other printing utilities may be a good place.
+
+Once the application has been copied, it should be set to be seen by the filer when the machine starts: the easiest way to achieve this is to add it to the list of applications in <cite>Configure</cite>. Start <cite>Configure</cite> by double-clicking on <file>!Boot</file> (or selecting <menu>Configure...</menu> from the Task Manager&rsquo;s iconbar menu on recent versions of RISC&nbsp;OS), then select <icon>Boot</icon> and finally <icon>Look at</icon>. Drag the <file>!PrintPDF</file> application from your hard disc into the list of applications.
+
+<cite>PrintPDF</cite> is 32-bit neutral, and requires the 32-bit Shared C Library from Castle to be installed.  If you do not have this, it can be obtained from <link ref="#url http://www.iyonix.com/32bit/system.shtml">http://www.iyonix.com/32bit/system.shtml</link> with full installation instructions.
+
+If you are already using R-Comp&rsquo;s <cite>PDFsuite</cite>, then this is all the installation that is required.  Running <cite>PrintPDF</cite> instead of <cite>PDFmaker</cite> will result in PDF generation being controlled by <cite>PrintPDF</cite>; now read the section on <link ref="Use">Using PrintPDF</link>.
+
+If <cite>PDFsuite</cite> is not present, then before <cite>PrintPDF</cite> can be used, a copy of <cite>GhostScript</cite> must be installed on the machine. In addition, it is a good idea (although not essential) to add a new &ldquo;PDF&rdquo; printer definition to <cite>Printers</cite>, so that PDFs can be created automatically when documents are printed.
+
+
+<subhead title="Installing GhostScript">
+
+In order to convert postscript files into PDFs, <cite>PrintPDF</cite> makes use of the facilities provided by <cite>GhostScript</cite>. As a result, it is necessary for the <file>!GhostScr</file> application to have been installed and seen by the filer (&lsquo;booted&rsquo;) before trying to use <cite>PrintPDF</cite>.
+
+If you do not already have a copy of <cite>GhostScript</cite> version 8.5, it can be found at <link ref="#url http://www.mw-software.com/software/ghostscript/ghostscript.htm">http://www.mw-software.com/software/ghostscript/ghostscript.htm</link>.
+
+<cite>GhostScript</cite> must be installed on a filing system that supports long file names and unlimited files per directory.  If you are not using an E+ or F+ format hard disc (the new formats supplied with RISC&nbsp;OS&nbsp;4 and 5), you will either need to upgrade or investigate Richard Atterer&rsquo;s <cite>raFS</cite> (from <link ref="#url http://www.atterer.net/">http://www.atterer.net/</link>) or Andy Armstrong&rsquo;s <cite>X-Files</cite> (from <link ref="#url http://wonderworks.geekgang.com/free/">http://wonderworks.geekgang.com/free/</link>).
+
+Once installed, <cite>GhostScript</cite> must also have been seen by the filer before <cite>PrintPDF</cite> can carry out PDF conversions; again the easiest way to do this is via <cite>Configure</cite>.  Go back to the list of applications to be looked at on startup (start <cite>Configure</cite> by double-clicking on <file>!Boot</file>, then select <icon>Boot</icon> and finally <icon>Look at</icon>); drag the <file>!GhostScr</file> application from your hard disc into it.
+
+
+<subhead title="Setting up Printers">
+
+Although <cite>PrintPDF</cite> can be used without changing the configuration of <cite>Printers</cite>, setting up a dedicated printer definition which prints to a PostScript file in the <cite>PrintPDF</cite> queue allows the PDF creation process to be simplified.
+
+There are several alternative ways to set things up, and two or more can be used in parallel (allowing, for example, PS2 and PS3 icons so that PDF output can be generated via whichever is currently selected):
+
+<list spacing="1">
+<li>Use the standard PoScript2 driver; while this works fine, it means that the icon used to indicate the &ldquo;PDF printer&rdquo; is fairly nondescript. This uses PostScript2 to send data to the printer.
+
+<li>Use a slightly modified version of the PoScript2 driver (supplied in the <file>Printers</file> folder of the <cite>PrintPDF</cite> archive), which allows a different &ldquo;PDF&rdquo; icon to be displayed but is otherwise identical and also results in PS2 data being used.
+
+<li>Use the <file>PDF3</file> driver supplied in the <file>PrintDefs.PrintPDF</file> folder of the PS3 Driver download from Martin Wuerthner and John Tytgat (this is commercial software &ndash; see <link ref="#url http://www.mw-software.com/software/ps3/ps3.html">http://www.mw-software.com/software/ps3/ps3.html</link>). This allows PrintPDF to send PostScript3 data to GhostScript.
+</list>
+
+On most systems, the second and third options are preferred depending on whether the PS2 or PS3 drivers are to be used.
+
+To set up by any of these methods, first load <cite>PrintPDF</cite> so that its icon is on the iconbar.  If it has been configured to run without an icon, see the <link ref="Choices">Setting Choices</link> section for details on how to change this. Next load <cite>Printers</cite> and select <menu>Printer control...</menu> from the iconbar menu, to open the <window>Printer control</window> window.
+
+Locate the printer definition file to be used, and drag it into the <window>Printer control</window> window.  This will be one of three:
+
+<list spacing="1">
+<li>For the standard PostScript2 driver, locate the printer definitions supplied with your machine, and drag the <file>PoScript2</file> file from the <file>Postscript</file> directory to the window.  This should add a new printer, with the name &ldquo;PoScript2&rdquo;.
+
+<li>For the &ldquo;PDF printer&rdquo; using PS2, find the <file>PDF</file> definition from the <file>Printers</file> folder of the <cite>PrintPDF</cite> archive and drag it to the window: this should add a new printer with the name &ldquo;PDF&rdquo;.
+
+<li>For the PostScript3 driver, find the <file>PDF3</file> definition from the <file>PrintDefs/PrintPDF</file> folder of the <cite>PS3</cite> archive from Martin Wuerthner and John Tytgat, and drag it to the window: this should add a new printer with the name &ldquo;PDF3&rdquo;.
+</list>
+
+Click <mouse>menu</mouse> over the new printer&rsquo;s line, and select <menu>Connection...</menu> to open the <window>Connections</window> dialogue. Select <icon>File</icon> at the bottom of the list, click on the pop-up menu icon to the right of the field, and drag the file from the save dialogue to the <cite>PrintPDF</cite> icon on the iconbar; this should update the filename shown by <cite>Printers</cite>. Make sure that <icon>Append to file</icon> is not ticked, then click on <icon>Set</icon> to update the details.
+
+Click <mouse>menu</mouse> over the name again, and select <menu>Configure...</menu> from the menu to open the <window>PostScript printer configuration</window> dialogue. If using the standard PoScript2 driver, then enter <entry>PDF</entry> in the <icon>Name</icon> field to allow the new printer definition to be identified.  Ensure that <icon>Colour</icon> is ticked, then click on <icon>OK</icon> to set the changes.
+
+On the iconbar, select the printer which you wish to use as your default, then select <menu>Save choices</menu> from the iconbar menu to save the changes for future use.
+
+</chapter>
+
+
+
+
+<chapter title="Using PrintPDF" file="Use">
+
+To use <cite>PrintPDF</cite>, double-click to install it on the iconbar in the usual way. If space on the iconbar is limited, it can be run in the background with no icon present; see the <link ref="Choices">Setting Choices</link> section for how to configure this option.
+
+For <cite>PrintPDF</cite> to be able to convert PostScript files into PDFs, a copy of <cite>GhostScript</cite> must have been seen by the Filer: it is recommended that <cite>Ghostscript</cite> is included in the list of applications to boot when the machine starts (see the instructions for <link ref="Install">Installing PrintPDF</link>).
+
+Load <cite>Printers</cite>, and select on the iconbar the printer definition set up to work with <cite>PrintPDF</cite>. Open the document from which you wish to create a PDF, and print it in the usual way.
+
+Instead of being sent to a printer, after a short pause the <window>Create PDF</window> dialogue should open. This contains options to determine how the conversion is carried out, a file icon and a field for the filename. With the options set correctly, enter a suitable filename and drag the file icon to the directory where the PDF is to be saved. This will start the conversion process.
+
+Dragging a file into the file name field will set the path and filename. A <file>/pdf</file> extension will be added automatically, and any existing extension will be replaced.  If the file dragged in already has an extension of <file>/pdf</file>, it will not be used to avoid accidentally overwriting the existing file.
+
+During the conversion, the file will be shown as incomplete in the directory display. At the end of the conversion, if the option is set in the choices,  a small window will pop up in the centre of the desktop to show that it has finished. The PDF can now be loaded into a PDF viewer for checking.
+
+If <icon>Add to queue</icon> is clicked, then the print job will be added to the <link ref="Queue">queue</link> instead of being converted to a PDF immediately; this allows several print jobs to be converted into a single PDF file. The contents of the filename field is used to identify the print job in the queue: this does not need to conform to the standard filename conventions. The other options in the dialogue box are ignored at this stage (they will be set when the files are taken from the queue for conversion). See <link ref="Queue">Using the Queue</link> for more details.
+
+
+<subhead title="Setting the conversion options">
+
+A number of options can be set to control how the conversion is carried out. These affect various aspects of the process, such as the quality, size and security of the resulting PDF.
+
+The <icon>PDF version</icon> field allows the version of PDF file to be set, to target different versions of PDF reader. Versions 1.2 (Acrobat 3), 1.3 (Acrobat 4) and 1.4 (Acrobat 5) are currently supported by <cite>GhostScript</cite>, although a number of features in version 1.4 are not yet implemented (see the documentation supplied with <cite>GhostScript</cite> for more details).
+
+The <icon>Optimization</icon> of the file controls aspects of the conversion such as the use of compression and the resolution of any images that are included. A number of preset options are provided by <cite>GhostScript</cite> or the various parameters can be set manually, as described in the <link ref="Optimize">Document Optimization</link> chapter.
+
+The <icon>Information</icon> field allows the PDF document information to be set up: document title, subject, author and content keywords. When the field shows &lsquo;None&rsquo; then the default values set by the printing system will be used. Clicking on the pop-up menu to the right of the field gives access to these entries, allowing them to be changed. Most PDF readers show the document title in the titlebar of the display window, while the other fields appear with the document properties or document information.
+
+The paper size of the PDF document can be varied using the <icon>Paper size</icon> field. If <menu>Document</menu> is selected then whatever size is defined in the printer driver will be passed straight through: note that this comes from the <em>name</em> of the paper, and there are some tight limitations on this if <cite>GhostScript</cite> is to recognise it. Alternatively, one of the custom paper sizes supported by <cite>GhostScript</cite> can be selected from the various submenus: these are all internationally accepted &lsquo;standard&rsquo; sizes.
+
+If none of the standard sizes are suitable, then selecting <menu>Custom...</menu> will allow a non-standard paper width and height to be entered into the <window>Custom paper size</window> dialogue. These can be specified in either mm, inches or points (1/72 inches) by using the radio icons to the right of the fields. Clicking on <icon>Set</icon> will store the custom page size; clicking on <icon>Cancel</icon> will abandon any changes which have been made.
+
+The <icon>Bookmarks</icon> field can be used to attach a bookmarks file to the conversion: these can be used to identify chapter and section headings or other key locations in a document and enable readers to navigate through it easily. The pop-up menu to the right allows a bookmarks file to be selected from those currently open in the bookmark editor; when it shows &lsquo;None&rsquo;, no bookmarks will be used. Selecting <menu>Create...</menu> will open a new set of bookmarks in the bookmarks editor, while dragging a bookmarks file to the <window>Create PDF</window> window will load it and set it as the current file in the field. Details of how to use the editor to create or load sets of bookmarks are given in the <link ref="BMark">Bookmark Editor</link> section.
+
+The <icon>Encryption</icon> field allows access to the document encryption, password protection and access limitation features, if <cite>GhostScript</cite> 8.5 or better is being used.  When the field shows &lsquo;Unprotected&rsquo;, no encryption is applied; clicking on the pop-up menu icon opens a transient dialogue box to allow the various settings to be changed.
+
+Entering a password into the <icon>Owner password</icon> field will cause the document to be encrypted with it.  This password controls the use of encryption: if it is blank, none is used and the other protection features will be unavailable.
+
+If an owner password is given, an <icon>Access password</icon> may also be specified: if present, it must be entered by recipients of the document before they can view it.  Finally, a series of tick boxes allow the use of an encrypted document to be restricted: additional options become available if a PDF of version 1.4 (Acrobat 5) is being created.
+
+
+<subhead title="Other processing options">
+
+The <icon>Preprocess postscript file</icon> option allows the postscript file generated by <cite>Printers</cite> to be passed through <cite>GhostScript</cite>&rsquo;s <code>*ps2ps</code> command before the PDF generation is started. While this adds time to the conversion, it can allow some files to work which would otherwise fail to convert. However, it can degrade the file quality and may also cause other unexpected problems and side effects. As a result, it is not recommended to use preprocessing routinely; instead, apply it on a file-by-file basis should problems be experienced without its use.
+
+At the bottom of the dialogue is field to supply a <icon>PDFMark file</icon> for the conversion: enter a filename into the field, or drag a suitable text file in from the filer. This is a special file used by GhostScript to control different aspects of the conversion: at present it is intended for advanced users, and its operation is beyond the scope of this manual.
+
+
+<subhead title="Changing printer options">
+
+When printing, options such as page size and colour are controlled by the <cite>Printers</cite> application.  To change these, select <menu>Printer control...</menu> from the <cite>Printers</cite> iconbar menu and double-click over the PDF PostScript printer entry to open the <window>PostScript printer configuration</window> dialogue.
+
+Paper size can be changed from the <icon>Paper</icon> field at the top of the window. The sizes are chosen from the sizes that <cite>Printers</cite> knows about, and can be edited and added to in the usual way. Further down the dialogue, the <icon>Colour</icon> option allows black and white or colour printing to be selected.
+
+The <icon>Text printing options</icon> at the bottom of the dialogue control the way in which text printing is handled. PrintPDF can cope with documents printed in text mode (such as those from a text editor), and the settings here adjust the way in which the output is fitted on to the page.
+
+
+<subhead title="Converting existing PostScript files">
+
+It is also possible to convert PostScript files which already exist on disc, by dragging them to the <cite>PrintPDF</cite> icon on the iconbar. They will be added to the queue of files for conversion, and processed in turn.
+
+</chapter>
+
+
+
+
+<chapter title="Document Optimization" file="Optimize">
+
+The <icon>Optimization</icon> field allows control over aspects of the conversion such as the use of compression and the resolution of any images that are included. A number of preset options are provided by <cite>GhostScript</cite>, or the various parameters can be set manually.
+
+The presets on offer are Default, Screen, EBook, Printer and Prepress. When in use, page data is always compressed; colour and greyscale images always use DCT (JPEG) compression, while mono images use CCITT Fax encoding. Where applicable, downsampling is always done using the bicubic method with a threshold of 1.5 and depth set to off.
+
+<list spacing="1">
+<li><menu>Default</menu> does not downsample images. Pages are rotated page by page.
+
+<li><menu>Screen</menu> downsamples colour and greyscale images to 72dpi, and mono images to 300dpi. Pages are rotated page by page.
+
+<li><menu>EBook</menu> downsamples colour and greyscale images to 150dpi, and mono images to 300dpi. Pages are rotated using &lsquo;all&rsquo;.
+
+<li><menu>Printer</menu> does not downsample images. Pages are not rotated.
+
+<li><menu>Prepress</menu> does not downsample images. Pages are not rotated.
+</list>
+
+<box type="warning">
+Several of the preset options can interact badly with the RISC&nbsp;OS printing system. In many cases it is better to avoid their use and set the optimization manually with the <menu>Custom...</menu> option described below.
+</box>
+
+
+To set the parameters manually, select <menu>Custom...</menu> from the list to open the <window>Custom optimization</window> dialogue. If <icon>Set</icon> is clicked on, the settings in the dialogue box will be used by the conversion; clicking <icon>Cancel</icon>, or closing the dialogue by clicking outside it, will leave the existing settings in force. The options control the downsampling of images to reduce their resolution, image compression, page rotation and compression of the overall page data.
+
+Downsampling can be enabled independently for colour, greyscale and mono images, using the three switches in the <icon>Image downsampling</icon> section. For each type of image, a target resolution in DPI can be set, and the method used to reduce the size can be selected from subsampling or averaging.
+
+The threshold can be used to limit downsampling to images which are more than a given resolution, and is specified in terms of a ratio of the target resolution. That is,  if the threshold is 1.5 and the target resolution is 300, then the resolution of the original image must be more than 1.5 &times; 300, or 450, for downsampling to take place. The colour depth of the resulting images (in bits per colour per pixel) can also be set; &lsquo;Off&rsquo; indicates that the original depth will be retained.
+
+Compression can also be enabled for each type of image, using the <icon>Image compression</icon> section. The switches on the left turn compression on or off for each category, and the algorithm to be used can be specified.  In addition to the images, compression of the overall page data can also be enabled using <icon>Compress pages</icon>.
+
+Finally, the orientation of individual pages can specified in the <icon>Auto page rotation</icon> section. <icon>None</icon> leaves all the pages as they are in the printed document, while <icon>All</icon> will rotate all the pages to the same position to suit the predominant text orientation in the file. <icon>Page by page</icon> will rotate each page individually, based on the predominant text orientation on it.
+
+
+</chapter>
+
+
+
+
+<chapter title="Bookmark Editor" file="BMark">
+
+The bookmark editor is used to create sets of bookmarks, which can be attached to PDF files when they are created. Bookmarks are links to pages within a PDF document, and most PDF viewers can be made to display them and allow the user to follow them. The popular <cite>!PDF</cite> viewer on RISC&nbsp;OS refers to bookmarks as the &ldquo;document outline&rdquo;, and displays them through the left-hand icon on its toolbar.
+
+To enable PDFs to be generated with bookmarks in them, <cite>PrintPDF</cite> allows files containing sets of bookmarks to be created and maintained: these can then be loaded back into the bookmark editor when their associated document is printed to PDF, and used in the conversion. To create a new bookmarks file, click <mouse>select</mouse> on <cite>PrintPDF</cite>&rsquo;s iconbar icon.
+
+A bookmarks file contains of a series of bookmark entries, each consisting of a title in the left-hand column and a page number in the right. Page numbers always count from 1, and refer to pages in the finished PDF document. If a document consists of several files joined together via <cite>PrintPDF</cite>&rsquo;s <link ref="Queue">queue</link>, then the numbers continue in sequence through each of the source documents in turn. Page numbering as understood by software such as <cite>Impression</cite> or <cite>Ovation Pro</cite> is not seen by <cite>PrintPDF</cite>, and so can not be used.
+
+A new file initially contains a single line, but more can be inserted using <menu>Insert &msep; Before row</menu> and <menu>Insert &msep; After row</menu> from the bookmarks menu, by pressing <key>tab</key> in the page number column, or by pressing <key>return</key>. Lines can be deleted by using <menu>Delete row</menu> from the menu, or by pressing <key>backspace</key> in an empty title cell (ie. deleting back out of the empty cell).
+
+A set of bookmarks is given a name using the <icon>name</icon> field at the right-hand side of the toolbar: this is used to identify the bookmarks during PDF creation.
+
+
+<subhead title="Saving and loading bookmarks">
+
+Sets of bookmarks can be saved using the <icon>save</icon> button in the toolbar or by selecting <menu>File &msep; Save</menu> from the menu. Once saved, files can be loaded back into the editor by double-clicking on them in the usual manner.
+
+An asterisk to the right of the <window>bookmark editor</window> window&rsquo;s titlebar indicates that there are unsaved changes within it.
+
+In order to use a set of bookmarks in the PDF creation process, the bookmarks file must be open in the bookmarks editor.  It does not have to have been saved, however.
+
+
+<subhead title="Nesting bookmarks">
+
+Although bookmarks can consist of a simple list of references, the PDF format allows them to be nested. This means that top-level bookmarks (chapter headings, for example) can have children under them (sub headings, perhaps) and these can in turn have their own children, and so on. In this chapter of the <cite>PrintPDF</cite> manual, for example, the top-level bookmark would be &ldquo;Bookmark Editor&rdquo;, while it would have children of &ldquo;Saving and loading bookmarks&rdquo; and &ldquo;Nesting bookmarks&rdquo;.
+
+To produce nested bookmark entries, create a normal bookmark entry and use <menu>Level &msep; Promote</menu> from the menu or click on the <icon>promote</icon> toolbar button to indent it. The bookmark above will gain a <icon>node</icon> to its left, showing that it now has a child: as such, the first bookmark in the list can never be indented. The process can be reversed using <menu>Level &msep; Demote</menu> or the <icon>demote</icon> button in the toolbar.
+
+The <menu>Promote all</menu> and <menu>Demote all</menu> options are similar in action, but try to promote and demote logical groups of bookmarks following the selected one. In general, they will promote or demote all of the nodes following the selected one at the same level, and any of their children. When demoting, it may sometimes be necessary to demote additional nodes so as to avoid breaking the bookmark structure: this will happen regardless of whether or not &ldquo;all&rdquo; is used.
+
+Clicking on the <icon>node</icon> buttons to the left of the parent bookmarks allows their children to be hidden or revealed. These settings are saved in the file and carried across to the finished PDF, so toggling these affects the unsaved status of the bookmarks file. <menu>View &msep; Expand all</menu> and <menu>View &msep; Contract all</menu>, along with the associated toolbar buttons, can be used to fully expand or fully contract the set of bookmarks.
+
+</chapter>
+
+
+
+
+<chapter title="Using the Queue" file="Queue">
+
+Instead of converting print jobs into PDF files immediately, it is possible to add them to a queue of pending jobs for conversion at a later time. This allows separate print jobs to be grouped together and converted into a single PDF file.
+
+Note that the queue is cleared when <cite>PrintPDF</cite> is quit, so make sure that any outstanding print jobs are converted first.
+
+
+<subhead title="Adding files to the queue">
+
+To add a print job to the queue, click <icon>Add to queue</icon> in the <window>Create PDF</window> dialogue instead of clicking <icon>Create</icon> or dragging the file icon to a directory.
+
+The text in the filename field of the dialogue is used to identify the job in the queue. As a result, it makes sense to ensure that this is recognisable (and not just left as the default); standard filename requirements do not apply to names in the queue.
+
+Since no conversion takes place at this stage, none of the other fields in the <window>Create PDF</window> dialogue are used. The options will be set at the point where the files are taken from the queue and converted into a PDF.
+
+
+<subhead title="Accessing and working with the queue">
+
+To open the queue, select <menu>Queue...</menu> from the iconbar menu; this will open the queue dialogue, which contains a scrolling list of all the queued print jobs.
+
+The entries in the queue consist of a PDF file icon alongside the names they were given when they were added. To the left is a tick box which allows individual entries to be selected for conversion; to the right is a cross which allows items to be marked for deletion when the queue window is closed.
+
+The order of the entries in the queue can be changed by dragging individual items with <mouse>select</mouse>.
+
+
+<subhead title="Creating PDFs from the queue">
+
+To create a PDF from one or more items in the queue, select the items (using the tick boxes on the left) and place them in the required order by dragging them up or down the list. Where more than one item is selected, they will be placed in the resulting PDF starting with the item nearest the top of the queue window and working down towards the bottom.
+
+When the required files are selected, click on <icon>Create</icon> to close the queue and open the <window>Create PDF</window> dialogue. The process for setting options and starting the conversion is the same as when converting a single file, and is described in the section on <link ref="Use">Using PrintPDF</link>.
+
+Any items which were not selected for inclusion will remain in the queue for conversion later.
+
+</chapter>
+
+
+
+
+<chapter title="Setting Choices" file="Choices">
+
+Selecting <menu>Choices...</menu> from the iconbar menu allows various options to be set.  If <cite>PrintPDF</cite> is running without an iconbar icon, the <window>Choices</window> dialogue can be opened by double-clicking on <file>!PrintPDF</file> in a filer window for a second time.
+
+The <icon>PDF options</icon> section sets the default options for the PDF conversion process, which appear in the <window>Create PDF</window> dialogue.  See <link ref="Use">Using PrintPDF</link> for details of the available parameters (the bookmarks options are not included, as these will depend upon which bookmarks files are loaded at conversion time).  <icon>Default file</icon> allows the default filename used for new files to be set: this can be used to add a <file>/pdf</file> ending, alter the name completely, or specify a full pathname.  Dragging a file from a filer window into the field will set the name.
+
+<icon>Indicate conversion end</icon> specifies whether a pop-up window will appear at the end of the conversion process, to show that it has been completed.  Although the file should be marked as incomplete during the conversion, this makes it clearer when <cite>GhostScript</cite> has finished.
+
+If <icon>Reset for every conversion</icon> is ticked, the default filename and the options as set in this window will be used each time the <window>Create PDF</window> dialogue opens.  Otherwise, the filename and these options will be set when <cite>PrintPDF</cite> loads and after that the settings from the last conversion will be remembered.
+
+<icon>Show iconbar icon</icon> specifies whether <cite>PrintPDF</cite> will place an icon on the iconbar or not. Since the icon is only used for printing postscript files and configuring <cite>Printers</cite>, running without an icon present saves space on a crowded bar.
+
+<icon>Taskwindow memory</icon> sets the amount of RAM given to GhostScript when a conversion is started.  How much is set will depend on the memory in the machine, but 8Mb (8192Kb) is recommended as a minimum unless free memory is tight.  If enough memory is available, 16Mb (16384Kb) or more is suggested.  If too little memory is allocated here, it may result in unpredictable crashes.
+
+To set the options, click on <icon>Apply</icon>; to save them to disc for future use, click on <icon>Save</icon>.  As ever, <mouse>adjust</mouse> clicks will update the settings and leave the window open.  <icon>Cancel</icon> will close the window and forget any changes; <mouse>adjust</mouse> clicks will reset the window&rsquo;s contents to the currently stored settings.
+
+The <window>PrintPDF choices</window> dialogue can not be opened when there is a conversion in progress.  Conversely, new conversions will not start until the dialogue has been closed (and any files which are printed or dragged to the iconbar will be queued).
+
+</chapter>
+
+
+
+<chapter title="Version History" file="History">
+
+Here is a list of the versions of <cite>PrintPDF</cite>, along with all the changes made.
+
+
+<subhead title="0.10 (10 July 2005)">
+
+First Beta release.
+
+
+<subhead title="0.20 (16 July 2005)">
+
+Second beta release.
+
+<list>
+<li>Checks TaskManager on initialisation to prevent multiple copies running.
+<li>Seeing another copy of <cite>PrintPDF</cite> starting will open the <window>Choices</window> window.
+<li>Added <icon>Show iconbar icon</icon> option.
+<li>Compiled against OSLib 6.70, using GCC 3.4.4r3.
+<li>Corrected URL for website link.
+<li>Changed name of child tasks.
+</list>
+
+
+<subhead title="0.30 (4 September 2005)">
+
+Third beta release.
+
+<list>
+<li>Writes GhostScript parameters to a file in PipeFS and calls <code>*gs @</code> to get around command line length restrictions on RISC&nbsp;OS&nbsp;3.
+<li>Opens a &ldquo;conversion finished&rdquo; pop-up when child task terminates.
+</list>
+
+
+<subhead title="0.31 (4 September 2005)">
+
+Update to third beta release.
+
+<list>
+<li>The &ldquo;conversion finished&rdquo; pop-up can be selected from the Choices window.
+<li>While GhostScript is converting a file, the destination is given load and exec addresses of &amp;DEADDEAD.
+</list>
+
+
+<subhead title="0.32 (10 September 2005)">
+
+Update to third beta release.
+
+<list>
+<li>Added FileName option token, and use it to override FileName token in
+Messages file when set.
+<li>Full path and filename is remembered between conversions if <icon>Reset for every conversion</icon> option is off.
+</list>
+
+
+<subhead title="0.40 (19 May 2006)">
+
+Fourth beta release.
+
+<list>
+<li>Default leafname changed to <file>PDFFile/pdf</file>.
+<li>Added preprocess option to allow files to be passed through <code>*ps2ps</code> before going on to <code>*ps2pdf</code>.  This can help some files to work with GhostScript 8.5.
+<li>Added support for encrypted PDFs and security features in GhostScript 8.5.
+</list>
+
+
+<subhead title="0.41 (23 May 2006)">
+
+Update to fourth beta release.
+
+<list>
+<li>Encryption windows grey out when no creation password is entered.
+<li>Changes to the manual and interactive help text.
+</list>
+
+
+<subhead title="0.45 (13 August 2006)">
+
+Update to fourth beta release.
+
+<list>
+<li>Save filename preserved again unless <icon>Reset every...</icon> option is on (was lost in 0.40).
+<li>Included Richard Hallas&rsquo; RISC&nbsp;OS&nbsp;5 iconsprites designs.
+<li>Restructured options handling, making it the job of both conversion and choices code to maintain their own state rather than having conversion assume that choices will maintain state across calls.
+<li>Added support for retaining encryption and protection options between sessions.
+<li>All changes to convert dialogue are remembered for next conversion, even if Cancel is clicked (was inconsistent).
+</list>
+
+
+<subhead title="0.50 (9 November 2007)">
+
+Fifth beta release.
+
+<list>
+<li>Support for EBook optimization added.
+<li>Printer optimization now sets <code>-dUseCIEColor=true</code> to prevent warnings from <cite>GhostScript</cite>.
+<li>Added &lsquo;custom&rsquo; optimization option, to allow individual parameters to be set.
+<li>Some corrections to interactive help texts.
+<li>Some corrections to <cite>GhostScript</cite> command-line parameters.
+<li>Added <icon>Default file</icon> option to <window>choices</window> window.
+</list>
+
+
+<subhead title="0.51 (17 November 2007)">
+
+Update to fifth beta release.
+
+<list>
+<li>Corrections to window templates for <window>choices</window> window.
+<li>Dragging a file to the <icon>Default file</icon> field in the <window>choices</window> window sets the pathname.
+<li>Dragging a file to the file name field in the <window>save PDF</window> window sets the filename.
+<li>Included <file>PDF600</file> printer definition, supplied by Bernard Veasey.
+</list>
+
+
+<subhead title="0.52 (6 April 2008)">
+
+Update to fifth beta release.
+
+<list>
+<li>Support added for R-Comp&rsquo;s PDFsuite.
+</list>
+
+
+<subhead title="0.60 (11 October 2008)">
+
+Sixth beta release.
+
+<list>
+<li>Print jobs can be queued and merged into a single PDF.
+<li>Handles open target files more gracefully.
+</list>
+
+
+<subhead title="0.61 (10 November 2008)">
+
+Update to sixth beta release.
+
+<list>
+<li>Intermediate <code>*ps2ps</code> files correctly saved into queue (broken in 0.60).
+</list>
+
+
+<subhead title="0.70 (6 March 2010)">
+
+Seventh beta release.
+
+<list>
+<li>Support for document information fields (title, author, subject, keywords) via the PDFMark interface.
+<li>Additional PDFMark file can be supplied to GhostScript for each conversion.
+<li>Manual updated to reflect PostScript3 driver setup details.
+</list>
+
+
+<subhead title="0.71 (20 April 2010)">
+
+Update to seventh beta release.
+
+<list>
+<li>Fix escaping of ( and ) in PDFDocEncoding strings.
+</list>
+
+
+<subhead title="0.80 (30 June 2010)">
+
+Eighth beta release.
+
+<list>
+<li>Add bookmarks editor.
+</list>
+
+
+<subhead title="0.81 (1 July 2010)">
+
+Update to eighth beta release.
+
+<list>
+<li>Remove incorrect page-position data from bookmarks.
+</list>
+
+
+<subhead title="0.82 (5 July 2010)">
+
+Update to eighth beta release.
+
+<list>
+<li>Internal improvements and restructuring of code.
+<li>Autoscrolling bookmark editor window no longer opens queue pane.
+</list>
+
+
+<subhead title="0.83 (6 July 2010)">
+
+Update to eighth beta release.
+
+<list>
+<li>Fix click/drag behaviour in bookmark editor.
+<li><mouse>Adjust</mouse> close of bookmarks window conforms to Style Guide.
+<li>Warn of unsaved bookmarks and pending conversions before quit.
+</list>
+
+
+<subhead title="0.84 (9 July 2010)">
+
+Update to eighth beta release.
+
+<list>
+<li>Merge printer sprites into application IconSprites and amend installation procedure.
+<li>Fix sprite selection on RISC&nbsp;OS&nbsp;6.
+<li>Improve manual and interactive help.
+<li>Remove ineffectual PDF600 printer definition file.
+</list>
+
+
+<subhead title="0.85 (11 July 2010)">
+
+Update to eighth beta release.
+
+<list>
+<li>Dragging bookmark files to the <window>Create PDF</window> window loads it and sets it as the current bookmarks for the conversion.
+<li>Internal improvements and restructuring of code.
+</list>
+
+
+<subhead title="0.86 (2 November 2010)">
+
+Update to eighth beta release.
+
+<list>
+<li><mouse>Adjust</mouse>-clicks on iconbar open the <link ref="Queue">queue window</link>.
+<li>New <link ref="BMark">bookmarks</link> can be created from the pop-up menu in the <window>Create PDF</window> window.
+<li>Correctly set <link ref="BMark">bookmark</link> page positions, and ignore broken YOffset values in offending bookmark file format.
+</list>
+
+
+<subhead title="0.87 (17 April 2011)">
+
+Update to eighth beta release.
+
+<list>
+<li>Correct buffer length calculations and text truncation in PDF Doc Encoding conversions.
+</list>
+
+
+<subhead title="0.88 (4 August 2012)">
+
+Update to eighth beta release.
+
+<list>
+<li>Extensive internal restructuring.
+<li>Rebuilt to confirm ARMv6 compatibility.
+</list>
+
+
+<subhead title="1.00 (14 October 2012)">
+
+First stable release.
+
+<list>
+<li>Relicensed as Open Source.
+</list>
+
+
+<subhead title="1.10 (26 February 2016)">
+
+Second stable release.
+
+<list>
+<li>Support added for controlling paper size (ticket&nbsp;#392).
+<li>Don&rsquo;t assume that child task will start immediately, to avoid problems when launching Zap to handle task windows (ticket&nbsp;#356).
+</list>
+
+</chapter>
+
+
+
+
+
+<literal mode="Strong" file="!Configure">
+# Configure file for StrongHelp
+# Lines starting with "# " are comments (Note the space)
+# Lines starting with "#Commands" and "#End" are *not* comments.
+
+#Commands
+
+# f0  = Sassoon.Primary           14   Bold  1  Italic  2  Both  3
+# f1  = Sassoon.Primary.Bold      14   Bold  1  Italic  2  Both  3
+# f2  = Homerton.Medium.Oblique   14   Bold  1  Italic  2  Both  3
+# f3  = Homerton.Bold.Oblique     14   Bold  1  Italic  2  Both  3
+
+# The Body font
+
+f0  = Trinity.Medium          14   Bold  1  Italic  2  Both  3
+f1  = Trinity.Bold            14   Bold  1  Italic  2  Both  3
+f2  = Trinity.Medium.Italic   14   Bold  1  Italic  2  Both  3
+f3  = Trinity.Bold.Italic     14   Bold  1  Italic  2  Both  3
+f4  = Trinity.Medium          10
+
+# The Headline fonts
+
+f10 = Homerton.Bold           16
+f11 = Homerton.Bold.Oblique   14
+f12 = Trinity.Bold            14
+f13 = Trinity.Bold.Italic     12
+f14 = Trinity.Medium          10
+f15 = Trinity.Medium.Italic   8
+
+# The fonts used for fCode
+
+f20 = Corpus.Medium           14   Bold 21  Italic 22  Both 23
+f21 = Corpus.Bold             14   Bold 21  Italic 22  Both 23
+f22 = Corpus.Medium.Oblique   14   Bold 21  Italic 22  Both 23
+f23 = Corpus.Bold.Oblique     14   Bold 21  Italic 22  Both 23
+
+# Fonts 24 to 31 are reserved for the manuals themselves.
+
+f31 = Selwyn                  14
+
+# The styles..
+
+fStd       = f0
+fLink      = f_
+fStrong    = f*
+fEmphasis  = f/
+fUnderline = f_
+fCode      = f20
+fCite      = f/
+
+fH1        = f10
+fH2        = f11
+fH3        = f12
+fH4        = f13
+fH5        = f14
+fH6        = f15
+
+# Set default background and font
+
+#Background rgb 255,255,255
+Background wimp 1
+fStd
+
+#End
+</literal>
+
+
+
+
+<literal mode="HTML">
+
+<div><h2>Updates and Contacting Me</h2>
+
+<p>If you have any comments about <cite>PrintPDF</cite>, or would like to report any bugs that you find, you can email me at the address below.</p>
+
+<p>Updates to <cite>PrintPDF</cite> and more programs for RISC&nbsp;OS computers can be found on my website at <a href="http://www.stevefryatt.org.uk/software/">http://www.stevefryatt.org.uk/software/</a></p></div>
+
+<p class="breadcrumb">[ <a href="../../" class="breadcrumb">Home</a>
+| <a href="../" class="breadcrumb">RISC&nbsp;OS Software</a>
+| <a href="index.html" class="breadcrumb">PrintPDF</a>
+| <span class="breadcrumb-here">Manual</span> ]</p>
+
+</div>
+
+<div id="footer">
+<p><a href="http://validator.w3.org/check?uri=referer"><img src="../../images/vh40.gif" alt="Valid HTML 4.0!" width=88 height=31 border=0></a>&nbsp;
+<a href="http://www.riscos.com/"><img src="../../images/roro4x.gif" alt="RISC&nbsp;OS" width=88 height=31 border=0></a>&nbsp;
+<a href="http://www.anybrowser.org/campaign/"><img src="../../images/any.gif" alt="Best veiwed with Any Browser!" width=81 height=31 border=0></a>&nbsp;
+<a href="http://jigsaw.w3.org/css-validator/check/referer"><img src="../../images/vcss.gif" alt="Valid CSS!" width=88 height=31 border=0></a></p>
+
+<p>Page last updated $$date$$ | Maintained by Steve Fryatt:
+<a href="mailto:web@stevefryatt.org.uk">web@stevefryatt.org.uk</a></p>
+</div>
+
+</div>
+</body>
+</html>
+</literal>
+
+
+
+
+<literal mode="Text">
+
+
+Updates and Contacting Me
+-------------------------
+
+  If you have any comments about PrintPDF, or would like to report any bugs
+  that you find, you can email me at the address below.
+
+  Updates to PrintPDF and more software for RISC OS computers can be found
+  on my website at http://www.stevefryatt.org.uk/software/
+
+  Stephen Fryatt
+  email: steve@stevefryatt.org.uk
+</literal>

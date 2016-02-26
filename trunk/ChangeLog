@@ -1,0 +1,109 @@
+0.10 (10 July 2005)
+-------------------
+* First beta release
+
+0.20
+----
+* Checks TaskManager on initialisation to prevent multiple copies running.
+* Seeing another copy of PrintPDF starting will open the Choices window.
+* Added "no iconbar icon" option.
+* Compiled against OSLib 6.70, using GCC 3.4.4r3.
+* Corrected URL for website link.
+* Changed name of child tasks.
+
+0.30
+----
+* Writes GhostScript parameters to a file in PipeFS and calls "gs @" to get around command line length restrictions on RISC OS 3.
+* Opens a "conversion finished" pop-up when child task terminates.
+
+0.31
+----
+* The "conversion finished" pop-up can be selected from the Choices window.
+* While GhostScript is converting a file, the destination is given load and exec addresses of &DEADDEAD.
+
+0.32
+----
+* Added FileName option token, and use it to override FileName token in Messages file when set.
+* Full path and filename is remembered between conversions if "Reset every..." option is off.
+
+0.40
+----
+* Default leafname changed to PDFFile/pdf
+* Added preprocess option to allow files to be passed through *ps2ps before going on to *ps2pdf.  This can help some files to work with GhostScript 8.5.
+* Added support for encrypted PDFs and security features in GhostScript 8.5.
+
+0.41
+----
+* Encryption windows grey out when no creation password is entered.
+* Changes to the manual and interactive help text.
+
+0.45
+----
+* Save filename preserved again unless "Reset every..." option is on (was lost in 0.40).
+* Included Richard Hallas' RISC OS 5 iconsprites designs.
+* Restructured options handling, making it the job of both conversion and choices code to maintain their own state rather than having conversion assume that choices will maintain state across calls.
+* Added support for retaining encryption and protection options between sessions.
+* All changes to convert dialogue are remembered for next conversion, even if Cancel is clicked (was inconsistent).
+
+0.50
+----
+* Changed pop-up menu code, to split three settings into their own modules.
+* Added custom optimization dialogue.
+* Added EBook optimization.
+* Printer optimization now adds "-dUseCIEColor=true" to the *gs command line to suppress errors.
+* Added "-c save pop" to the *gs command line when invoking pdfwrite.
+* Corrected interactive help in encryption window.
+* Added Default File option to Choices window, and reordered icons.
+
+0.51
+----
+* Modified length and validation string of Default path field in Choices window.
+* Dragging a file to the Default path field sets the filename.
+* Dragging a file to the path field in the Save As dialogue sets the filename.
+
+0.52
+----
+* Added support for jobs queued from PDFMaker.
+
+0.60
+----
+* Iconbar menu restructured for Queue... option.
+* Print queue added, to allow multiple print jobs to be merged into a single PDF.
+* Errors creating the dummy PDF file are trapped.
+
+0.61
+----
+* Intermediate ps2ps file correctly saved into Scrap, not CSD.
+
+0.70
+----
+* Support for PDFMark DOCINFO fields added (Title, Author, Subject, Keywords).
+* Additional PDFMark file can be supplied for a conversion.
+
+0.71
+----
+* Correct escaping of PDFDoc encoding.
+
+0.80
+----
+* Support for PDFMark /OUT fields.
+* Start to convert Wimp_Poll loop to use Event Lib.
+
+0.81
+----
+* Fix /OUT entries in PDFMark so that they don't use /VIEW.
+
+0.82
+----
+* Move queue pane handlers into Event Lib.
+* Scroll events handled by bookmark window code.
+* Tidy line position calculations.
+* Add BOOKMARK_WINDOW_MARGIN.
+* Fix Autoscroll on bookmark window.
+
+0.83
+----
+* Fix click/drag issue in bookmark editor.
+* Adjust-close of bookmarks windows now works correctly.
+* Warn of unsaved bookmarks.
+* Warn of pending print jobs.

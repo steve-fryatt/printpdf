@@ -1,0 +1,240 @@
+/* Copyright 2005-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+ *
+ * This file is part of PrintPDF:
+ *
+ *   http://www.stevefryatt.org.uk/software/
+ *
+ * Licensed under the EUPL, Version 1.1 only (the "Licence");
+ * You may not use this work except in compliance with the
+ * Licence.
+ *
+ * You may obtain a copy of the Licence at:
+ *
+ *   http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in
+ * writing, software distributed under the Licence is
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES
+ * OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the Licence for the specific language governing
+ * permissions and limitations under the Licence.
+ */
+
+
+/**
+ * Icon bar menu.
+ */
+
+menu(IconBarMenu, "PrintPDF")
+{
+	item("Info") {
+		d_box(ProgInfo);
+	}
+	item("Help") {
+		dotted;
+	}
+	item("Queue...");
+	item("Choices...") {
+		dotted;
+	}
+	item("Quit");
+}
+
+/**
+ * Bookmarks Window Menu.
+ */
+
+menu(BookmarksMenu, "PrintPDF")
+{
+	item("File") {
+		submenu(BookmarksFileSubmenu);
+	}
+	item("View") {
+		submenu(BookmarksViewSubmenu);
+		dotted;
+	}
+	item("Level") {
+		submenu(BookmarksLevelSubmenu) {
+			always;
+		}
+	}
+	item("Insert") {
+		submenu(BookmarksInsertSubmenu) {
+			always;
+		}
+	}
+	item("Delete row");
+}
+
+/**
+ * Bookmarks Window -- File Submenu.
+ */
+
+menu(BookmarksFileSubmenu, "File")
+{
+	item("Info") {
+		d_box(FileInfo) {
+			warning;
+		}
+	}
+	item("Save") {
+		d_box(SaveAs) {
+			warning;
+		}
+	}
+}
+
+/**
+ * Bookmarks Window -- View Submenu.
+ */
+
+menu(BookmarksViewSubmenu, "View")
+{
+	item("Expand all");
+	item("Contract all");
+}
+
+/**
+ * Bookmarks Window -- Level Submenu.
+ */
+
+menu(BookmarksLevelSubmenu, "Level")
+{
+	item("Promote");
+	item("Demote") {
+		dotted;
+	}
+	item("Promote all");
+	item("Demote all");
+}
+
+/**
+ * Bookmarks Window -- Insert Submenu.
+ */
+
+menu(BookmarksInsertSubmenu, "Insert")
+{
+	item("Before row");
+	item("After row");
+}
+
+/**
+ * PDF Version Menu.
+ */
+
+menu(VersionMenu, "PDF Version")
+{
+	item("1.2 (Acrobat 3)");
+	item("1.3 (Acrobat 4)");
+	item("1.4 (Acrobat 5)");
+}
+
+/**
+ * PDF Optimization Menu.
+ */
+
+menu(OptimizeMenu, "Optimization")
+{
+	item("Default");
+	item("Prepress");
+	item("Printer");
+	item("EBook");
+	item("Screen") {
+		dotted;
+	}
+	item("Custom...");
+}
+
+/**
+ * Paper Menu
+ */
+
+menu(PaperMenu, "Paper Size")
+{
+	item("Document") {
+		dotted;
+	}
+	item("ISO") {
+		submenu(PaperIsoSubmenu);
+	}
+	item("US") {
+		submenu(PaperUsSubmenu);
+	}
+	item("Architectural") {
+		submenu(PaperArchSubmenu);
+	}
+	item("JIS") {
+		submenu(PaperJisSubmenu);
+	}
+	item("Other") {
+		submenu(PaperOtherSubmenu);
+		dotted;
+	}
+	item("Custom...");
+}
+
+menu(PaperIsoSubmenu, "ISO") {
+	item("A0");
+	item("A1");
+	item("A2");
+	item("A3");
+	item("A4");
+	item("A5");
+	item("A6");
+	item("A7");
+	item("A8");
+	item("A9");
+	item("A10");
+	item("B0");
+	item("B1");
+	item("B2");
+	item("B3");
+	item("B4");
+	item("B5");
+	item("B6");
+	item("C0");
+	item("C1");
+	item("C2");
+	item("C3");
+	item("C4");
+	item("C5");
+	item("C6");
+}
+
+menu(PaperUsSubmenu, "US")
+{
+	item("Tabloid"); /* 11 x 7 */
+	item("Ledger");
+	item("Legal");
+	item("Letter");
+	item("Half Letter");
+	item("Small Letter");
+}
+
+menu(PaperArchSubmenu, "Architectural")
+{
+	item("Arch E");
+	item("Arch D");
+	item("Arch C");
+	item("Arch B");
+	item("Arch A");
+}
+
+menu(PaperJisSubmenu, "JIS")
+{
+	item("B0");
+	item("B1");
+	item("B2");
+	item("B3");
+	item("B4");
+	item("B5");
+	item("B6");
+}
+
+menu(PaperOtherSubmenu, "Other")
+{
+	item("US Foolscap");
+	item("European Foolscap");
+}
+

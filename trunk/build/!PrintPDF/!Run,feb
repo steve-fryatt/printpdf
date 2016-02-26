@@ -1,0 +1,62 @@
+| >!Run
+|
+| Copyright 2005-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+|
+| This file is part of PrintPDF:
+|
+|   http://www.stevefryatt.org.uk/software/
+|
+| Licensed under the EUPL, Version 1.1 only (the "Licence");
+| You may not use this work except in compliance with the
+| Licence.
+|
+| You may obtain a copy of the Licence at:
+|
+|   http://joinup.ec.europa.eu/software/page/eupl
+|
+| Unless required by applicable law or agreed to in
+| writing, software distributed under the Licence is
+| distributed on an "AS IS" basis, WITHOUT WARRANTIES
+| OR CONDITIONS OF ANY KIND, either express or implied.
+|
+| See the Licence for the specific language governing
+| permissions and limitations under the Licence.
+
+Set PrintPDF$Help <Obey$Dir>.!Help
+Set PrintPDF$Version "0.10"
+Set PrintPDF$Web "http://www.stevefryatt.org.uk/software/printpdf/"
+Set PrintPDF$Title "PrintPDF"
+Set PrintPDF$Publisher "Stephen Fryatt"
+Set PrintPDF$Description "PostScript to PDF Conversion"
+
+Set PrintPDF$Dir <Obey$Dir>
+
+Set PrintPDF$Sprites <PrintPDF$Dir>.!Sprites
+If "<Boot$OSVersion>" >= "400" Then Set PrintPDF$Sprites <PrintPDF$Dir>.4Sprites
+If "<Boot$OSVersion>" >= "500" Then Set PrintPDF$Sprites <PrintPDF$Dir>.5Sprites
+If "<Boot$OSVersion>" >= "600" Then Set PrintPDF$Sprites <PrintPDF$Dir>.4Sprites
+
+IconSprites <PrintPDF$Sprites>
+
+Unset PrintPDF$Sprites
+
+| Set the filetype information.
+
+Set File$Type_1D8 PrintPDF
+
+| Claim PrintPDF files.
+
+Set Alias$@RunType_1D8 Run <PrintPDF$Dir>.!Run -file %%*0
+
+| Ensure the Nested Wimp is installed.
+
+RMEnsure WindowManager 3.98 Error PrintPDF requires the Nested Window Manager.
+
+| Ensure a suitable version of the SCL is available.
+
+RMEnsure SharedCLibrary 5.17 RMLoad System:Modules.CLib
+RMEnsure SharedCLibrary 5.34 Error PrintPDF requires version 5.34 or later of the Shared C Library.
+
+WimpSlot -min 256k -max 256k
+
+Run <PrintPDF$Dir>.!RunImage %*0

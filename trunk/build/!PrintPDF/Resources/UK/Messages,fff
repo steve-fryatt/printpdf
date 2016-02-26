@@ -1,0 +1,345 @@
+# Copyright 2007-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+#
+# This file is part of PrintPDF:
+#
+#   http://www.stevefryatt.org.uk/software/
+#
+# Licensed under the EUPL, Version 1.1 only (the "Licence");
+# You may not use this work except in compliance with the
+# Licence.
+#
+# You may obtain a copy of the Licence at:
+#
+#   http://joinup.ec.europa.eu/software/page/eupl
+#
+# Unless required by applicable law or agreed to in
+# writing, software distributed under the Licence is
+# distributed on an "AS IS" basis, WITHOUT WARRANTIES
+# OR CONDITIONS OF ANY KIND, either express or implied.
+#
+# See the Licence for the specific language governing
+# permissions and limitations under the Licence.
+
+# General application details
+
+TaskName:PrintPDF
+Version:%0 (%1)
+
+ChildTaskName:PrintPDF Child
+
+TaskSpr:!printpdf
+
+SupportURL:http://www.stevefryatt.org.uk/software/printpdf/
+
+FileName:PDFFile/pdf
+BMFileName:Bookmarks
+
+Version0:1.2 (Acrobat 3)
+Version1:1.3 (Acrobat 4)
+Version2:1.4 (Acrobat 5)
+
+Optimization0:Default
+Optimization1:Prepress
+Optimization2:Printer
+Optimization3:EBook
+Optimization4:Screen
+
+Encrypt0:Unprotected
+Encrypt1:Encrypted
+Custom:Custom
+
+None:None
+Info:Information
+
+# Paper
+
+PaperDoc:Document
+PaperCust:Custom
+PaperIA0:ISO A0
+PaperIA1:ISO A1
+PaperIA2:ISO A2
+PaperIA3:ISO A3
+PaperIA4:ISO A4
+PaperIA5:ISO A5
+PaperIA6:ISO A6
+PaperIA7:ISO A7
+PaperIA8:ISO A8
+PaperIA9:ISO A9
+PaperIA10:ISO A10
+PaperIB0:ISO B0
+PaperIB1:ISO B1
+PaperIB2:ISO B2
+PaperIB3:ISO B3
+PaperIB4:ISO B4
+PaperIB5:ISO B5
+PaperIB6:ISO B6
+PaperIC0:ISO C0
+PaperIC1:ISO C1
+PaperIC2:ISO C2
+PaperIC3:ISO C3
+PaperIC4:ISO C4
+PaperIC5:ISO C5
+PaperIC6:ISO C6
+PaperTab:US Tabloid
+PaperLed:US Ledger
+PaperLeg:US Legal
+PaperLet:US Letter
+PaperHLt:US Half Letter
+PaperSLt:US Sm. Letter
+PaperAE:Arch E
+PaperAD:Arch D
+PaperAC:Arch C
+PaperAB:Arch B
+PaperAA:Arch A
+PaperUSF:US Foolscap
+PaperEUF:Eur. Foolscap
+PaperJB0:JIS B0
+PaperJB1:JIS B1
+PaperJB2:JIS B2
+PaperJB3:JIS B3
+PaperJB4:JIS B4
+PaperJB5:JIS B5
+PaperJB6:JIS B6
+
+DepthOff:Off
+
+Yes:Yes
+No:No
+Unsaved:Not saved
+USTitle:<unsaved>
+
+# Bookmarks system
+
+UntBM:Bookmarks %0
+BMListMenu:Bookmarks
+BMNew:Create...
+
+# Messages and errors
+
+DragSave:To save, enter a full pathname or drag the file to a directory viewer.
+NoQueueDir:The queue directory is invalid.
+FOpenFailed:The PDF file could not be created: does it already exist?
+UnknownFileData:The file contained unrecognised tokens: some data may have been discarded.
+UnknownFileFormat:The file format version wasn't known: some data may have been lost.
+
+FileNotSaved:This bookmark file is not saved: do you wish to close it anyway?
+FileNotSavedB:Discard,Cancel,Save
+FilesNotSaved:There are unsaved bookmarks files: do you want to quit anyway?
+FilesNotSavedB:Discard,Cancel
+PendingJobs:There are print jobs queued: do you want to quit anyway?
+PendingJobsB:Discard,Cancel
+
+# ps2pdf command-line option lists.
+
+VersionList:1.2,1.3,1.4
+OptimizationList:/default,/prepress,/printer,/ebook,/screen
+DownsampleList:/Subsample,/Average,/Bicubic
+EncodeList1:/DCTEncode,/FlateEncode
+EncodeList2:/CCITTFaxEncode,/FlateEncode,/RunLengthEncode
+AutoPageRotateList:/None,/All,/PageByPage
+
+# Interactive Help for windows and icons.
+#
+# Window icon data (particularly toolbar items) may be in menu data when duplicates exist.
+
+Help.IconBar:\TPrintPDF application.|M\Sopen a new bookmark file in the bookmark editor.|M\Aopen the queue \w.|MDrag a PostScript file here to create a PDF.
+
+Help.ProgInfo:\TPrintPDF information \w.
+Help.ProgInfo.Website:\Svisit the PrintPDF website, if you have Internet access.
+
+Help.SavePDF:\TSave PDF \w.
+Help.SavePDF.Icon3:Drag this icon to the directory display where the PDF is to be saved.
+Help.SavePDF.Name:Enter a new filename, or full pathname, for the file here.
+Help.SavePDF.Save:\Ssave the file if there is a full pathname above.
+Help.SavePDF.Cancel:\Scancel the PDF creation.
+Help.SavePDF.Queue:\Sdefer creating this PDF, and add it to the queue.|MThis will allow it to be merged into a single PDF with other files.
+Help.SavePDF.Version:\Tversion of PDF file that will be generated.
+Help.SavePDF.SetVersion:\Schange the version of PDF file that will be generated.
+Help.SavePDF.Optimize:\Toptimization that will be used for the PDF file.
+Help.SavePDF.SetOptimize:\Schange the optimization that will be used for the PDF file.
+Help.SavePDF.Paper:\Tpaper size that will be used for the document.
+Help.SavePDF.SetPaper:\Schange the paper size used for the document.
+Help.SavePDF.Encrypt:\Tencryption and protection that will be used for the PDF file.
+Help.SavePDF.SetEncrypt:\Schange the encryption and protection options that will be used for the PDF file.
+Help.SavePDF.PDFMark:\Tthe name of a PDFMark file to be used to add more features to the conversion.|MEnter a full pathname, or drop a suitable file here.
+Help.SavePDF.Info:\Tinformation (title, author, etc) and bookmarks that will be used for the PDF file.
+Help.SavePDF.SetInfo:\Schange the information and bookmarks associated with the PDF file.
+Help.SavePDF.Preprocess:\Stoggle whether the data for the PDF file will pre-processed by GhostScript before the conversion.
+
+Help.Queue/Help.QueuePane:\TPDF print queue, containing print jobs which have yet to be converted into PDFs.
+Help.Queue.Close:\Sclose the queue window.|MAny entries marked for deletion will be removed.
+Help.Queue.Create:\Sclose the queue window and turn the selected jobs into a single PDF.|MAny entries marked for deletion will be removed.
+
+Help.QueuePane.Col0:\Stoggle whether this this item will be included in the next PDF to be created.
+Help.QueuePane.Col1:\Dmove this item up or down the queue.|MThis will change the order in which jobs are placed in the PDF.
+Help.QueuePane.Col2:\Stoggle whether this item will be deleted when the dialogue is closed.
+
+Help.Optimize:\Tcustom optimization \w.
+Help.Optimize.DColour:\Senable or disable downsampling of colour images.
+Help.Optimize.DGrey:\Senable or disable downsampling of greyscale images.
+Help.Optimize.DMono:\Senable or disable downsampling of mono images.
+Help.Optimize.DColourSub:\Suse subsample downsampling on colour images.
+Help.Optimize.DColourAve:\Suse average downsampling on colour images.
+Help.Optimize.DColourRes:\Ttarget resolution for colour images.
+Help.Optimize.DColourResU/Help.Optimize.DGreyResU/Help.Optimize.DMonoResU:\Sincrease the target resolution.
+Help.Optimize.DColourResD/Help.Optimize.DGreyResD/Help.Optimize.DMonoResD:\Sdecrease the target resolution.
+Help.Optimize.DColourThr:\Tdownsampling threshold for colour images.
+Help.Optimize.DColourThrU/Help.Optimize.DGreyThrU/Help.Optimize.DMonoThrU:\Sincrease the threshold.
+Help.Optimize.DColourThrD/Help.Optimize.DGreyThrD/Help.Optimize.DMonoThrD:\Sdecrease the threshold.
+Help.Optimize.DColourDep:\Tdepth for downsampled colour images.
+Help.Optimize.DColourDepU/Help.Optimize.DGreyDepU/Help.Optimize.DMonoDepU:\Sincrease the depth.
+Help.Optimize.DColourDepD/Help.Optimize.DGreyDepD/Help.Optimize.DMonoDepD:\Sdecrease the depth.
+Help.Optimize.DGreySub:\Suse subsample downsampling on greyscale images.
+Help.Optimize.DGreyAve:\Suse average downsampling on greyscale images.
+Help.Optimize.DGreyRes:\Ttarget resolution for greyscale images.
+Help.Optimize.DGreyThr:\Tdownsampling threshold for greyscale images.
+Help.Optimize.DGreyDep:\Tdepth for downsampled greyscale images.
+Help.Optimize.DMonoSub:\Suse subsample downsampling on mono images.
+Help.Optimize.DMonoAve:\Suse average downsampling on mono images.
+Help.Optimize.DMonoRes:\Ttarget resolution for mono images.
+Help.Optimize.DMonoThr:\Tdownsampling threshold for mono images.
+Help.Optimize.DMonoDep:\Tdepth for downsampledmono images.
+Help.Optimize.CColour:\Senable or disable compression of colour images.
+Help.Optimize.CGrey:\Senable or disable compression of greyscale images.
+Help.Optimize.CMono:\Senable or disable compression of mono images.
+Help.Optimize.CColourDCT:\Suse DCT (JPEG) compression on colour images.
+Help.Optimize.CColourZip:\Suse Flate (Zip) compression on colour images.
+Help.Optimize.CGreyDCT:\Suse DCT (JPEG) compression on greyscale images.
+Help.Optimize.CGreyZip:\Suse Flate (Zip) compression on greyscale images.
+Help.Optimize.CMonoCCITT:\Suse CCITT Fax compression on mono images.
+Help.Optimize.CMonoZip:\Suse Flate (Zip) compression on mono images.
+Help.Optimize.CMonoRun:\Suse Run length compression on mono images.
+Help.Optimize.RotNone:\Sleave all pages in their original orientation.
+Help.Optimize.RotAll:\Srotate all pages based on the predominant text direction.
+Help.Optimize.RotPage:\Srotate each page based on its predominant text direction.
+Help.Optimize.Compress:\Sdetermine whether page content is compressed.
+Help.Optimize.Set:\Sstore the changes and close the window.
+Help.Optimize.Cancel:\Sclose the window and discard any changes.
+
+Help.Paper:\Tcustom paper size definition \w.
+Help.Paper.Width:\Twidth of the custom paper.|MThe units are those shown on the right.
+Help.Paper.Height:\Theight of the custom paper.|MThe units are those shown on the right.
+Help.Paper.Mm:\Sdefine the paper size in millimeters.
+Help.Paper.Inch:\Sdefine the paper size in inches.
+Help.Paper.Point:\Sdefine the paper size in points (1/72 inches).
+Help.Paper.Set:\Sstore the changes and close the window.
+Help.Paper.Cancel:\Sclose the window and discard any changes.
+
+Help.Security?:\Tdocument encryption \w.
+Help.Security?.OwnerPass:\Tcreation password, which must be entered to modify the document.|MIf the field is blank, the document will not be encrypted and no protection features can be used.
+Help.Security?.UserPass:\Taccess password, which must be entered to view the document.|MIf the field is blank, no password is used and the document can be accessed freely.
+Help.Security2.Print:This determines whether the document can be printed or not.
+Help.Security2.Mods:This determines whether the document can be modified by third parties.
+Help.Security2.Extract:This determines whether text and graphics can be extracted from the document.
+Help.Security2.Fill:This determines if forms can be filled in and the document annotated.
+Help.Security3.Print:This determines whether the document can be printed or not.
+Help.Security3.PrintHi:This determines if the document can be printed at high quality.
+Help.Security3.Extract:This determines whether text and graphics can be extracted from the document for disabled accessibility purposes.
+Help.Security3.ExtractAll:This determines whether text and graphics can be extracted from the document without limitation.
+Help.Security3.Fill:This determines if forms can be filled in.
+Help.Security3.Annotate:This determines if the document can be annotated.
+Help.Security3.Mods:This determines whether the document can be modified by third parties over and above that allowed by the other options.
+Help.Security3.Assembly:This determines whether the document can be assembled (rotate, insert and delete pages, or create bookarks and thumbnails).
+Help.Security?.Set:\Sstore the changes and close the window.
+Help.Security?.Cancel:\Sclose the window and discard any changes.
+
+Help.PDFMark:\Tdocument info \w.
+Help.PDFMark.Title:\Ttitle of the PDF document.
+Help.PDFMark.Author:\Tname of the author of the PDF document.
+Help.PDFMark.Subject:\Tsubject of the PDF document.
+Help.PDFMark.Keys:\Tis a list of keywords that apply to the PDF document.
+Help.PDFMark.Set:\Sstore the changes and close the window.
+Help.PDFMark.Cancel:\Sclose the window and discard any changes.
+
+Help.Choices:\Tchoices \w.
+Help.Choices.Apply:\Sapply the current settings (\a will leave the \w open).
+Help.Choices.Save:\Ssave and apply the current settings (\a will leave the \w open).
+Help.Choices.Cancel:\Scancel the changes.|M\Ato reset the window contents.
+Help.Choices.Version:\Tversion of PDF file that will be generated.
+Help.Choices.SetVersion:\Schange the version of PDF file that will be generated.
+Help.Choices.Optimize:\Toptimization that will be used for PDF files.
+Help.Choices.SetOptimize:\Schange the optimization that will be used for PDF files.
+Help.Choices.Paper:\Tpaper size that will be used for documents.
+Help.Choices.SetPaper:\Schange the paper size used for documents.
+Help.Choices.Encrypt:\Tencryption and protection that will be used for PDF files.
+Help.Choices.SetEncrypt:\Schange the encryption and protection options that will be used for PDF files.
+Help.Choices.Info:\Tinformation (title, author, etc) and bookmarks that will be used for PDF files.
+Help.Choices.SetInfo:\Schange the information and bookmarks that will be associated with PDF files.
+Help.Choices.DefFile:\Tdefault filename offered when saving a new PDF.
+Help.Choices.Preprocess:\Stoggle whether data for PDF files will pre-processed by GhostScript before conversion.
+Help.Choices.ResetEvery:\Sdetermine whether options in the Save PDF dialogue are reset each time or remembered between conversions in the same session.
+Help.Choices.IBar:\Sdermine whether PrintPDF places an icon on the iconbar.|MWithout an icon, run !PrintPDF from the filer a second time to open this Choices \w.
+Help.Choices.Popup:\Sdermine whether PrintPDF shows a message on screen when a PDF conversion is completed.
+Help.Choices.TaskMem:\Tamount of memory in kilobytes which is allocated to GhostScript when conversions are started.
+
+Help.PopUp:This \w is indicating a message from PrintPDF.
+
+Help.Bookmark/Help.BookmarkTB:\TPrintPDF bookmark editor.
+Help.Bookmark.Col0:\Stoggle this node between expanded and contracted.
+Help.Bookmark.Col1:\Tbookmark name column.|M\Splace the caret, or drag to move the row to another position.
+Help.Bookmark.Col2:\Tbookmark page number column.|M\Splace the caret, or drag to move the row to another position.
+
+Help.BookmarkTB.Name:\Tname of the bookmarks in the file, as used in the Create PDF \w.
+Help.BookmarkTB.Save:\Sto save the bookmarks via the file save \w.|M\Asave the file directly to its current location.
+Help.BookmarkTB.Promote:\Sincrease the nesting level of the bookmark with the caret.
+Help.BookmarkTB.Demote:\Sdecrease the nesting level of the bookmark with the caret.
+Help.BookmarkTB.PromoteG:\Sincrease the nesting level of the bookmark with the caret and those that follow it.
+Help.BookmarkTB.DemoteG:\Sdecrease the nesting level of the bookmark with the caret and those that follow it.
+
+Help.FileInfo:\Tbookmark file information \w, which shows details about the current file.
+Help.FileInfo.Name:\Tname of the bookmarks in the file.
+Help.FileInfo.Location:\Tfull pathname of the file's location on disc.
+Help.FileInfo.Mod:This shows whether the file has been changed since it was last saved.
+Help.FileInfo.Date:\Tdate when the file was last saved.
+
+Help.SaveAs:\Tfile save \w.
+Help.SaveAs.Icon3:Drag this icon to the directory display where the file is to be saved, or direct to another application.
+Help.SaveAs.Name:Enter a new filename, or full pathname, for the file here.
+Help.SaveAs.Save:\Ssave the file if there is a full pathname above.
+Help.SaveAs.Cancel:\Scancel the save.
+
+# Interactive help for menus.
+#
+# Where duplicate menu entries exist, items may be grouped and numbering will not be contiguous.
+
+Help.IconBarMenu.00:\Rsee information about PrintPDF.
+Help.IconBarMenu.01:\Sread the online manual.
+Help.IconBarMenu.02:\Sopen the list of queued print jobs.
+Help.IconBarMenu.03:\Schange the PrintPDF options.
+Help.IconBarMenu.04:\Squit PrintPDF.
+
+Help.VersionMenu.00:\Sgenerate Version 1.2 format PDF documents.
+Help.VersionMenu.01:\Sgenerate Version 1.3 format PDF documents.
+Help.VersionMenu.02:\Sgenerate Version 1.4 format PDF documents.
+
+Help.OptimizeMenu.00:\Sgenerate PDF documents to the 'default' quality.
+Help.OptimizeMenu.01:\Sgenerate PDF documents to the 'prepress' quality.|MHigh resolution images will be used throughout.
+Help.OptimizeMenu.02:\Sgenerate PDF documents to the 'printer' quality.|MHigh resolution images will be used throughout.
+Help.OptimizeMenu.03:\Sgenerate PDF documents to the 'ebook' quality.|MMedium resolution images will be used throughout.
+Help.OptimizeMenu.04:\Sgenerate PDF documents to the 'screen' quality.|MLow resolution images will be used throughout.
+Help.OptimizeMenu.05:\Scustomize the quality of generated PDFs.
+
+Help.PaperMenu.00:\Suse whatever paper size is set by the printer driver.
+Help.PaperMenu.06:\Sdefine a custom paper size and ignore that set by the printer driver.
+Help.PaperMenu.??:\Rselect a standard paper size and ignore that set by the printer driver.
+Help.PaperMenu.????:\Schoose this standard paper size and ignore that set by the printer driver.
+
+Help.BookmarkListMenu.00:\Screate and edit a new set of bookmarks for this conversion.
+Help.BookmarkListMenu.01:\Suse no bookmarks in this conversion.
+Help.BookmarkListMenu.??:\Suse the set of bookmarks under the pointer for this conversion.
+
+Help.BookmarkMenu.00:\Rperform operations on and see information about this file.
+Help.BookmarkMenu.0000:\Rsee information about this file.
+Help.BookmarkMenu.0001:\Rsave this file.|M\Sdirectly save the file to its current location.
+Help.BookmarkMenu.01:\Ralter the current view.
+Help.BookmarkMenu.0100/Help.BookmarkTB.Expand:\Sopen all of the nested groups and display all the bookmarks.
+Help.BookmarkMenu.0101/Help.BookmarkTB.Contract:\Sclose all of the nested groups and only display the top-level bookmarks.
+Help.BookmarkMenu.02:\Rchange the indentation of the highlighted bookmark.
+Help.BookmarkMenu.0200:\Sincrease the nesting level of the highlighted bookmark.
+Help.BookmarkMenu.0201:\Sdecrease the nesting level of the highlighted bookmark.
+Help.BookmarkMenu.0202:\Sincrease the nesting level of the highlighted bookmark and those that follow it.
+Help.BookmarkMenu.0203:\Sdecrease the nesting level of the highlighted bookmark and those that follow it.
+Help.BookmarkMenu.03:\Rinsert new bookmarks.
+Help.BookmarkMenu.0300:\Sinsert a new bookmark above the highlighted one.
+Help.BookmarkMenu.0301:\Sinsert a new bookmark below the highlighted one.
+Help.BookmarkMenu.04:\Sdelete the highlighted bookmark.
