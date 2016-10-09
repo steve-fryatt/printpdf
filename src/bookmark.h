@@ -28,7 +28,7 @@
  */
 
 #ifndef PRINTPDF_BOOKMARK
-#define PRINTPDF_BOOKARK
+#define PRINTPDF_BOOKMARK
 
 #include <stdio.h>
 
