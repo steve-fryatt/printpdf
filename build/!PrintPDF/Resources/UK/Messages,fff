@@ -117,7 +117,7 @@ BMNew:Create...
 # Messages and errors
 
 NoSprites:The application sprites file could not be opened.
-BadTemplate:Failed to load template.
+BadTemplate:Window template '%0' not found.
 DragSave:To save, enter a full pathname or drag the file to a directory viewer.
 NoQueueDir:The queue directory is invalid.
 FOpenFailed:The PDF file could not be created: does it already exist?
