@@ -130,7 +130,7 @@ To install <cite>PrintPDF</cite>, drag the <file>!PrintPDF</file> application di
 
 Once the application has been copied, it should be set to be seen by the filer when the machine starts: the easiest way to achieve this is to add it to the list of applications in <cite>Configure</cite>. Start <cite>Configure</cite> by double-clicking on <file>!Boot</file> (or selecting <menu>Configure...</menu> from the Task Manager&rsquo;s iconbar menu on recent versions of RISC&nbsp;OS), then select <icon>Boot</icon> and finally <icon>Look at</icon>. Drag the <file>!PrintPDF</file> application from your hard disc into the list of applications.
 
-<cite>PrintPDF</cite> is 32-bit neutral, and requires the 32-bit Shared C Library from Castle to be installed.  If you do not have this, it can be obtained from <link ref="#url http://www.iyonix.com/32bit/system.shtml">http://www.iyonix.com/32bit/system.shtml</link> with full installation instructions.
+<cite>PrintPDF</cite> is 32-bit neutral, and requires the 32-bit Shared C Library to be installed. If needed, this can be found in the System Resources on RISC&nbsp;OS Open Ltd&rsquo;s website at <link ref="https://www.riscosopen.org/content/downloads/common">https://www.riscosopen.org/content/downloads/common</link>.
 
 If you are already using R-Comp&rsquo;s <cite>PDFsuite</cite>, then this is all the installation that is required.  Running <cite>PrintPDF</cite> instead of <cite>PDFmaker</cite> will result in PDF generation being controlled by <cite>PrintPDF</cite>; now read the section on <link ref="Use">Using PrintPDF</link>.
 
