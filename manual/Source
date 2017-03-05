@@ -84,7 +84,7 @@ Version $$version$$ ($$date$$)</p>
 =============================================================================
 PrintPDF - Easy PDF creation with GhostScript                    Version $$version$$
 
-(c) Stephen Fryatt, 2005-2016                  $$date$$
+(c) Stephen Fryatt, 2005-2017                  $$date$$
 =============================================================================
 </literal>
 
@@ -658,6 +658,16 @@ Second stable release.
 <list>
 <li>Support added for controlling paper size (ticket&nbsp;#392).
 <li>Don&rsquo;t assume that child task will start immediately, to avoid problems when launching Zap to handle task windows (ticket&nbsp;#356).
+</list>
+
+
+<subhead title="1.11 (5 March 2017)">
+
+Update to second stable release.
+
+<list>
+<li>Fix <file>!Help</file> so that <menu>Help</menu> menu items work correctly.
+<li>Improve error handling when Templates or Sprites are missing on startup.
 </list>
 
 </chapter>
