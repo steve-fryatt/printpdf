@@ -1,4 +1,4 @@
-/* Copyright 2010-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2010-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -777,8 +777,8 @@ static bookmark_block *bookmark_find_block(bookmark_block *block)
 
 osbool bookmark_files_unsaved(void)
 {
-	int			button = -1;
-	bookmark_block		*bm = bookmarks_list;
+	wimp_error_box_selection	button = wimp_ERROR_BOX_SELECTED_NOTHING;
+	bookmark_block			*bm = bookmarks_list;
 
 	while ((bm != NULL) && !(bm->unsaved))
 		bm = bm->next;
@@ -786,7 +786,7 @@ osbool bookmark_files_unsaved(void)
 	if (bm != NULL)
 		button = error_msgs_report_question("FilesNotSaved", "FilesNotSavedB");
 
-	return (button == 2) ? TRUE : FALSE;
+	return (button == 4) ? TRUE : FALSE;
 }
 
 /* ****************************************************************************
@@ -944,10 +944,11 @@ static void bookmark_open_window(bookmark_block *bm)
 
 static void bookmark_close_window(wimp_close *close)
 {
-	bookmark_block		*bm;
-	int			button, shift, len;
-	char			*path, *buffer;
-	wimp_pointer		pointer;
+	bookmark_block			*bm;
+	wimp_error_box_selection	button;
+	int				shift, len;
+	char				*path, *buffer;
+	wimp_pointer			pointer;
 
 	bm = bookmark_find_window(close->w);
 
@@ -963,8 +964,8 @@ static void bookmark_close_window(wimp_close *close)
 	/* If the file is unsaved, prompt the user. */
 
 	if (bm->unsaved && !(pointer.buttons == wimp_CLICK_ADJUST && shift) &&
-			(button = error_msgs_report_question("FileNotSaved", "FileNotSavedB")) >= 2) {
-		if (button != 3)
+			(button = error_msgs_report_question("FileNotSaved", "FileNotSavedB")) >= 4) {
+		if (button != 5)
 			return;
 
 		/* Re-grab the pointer info, as the pointer has been moved by the Message Box. */

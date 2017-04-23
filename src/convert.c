@@ -1,4 +1,4 @@
-/* Copyright 2005-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2005-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -1403,12 +1403,12 @@ osbool convert_pdf_conversion_in_progress(void)
 
 osbool convert_pending_files_in_queue(void)
 {
-	int		button = -1;
+	wimp_error_box_selection	button = wimp_ERROR_BOX_SELECTED_NOTHING;
 
 	if (queue != NULL)
 		button = error_msgs_report_question("PendingJobs", "PendingJobsB");
 
-	return (button == 2) ? TRUE : FALSE;
+	return (button == 4) ? TRUE : FALSE;
 }
 
 
