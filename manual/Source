@@ -670,6 +670,15 @@ Update to second stable release.
 <li>Improve error handling when Templates or Sprites are missing on startup.
 </list>
 
+
+<subhead title="Test Build">
+
+Alpha release for feedback and comment.
+
+<list>
+<li>Bookmark title fields no longer overwrite each other when multiple files are open (ticket&nbsp;#619).
+</list>
+
 </chapter>
 
 

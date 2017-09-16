@@ -177,7 +177,6 @@ static void		bookmark_terminate_line_drag(wimp_dragged *drag, void *data);
 
 static void		bookmark_toolbar_click_handler(wimp_pointer *pointer);
 static osbool		bookmark_toolbar_key_handler(wimp_key *key);
-static void		bookmark_resync_toolbar_name_with_file(bookmark_block *bm);
 
 /* Bookmark Window Menu Handling */
 
@@ -888,6 +887,9 @@ static void bookmark_open_window(bookmark_block *bm)
 		bookmark_pane_def->icons[BOOKMARK_TB_NAME].extent.x1 =
 				bookmark_pane_def->extent.x1 +
 				bookmark_pane_def->icons[BOOKMARK_TB_NAME].extent.y1;
+
+		bookmark_pane_def->icons[BOOKMARK_TB_NAME].data.indirected_text.text = bm->name;
+		bookmark_pane_def->icons[BOOKMARK_TB_NAME].data.indirected_text.size = MAX_BOOKMARK_BLOCK_NAME;
 
 		bm->window = wimp_create_window(bookmark_window_def);
 		bm->toolbar = wimp_create_window(bookmark_pane_def);
@@ -2396,7 +2398,8 @@ static osbool bookmark_toolbar_key_handler(wimp_key *key)
 		bookmark_place_edit_icon(bm, 0, BOOKMARK_ICON_TITLE);
 		break;
 	default:
-		bookmark_resync_toolbar_name_with_file(bm);
+		if (key->i == BOOKMARK_TB_NAME)
+			bookmark_set_unsaved_state(bm, TRUE);
 		break;
 	}
 
@@ -2414,24 +2417,6 @@ static osbool bookmark_toolbar_key_handler(wimp_key *key)
 	return TRUE;
 }
 
-
-/**
- * Resync the toolbar name field with the stored name.
- *
- * \param  *bm			The window to resync.
- */
-
-static void bookmark_resync_toolbar_name_with_file(bookmark_block *bm)
-{
-	if (bm == NULL)
-		return;
-
-	if (strcmp(icons_get_indirected_text_addr(bm->toolbar, BOOKMARK_TB_NAME),
-			bm->name) != 0) {
-		icons_strncpy(bm->toolbar, BOOKMARK_TB_NAME, bm->name);
-		bookmark_set_unsaved_state(bm, TRUE);
-	}
-}
 
 /* ****************************************************************************
  * Bookmark Window Menu Handling
