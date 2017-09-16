@@ -42,6 +42,7 @@
 
 #include "sflib/debug.h"
 #include "sflib/msgs.h"
+#include "sflib/string.h"
 
 /* Application header files */
 
@@ -55,12 +56,13 @@
  * token.
  *
  * \param *buffer		Pointer to a buffer to take the entry.
+ * \param len			The size of the buffer.
  * \param *param_list		The list message token.
  * \param entry			The number of the item to return.
  * \return			Pointer to the \0 terminator in the buffer.
  */
 
-char *pmenu_list_entry(char *buffer, char* param_list, int entry)
+char *pmenu_list_entry(char *buffer, size_t len, char* param_list, int entry)
 {
 	char	*menu_def, *item_text;
 	int	item;
@@ -89,7 +91,7 @@ char *pmenu_list_entry(char *buffer, char* param_list, int entry)
 	*buffer = '\0';
 
 	if (item_text != NULL)
-		strcpy(buffer, item_text);
+		string_copy(buffer, item_text, len);
 
 	free(menu_def);
 

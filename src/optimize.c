@@ -61,6 +61,8 @@
 
 #define OPTIMIZE_MENU_LENGTH 6
 
+#define OPTIMIZE_PARAM_BUFFER_LENGTH 1024
+
 /* Optimization Window icons. */
 
 #define OPTIMIZE_ICON_CANCEL 0
@@ -699,7 +701,7 @@ void optimize_fill_field(wimp_w window, wimp_i icon, optimize_params *params)
 
 void optimize_build_params(char *buffer, size_t len, optimize_params *params)
 {
-	char		settings[1024], *pointers[10], *extras, *end;
+	char		settings[OPTIMIZE_PARAM_BUFFER_LENGTH], *pointers[10], *extras, *end;
 
 	if (buffer == NULL || params == NULL)
 		return;
@@ -708,7 +710,7 @@ void optimize_build_params(char *buffer, size_t len, optimize_params *params)
 	extras = "";
 
 	if (params->standard_preset != -1) {
-		pmenu_list_entry(settings, "OptimizationList", params->standard_preset);
+		pmenu_list_entry(settings, OPTIMIZE_PARAM_BUFFER_LENGTH, "OptimizationList", params->standard_preset);
 
 		switch (params->standard_preset) {
 		case 2:
@@ -720,13 +722,13 @@ void optimize_build_params(char *buffer, size_t len, optimize_params *params)
 	} else {
 		end = settings;
 
-		end = pmenu_list_entry(pointers[0] = end, "DownsampleList", params->downsample_colour_type);
-		end = pmenu_list_entry(pointers[1] = end, "DownsampleList", params->downsample_grey_type);
-		end = pmenu_list_entry(pointers[2] = end, "DownsampleList", params->downsample_mono_type);
-		end = pmenu_list_entry(pointers[3] = end, "EncodeList1", params->encode_colour_type);
-		end = pmenu_list_entry(pointers[4] = end, "EncodeList1", params->encode_grey_type);
-		end = pmenu_list_entry(pointers[5] = end, "EncodeList2", params->encode_mono_type);
-		end = pmenu_list_entry(pointers[6] = end, "AutoPageRotateList", params->auto_page_rotation);
+		end = pmenu_list_entry(pointers[0] = end, OPTIMIZE_PARAM_BUFFER_LENGTH - (end - settings), "DownsampleList", params->downsample_colour_type);
+		end = pmenu_list_entry(pointers[1] = end, OPTIMIZE_PARAM_BUFFER_LENGTH - (end - settings), "DownsampleList", params->downsample_grey_type);
+		end = pmenu_list_entry(pointers[2] = end, OPTIMIZE_PARAM_BUFFER_LENGTH - (end - settings), "DownsampleList", params->downsample_mono_type);
+		end = pmenu_list_entry(pointers[3] = end, OPTIMIZE_PARAM_BUFFER_LENGTH - (end - settings), "EncodeList1", params->encode_colour_type);
+		end = pmenu_list_entry(pointers[4] = end, OPTIMIZE_PARAM_BUFFER_LENGTH - (end - settings), "EncodeList1", params->encode_grey_type);
+		end = pmenu_list_entry(pointers[5] = end, OPTIMIZE_PARAM_BUFFER_LENGTH - (end - settings), "EncodeList2", params->encode_mono_type);
+		end = pmenu_list_entry(pointers[6] = end, OPTIMIZE_PARAM_BUFFER_LENGTH - (end - settings), "AutoPageRotateList", params->auto_page_rotation);
 
 	string_printf(buffer, len, "-dDownsampleColorImages=%s -dDownsampleGrayImages=%s -dDownsampleMonoImages=%s "
 			"-dColorImageDownsampleType=%s -dGrayImageDownsampleType=%s -dMonoImageDownsampleType=%s "

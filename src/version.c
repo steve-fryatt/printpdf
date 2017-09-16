@@ -56,6 +56,8 @@
 
 #define VERSION_MESSAGE_TOKEN_LENGTH 20
 
+#define VERSION_PARAM_BUFFER_LENGTH 100
+
 
 /* Function Prototypes. */
 
@@ -163,9 +165,9 @@ void version_fill_field(wimp_w window, wimp_i icon, version_params *params)
 
 void version_build_params(char *buffer, size_t len, version_params *params)
 {
-	char		level[100];
+	char		level[VERSION_PARAM_BUFFER_LENGTH];
 
-	pmenu_list_entry(level, "VersionList", params->standard_version);
+	pmenu_list_entry(level, VERSION_PARAM_BUFFER_LENGTH, "VersionList", params->standard_version);
 
 	*buffer = '\0';
 
