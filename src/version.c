@@ -1,4 +1,4 @@
-/* Copyright 2007-2015, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2007-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -29,8 +29,6 @@
 
 /* ANSI C header files */
 
-#include <string.h>
-
 /* Acorn C header files */
 
 /* OSLib header files */
@@ -43,6 +41,7 @@
 #include "sflib/icons.h"
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
+#include "sflib/string.h"
 #include "sflib/templates.h"
 #include "sflib/windows.h"
 
@@ -54,6 +53,8 @@
 
 
 #define VERSION_MENU_LENGTH 3
+
+#define VERSION_MESSAGE_TOKEN_LENGTH 20
 
 
 /* Function Prototypes. */
@@ -142,10 +143,10 @@ static int version_tick_menu(version_params *params)
 
 void version_fill_field(wimp_w window, wimp_i icon, version_params *params)
 {
-	char		token[20];
+	char token[VERSION_MESSAGE_TOKEN_LENGTH];
 
-	snprintf(token, sizeof(token), "Version%d", params->standard_version);
-	msgs_lookup(token, icons_get_indirected_text_addr(window, icon), 20);
+	string_printf(token, VERSION_MESSAGE_TOKEN_LENGTH, "Version%d", params->standard_version);
+	icons_msgs_lookup(window, icon, token);
 	wimp_set_icon_state(window, icon, 0, 0);
 }
 
@@ -168,6 +169,6 @@ void version_build_params(char *buffer, size_t len, version_params *params)
 
 	*buffer = '\0';
 
-	snprintf(buffer, len, "-dCompatibilityLevel=%s ", level);
+	string_printf(buffer, len, "-dCompatibilityLevel=%s ", level);
 }
 

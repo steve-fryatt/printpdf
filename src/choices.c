@@ -1,4 +1,4 @@
-/* Copyright 2007-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2007-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -31,7 +31,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 /* Acorn C Header files. */
 
@@ -181,7 +180,7 @@ static void choices_close_window(void)
 
 static void choices_set_window(void)
 {
-	sprintf(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_DEFFILE), "%s", config_str_read("FileName"));
+	icons_printf(choices_window, CHOICE_ICON_DEFFILE, "%s", config_str_read("FileName"));
 
 	encrypt_initialise_settings(&encryption);
 	optimize_initialise_settings(&optimization);
@@ -194,7 +193,7 @@ static void choices_set_window(void)
 	icons_set_selected(choices_window, CHOICE_ICON_POPUP, config_opt_read("PopUpAfter"));
 	icons_set_selected(choices_window, CHOICE_ICON_PREPROCESS, config_opt_read("PreProcess"));
 
-	sprintf(icons_get_indirected_text_addr (choices_window, CHOICE_ICON_MEMORY), "%d", config_int_read("TaskMemory"));
+	icons_printf(choices_window, CHOICE_ICON_MEMORY, "%d", config_int_read("TaskMemory"));
 
 	version_fill_field(choices_window, CHOICE_ICON_VERSION, &version);
 	optimize_fill_field(choices_window, CHOICE_ICON_OPTIMIZE, &optimization);
@@ -393,7 +392,7 @@ static osbool handle_choices_icon_drop(wimp_message *message)
 {
 	wimp_full_message_data_xfer	*datasave = (wimp_full_message_data_xfer *) message;
 
-	char				*extension, *leaf, path[256];
+	char				*extension, *leaf, path[MAIN_FILE_PATH_LENGTH];
 
 	/* If it isn't our window, don't claim the message as someone else
 	 * might want it.
@@ -411,13 +410,13 @@ static osbool handle_choices_icon_drop(wimp_message *message)
 
 	/* It's our window and the correct icon, so process the filename. */
 
-	strcpy(path, datasave->file_name);
+	string_copy(path, datasave->file_name, MAIN_FILE_PATH_LENGTH);
 
 	extension = string_find_extension(path);
 	leaf = string_strip_extension(path);
 	string_find_pathname(path);
 
-	sprintf(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_DEFFILE), "%s.%s/pdf", path, leaf);
+	icons_printf(choices_window, CHOICE_ICON_DEFFILE, "%s.%s/pdf", path, leaf);
 
 	icons_replace_caret_in_window(datasave->w);
 	wimp_set_icon_state(datasave->w, datasave->i, 0, 0);

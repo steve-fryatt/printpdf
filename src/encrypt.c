@@ -1,4 +1,4 @@
-/* Copyright 2005-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2005-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -45,6 +45,7 @@
 #include "sflib/ihelp.h"
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
+#include "sflib/string.h"
 #include "sflib/templates.h"
 #include "sflib/windows.h"
 
@@ -130,8 +131,8 @@ void encrypt_initialise(void)
 
 void encrypt_initialise_settings(encrypt_params *params)
 {
-	strcpy(params->owner_password, config_str_read("OwnerPasswd"));
-	strcpy(params->access_password, config_str_read("UserPasswd"));
+	string_copy(params->owner_password, config_str_read("OwnerPasswd"), MAX_PASSWORD);
+	string_copy(params->access_password, config_str_read("UserPasswd"), MAX_PASSWORD);
 
 	params->allow_print = config_opt_read("AllowPrint");
 	params->allow_full_print = config_opt_read("AllowFullPrint");
@@ -252,8 +253,8 @@ void encrypt_open_dialogue(encrypt_params *params, osbool extended_opts, wimp_po
 
 	encrypt_win = (extended_opts) ? encrypt_window3 : encrypt_window2;
 
-	strcpy(icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_OWNER_PW), params->owner_password);
-	strcpy(icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_ACCESS_PW), params->access_password);
+	icons_strncpy(encrypt_win, ENCRYPT_ICON_OWNER_PW, params->owner_password);
+	icons_strncpy(encrypt_win, ENCRYPT_ICON_ACCESS_PW, params->access_password);
 
 	icons_set_selected(encrypt_win, ENCRYPT_ICON_PRINT, params->allow_print);
 	icons_set_selected(encrypt_win, ENCRYPT_ICON_EXTRACT, params->allow_extraction);
@@ -294,8 +295,8 @@ void encrypt_process_dialogue(encrypt_params *params)
 		extended_opts = TRUE;
 	}
 
-	strcpy(params->owner_password, icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_OWNER_PW));
-	strcpy(params->access_password, icons_get_indirected_text_addr(encrypt_win, ENCRYPT_ICON_ACCESS_PW));
+	icons_copy_text(encrypt_win, ENCRYPT_ICON_OWNER_PW, params->owner_password, MAX_PASSWORD);
+	icons_copy_text(encrypt_win, ENCRYPT_ICON_ACCESS_PW, params->access_password, MAX_PASSWORD);
 
 	params->allow_print = icons_get_selected(encrypt_win, ENCRYPT_ICON_PRINT);
 	params->allow_extraction = icons_get_selected(encrypt_win, ENCRYPT_ICON_EXTRACT);
@@ -376,14 +377,11 @@ static void encrypt_shade_dialogue(wimp_w window)
 
 void encrypt_fill_field(wimp_w window, wimp_i icon, encrypt_params *params)
 {
-	char		token[20];
+	char	*token;
 
-	if (strlen(params->owner_password) == 0)
-		strcpy(token, "Encrypt0");
-	else
-		strcpy(token, "Encrypt1");
+	token = (strlen(params->owner_password) == 0) ? "Encrypt0" : "Encrypt1";
 
-	msgs_lookup(token, icons_get_indirected_text_addr(window, icon), 20);
+	icons_msgs_lookup(window, icon, token);
 	wimp_set_icon_state(window, icon, 0, 0);
 }
 
@@ -413,7 +411,7 @@ void encryption_build_params(char *buffer, size_t len, encrypt_params *params, o
 		*user = '\0';
 
 		if (strlen(params->access_password) > 0)
-			snprintf(user, sizeof(user), "-sUserPassword=%s ", params->access_password);
+			string_printf(user, sizeof(user), "-sUserPassword=%s ", params->access_password);
 
 		level = (extended_opts) ? 3 : 2;
 
@@ -459,7 +457,7 @@ void encryption_build_params(char *buffer, size_t len, encrypt_params *params, o
 				permissions |= ACCESS_REV3_ASSEMBLE;
 		}
 
-		snprintf(buffer, len, "-sOwnerPassword=%s %s-dEncryptionR=%d -dPermissions=%d ",
+		string_printf(buffer, len, "-sOwnerPassword=%s %s-dEncryptionR=%d -dPermissions=%d ",
 				params->owner_password, user, level, permissions);
 	}
 }

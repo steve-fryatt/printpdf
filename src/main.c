@@ -1,4 +1,4 @@
-/* Copyright 2005-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2005-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -82,6 +82,18 @@
 #include "popup.h"
 #include "taskman.h"
 #include "version.h"
+
+/**
+ * The size of buffer allocated to resource filename processing.
+ */
+
+#define MAIN_FILENAME_BUFFER_LEN 1024
+
+/**
+ * The size of buffer allocated to the task name.
+ */
+
+#define MAIN_TASKNAME_BUFFER_LEN 64
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
@@ -171,8 +183,8 @@ static void main_poll_loop(void)
 
 static void main_initialise(void)
 {
-	static char		task_name[255];
-	char			resources[255], res_temp[255], filename[256];
+	static char		task_name[MAIN_TASKNAME_BUFFER_LEN];
+	char			resources[MAIN_FILENAME_BUFFER_LEN], res_temp[MAIN_FILENAME_BUFFER_LEN], filename[MAIN_FILENAME_BUFFER_LEN];
 	osspriteop_area		*sprites;
 
 	wimp_version_no		wimp_version;
@@ -180,12 +192,12 @@ static void main_initialise(void)
 
 	hourglass_on();
 
-	strcpy(resources, "<PrintPDF$Dir>.Resources");
-	resources_find_path(resources, sizeof(resources));
+	string_copy(resources, "<PrintPDF$Dir>.Resources", MAIN_FILENAME_BUFFER_LEN);
+	resources_find_path(resources, MAIN_FILENAME_BUFFER_LEN);
 
 	/* Load the messages file. */
 
-	snprintf(res_temp, sizeof(res_temp), "%s.Messages", resources);
+	string_printf(res_temp, MAIN_FILENAME_BUFFER_LEN, "%s.Messages", resources);
 	msgs_initialise(res_temp);
 
 	/* Initialise the error message system. */
@@ -194,7 +206,7 @@ static void main_initialise(void)
 
 	/* Initialise with the Wimp. */
 
-	msgs_lookup("TaskName", task_name, sizeof (task_name));
+	msgs_lookup("TaskName", task_name, MAIN_TASKNAME_BUFFER_LEN);
 	main_task_handle = wimp_initialise(wimp_VERSION_RO3, task_name, NULL, &wimp_version);
 
 	/* Test to see if any other copies of PrintPDF are running, and set to quit if they are. */
@@ -212,7 +224,7 @@ static void main_initialise(void)
 	config_str_init("FileQueue", "<Wimp$ScrapDir>.PrintPDF");
 	config_str_init("ParamFile", "Pipe:$.PrintPDF");
 	config_str_init("PDFMarkFile", "Pipe:$.PrintPDFMark");
-	config_str_init("FileName", msgs_lookup ("FileName", filename, sizeof (filename)));
+	config_str_init("FileName", msgs_lookup("FileName", filename, MAIN_FILENAME_BUFFER_LEN));
 	config_int_init("PollDelay", 500);
 	config_int_init("PopUpTime", 200);
 	config_int_init("TaskMemory", 8192);
@@ -270,7 +282,7 @@ static void main_initialise(void)
 
 	/* Load the menu structure. */
 
-	snprintf(res_temp, sizeof(res_temp), "%s.Menus", resources);
+	string_printf(res_temp, MAIN_FILENAME_BUFFER_LEN, "%s.Menus", resources);
 	templates_load_menus(res_temp);
 
 	/* Load the window templates. */
@@ -281,7 +293,7 @@ static void main_initialise(void)
 
 	main_wimp_sprites = sprites;
 
-	snprintf(res_temp, sizeof(res_temp), "%s.Templates", resources);
+	string_printf(res_temp, MAIN_FILENAME_BUFFER_LEN, "%s.Templates", resources);
 	templates_open(res_temp);
 
 	/* Initialise the individual modules. */

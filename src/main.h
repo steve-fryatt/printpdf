@@ -46,6 +46,8 @@
 #define DRAG_SAVE  1
 #define DRAG_QUEUE 2
 
+#define MAIN_FILE_PATH_LENGTH 256
+
 
 /**
  * Application-wide global variables.

@@ -1,4 +1,4 @@
-/* Copyright 2010-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2010-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -140,10 +140,10 @@ void pdfmark_initialise(void)
 
 void pdfmark_initialise_settings(pdfmark_params *params)
 {
-	strcpy(params->title, config_str_read("PDFMarkTitle"));
-	strcpy(params->author, config_str_read("PDFMarkAuthor"));
-	strcpy(params->subject, config_str_read("PDFMarkSubject"));
-	strcpy(params->keywords, config_str_read("PDFMarkKeyWords"));
+	string_copy(params->title, config_str_read("PDFMarkTitle"), MAX_INFO_FIELD);
+	string_copy(params->author, config_str_read("PDFMarkAuthor"), MAX_INFO_FIELD);
+	string_copy(params->subject, config_str_read("PDFMarkSubject"), MAX_INFO_FIELD);
+	string_copy(params->keywords, config_str_read("PDFMarkKeyWords"), MAX_INFO_FIELD);
 }
 
 
@@ -240,10 +240,10 @@ static osbool pdfmark_keypress_handler(wimp_key *key)
 
 void pdfmark_open_dialogue(pdfmark_params *params, wimp_pointer *pointer)
 {
-	strcpy(icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_TITLE), params->title);
-	strcpy(icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_AUTHOR), params->author);
-	strcpy(icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_SUBJECT), params->subject);
-	strcpy(icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_KEYWORDS), params->keywords);
+	icons_strncpy(pdfmark_window, PDFMARK_ICON_TITLE, params->title);
+	icons_strncpy(pdfmark_window, PDFMARK_ICON_AUTHOR, params->author);
+	icons_strncpy(pdfmark_window, PDFMARK_ICON_SUBJECT, params->subject);
+	icons_strncpy(pdfmark_window, PDFMARK_ICON_KEYWORDS, params->keywords);
 
 	pdfmark_shade_dialogue();
 
@@ -260,10 +260,10 @@ void pdfmark_open_dialogue(pdfmark_params *params, wimp_pointer *pointer)
 
 void pdfmark_process_dialogue(pdfmark_params *params)
 {
-	strcpy(params->title, icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_TITLE));
-	strcpy(params->author, icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_AUTHOR));
-	strcpy(params->subject, icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_SUBJECT));
-	strcpy(params->keywords, icons_get_indirected_text_addr(pdfmark_window, PDFMARK_ICON_KEYWORDS));
+	icons_copy_text(pdfmark_window, PDFMARK_ICON_TITLE, params->title, MAX_INFO_FIELD);
+	icons_copy_text(pdfmark_window, PDFMARK_ICON_AUTHOR, params->author, MAX_INFO_FIELD);
+	icons_copy_text(pdfmark_window, PDFMARK_ICON_SUBJECT, params->subject, MAX_INFO_FIELD);
+	icons_copy_text(pdfmark_window, PDFMARK_ICON_KEYWORDS, params->keywords, MAX_INFO_FIELD);
 
 	wimp_create_menu((wimp_menu *) -1, 0, 0);
 }

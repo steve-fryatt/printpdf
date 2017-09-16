@@ -1,4 +1,4 @@
-/* Copyright 2005-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2005-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -29,7 +29,7 @@
 
 /* ANSI C header files */
 
-#include <string.h>
+//#include <string.h>
 #include <stdlib.h>
 
 /* Acorn C header files */
@@ -56,6 +56,8 @@
 
 #include "pmenu.h"
 
+
+#define OPTIMIZE_MESSAGE_TOKEN_LENGTH 20
 
 #define OPTIMIZE_MENU_LENGTH 6
 
@@ -137,7 +139,7 @@ static void	optimize_open_dialogue(optimize_params *params, wimp_pointer *pointe
 static bool	optimize_shade_dialogue(wimp_pointer *pointer);
 
 static char	*optimize_true_false(osbool value);
-static char	*optimize_depth_text(char *buffer, int value);
+static void	optimize_depth_text(wimp_i icon, int value);
 
 static void	optimize_update_resolution_icon(wimp_i i, int dir);
 static void	optimize_update_threshold_icon(wimp_i i, int dir);
@@ -504,31 +506,31 @@ static void optimize_open_dialogue(optimize_params *params, wimp_pointer *pointe
 
 	icons_set_selected(optimize_window, OPTIMIZE_ICON_COMPRESS, params->compress_pages);
 
-	sprintf(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_RESOLUTION),
+	icons_printf(optimize_window, OPTIMIZE_ICON_COLOUR_RESOLUTION,
 			"%d", params->downsample_colour_resolution);
 
-	sprintf(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_RESOLUTION),
+	icons_printf(optimize_window, OPTIMIZE_ICON_GREY_RESOLUTION,
 			"%d", params->downsample_grey_resolution);
 
-	sprintf(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_RESOLUTION),
+	icons_printf(optimize_window, OPTIMIZE_ICON_MONO_RESOLUTION,
 			"%d", params->downsample_mono_resolution);
 
-	sprintf(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_THRESHOLD),
+	icons_printf(optimize_window, OPTIMIZE_ICON_COLOUR_THRESHOLD,
 			"%.1f", (double) params->downsample_colour_threshold / 10.0);
 
-	sprintf(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_THRESHOLD),
+	icons_printf(optimize_window, OPTIMIZE_ICON_GREY_THRESHOLD,
 			"%.1f", (double) params->downsample_grey_threshold / 10.0);
 
-	sprintf(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_THRESHOLD),
+	icons_printf(optimize_window, OPTIMIZE_ICON_MONO_THRESHOLD,
 			"%.1f", (double) params->downsample_mono_threshold / 10.0);
 
 	downsample_mono_depth = params->downsample_mono_depth;
 	downsample_grey_depth = params->downsample_grey_depth;
 	downsample_colour_depth = params->downsample_colour_depth;
 
-	optimize_depth_text(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_DEPTH), downsample_mono_depth);
-	optimize_depth_text(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_DEPTH), downsample_grey_depth);
-	optimize_depth_text(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_DEPTH), downsample_colour_depth);
+	optimize_depth_text(OPTIMIZE_ICON_MONO_DEPTH, downsample_mono_depth);
+	optimize_depth_text(OPTIMIZE_ICON_GREY_DEPTH, downsample_grey_depth);
+	optimize_depth_text(OPTIMIZE_ICON_COLOUR_DEPTH, downsample_colour_depth);
 
 	optimize_shade_dialogue(NULL);
 
@@ -673,14 +675,14 @@ static bool optimize_shade_dialogue(wimp_pointer *pointer)
 
 void optimize_fill_field(wimp_w window, wimp_i icon, optimize_params *params)
 {
-	char		token[20];
+	char		token[OPTIMIZE_MESSAGE_TOKEN_LENGTH];
 
 	if (params->standard_preset == -1)
-		snprintf(token, sizeof(token), "Custom");
+		string_printf(token, OPTIMIZE_MESSAGE_TOKEN_LENGTH, "Custom");
 	else
-		snprintf(token, sizeof(token), "Optimization%d", params->standard_preset);
+		string_printf(token, OPTIMIZE_MESSAGE_TOKEN_LENGTH, "Optimization%d", params->standard_preset);
 
-	msgs_lookup(token, icons_get_indirected_text_addr(window, icon), 20);
+	icons_msgs_lookup(window, icon, token);
 	wimp_set_icon_state(window, icon, 0, 0);
 }
 
@@ -714,7 +716,7 @@ void optimize_build_params(char *buffer, size_t len, optimize_params *params)
 			break;
 		}
 
-		snprintf(buffer, len, "-dPDFSETTINGS=%s %s", settings, extras);
+		string_printf(buffer, len, "-dPDFSETTINGS=%s %s", settings, extras);
 	} else {
 		end = settings;
 
@@ -726,7 +728,7 @@ void optimize_build_params(char *buffer, size_t len, optimize_params *params)
 		end = pmenu_list_entry(pointers[5] = end, "EncodeList2", params->encode_mono_type);
 		end = pmenu_list_entry(pointers[6] = end, "AutoPageRotateList", params->auto_page_rotation);
 
-	snprintf(buffer, len, "-dDownsampleColorImages=%s -dDownsampleGrayImages=%s -dDownsampleMonoImages=%s "
+	string_printf(buffer, len, "-dDownsampleColorImages=%s -dDownsampleGrayImages=%s -dDownsampleMonoImages=%s "
 			"-dColorImageDownsampleType=%s -dGrayImageDownsampleType=%s -dMonoImageDownsampleType=%s "
 			"-dColorImageResolution=%d -dGrayImageResolution=%d -dMonoImageResolution=%d "
 			"-dColorImageDownsampleThreshold=%.1f -dGrayImageDownsampleThreshold=%.1f "
@@ -767,23 +769,18 @@ static char *optimize_true_false(osbool value)
 
 
 /**
- * Write a textual version of the given depth value into thje supplied buffer.
+ * Write a textual version of the given depth value into an icon
  *
- * \TODO -- This needs to take the buffer size as a parameter.
- *
- * \param *buffer		The buffer to take the textual value.
+ * \param icon			The icon to take the value.
  * \param value			The value to convert.
- * \return			Pointer to the start of the buffer.
  */
 
-static char *optimize_depth_text(char *buffer, int value)
+static void optimize_depth_text(wimp_i icon, int value)
 {
 	if (value > 0)
-		snprintf(buffer, sizeof(buffer), "%d", value);
+		icons_printf(optimize_window, icon, "%d", value);
 	else
-		msgs_lookup("DepthOff", buffer, sizeof(buffer));
-
-	return buffer;
+		icons_msgs_lookup(optimize_window, icon, "DepthOff");
 }
 
 
@@ -805,7 +802,7 @@ static void optimize_update_resolution_icon(wimp_i i, int dir)
 	else if (dir < 0 && value > 1)
 		value -= 1;
 
-	sprintf(icons_get_indirected_text_addr(optimize_window, i), "%d", value);
+	icons_printf(optimize_window, i, "%d", value);
 	wimp_set_icon_state(optimize_window, i, 0, 0);
 }
 
@@ -828,7 +825,7 @@ static void optimize_update_threshold_icon(wimp_i i, int dir)
 	else if (dir < 0 && value > 1)
 		value -= 1;
 
-	sprintf(icons_get_indirected_text_addr(optimize_window, i), "%.1f", (double) value / 10.0);
+	icons_printf(optimize_window, i, "%.1f", (double) value / 10.0);
 	wimp_set_icon_state(optimize_window, i, 0, 0);
 }
 
@@ -887,7 +884,7 @@ static void optimize_update_depth_icon(wimp_i i, int dir)
 		break;
 	}
 
-	optimize_depth_text(icons_get_indirected_text_addr(optimize_window, i), value);
+	optimize_depth_text(i, value);
 	wimp_set_icon_state(optimize_window, i, 0, 0);
 }
 

@@ -84,6 +84,8 @@
 
 #define QUEUE_ICON_HEIGHT 48
 
+#define CONVERT_COMMAND_LENGTH 1024
+
 
 /* Save PDF Window icons. */
 
@@ -308,8 +310,8 @@ void convert_initialise(void)
 
 	/* Initialise the options. */
 
-	strcpy(icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME), config_str_read("FileName"));
-	strcpy(icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), config_str_read("PDFMarkUserFile"));
+	icons_strncpy(convert_savepdf_window, SAVE_PDF_ICON_NAME, config_str_read("FileName"));
+	icons_strncpy(convert_savepdf_window, SAVE_PDF_ICON_USERFILE, config_str_read("PDFMarkUserFile"));
 	icons_set_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS, config_opt_read("PreProcess"));
 
 	encrypt_initialise_settings(&encryption);
@@ -348,7 +350,7 @@ void convert_check_for_ps_file(void)
 	os_read_var_val_size("PDFMaker$Path", 0, 0, &size, NULL);
 
 	if (size != 0) {
-		strcpy(check_file, "PDFMaker:PS");
+		string_copy(check_file, "PDFMaker:PS", CONVERT_MAX_FILENAME);
 
 		xosfile_read_stamped_no_path(check_file, &type, NULL, NULL, &size, NULL, NULL);
 
@@ -390,7 +392,7 @@ osbool convert_queue_ps_file(char *filename)
 	if (new == NULL)
 		return FALSE;
 
-	sprintf(new->filename, "%x", (int) os_read_monotonic_time());
+	string_printf(new->filename, MAX_QUEUE_NAME, "%x", (int) os_read_monotonic_time());
 	*(new->display_name) = '\0';
 	new->object_type = PENDING_ATTENTION;
 	new->next = NULL;
@@ -526,9 +528,9 @@ static void convert_open_save_dialogue(void)
 	/* Set up and open the conversion window. */
 
 	if (config_opt_read ("ResetParams")) {
-		strcpy(icons_get_indirected_text_addr (convert_savepdf_window, SAVE_PDF_ICON_NAME), config_str_read ("FileName"));
-		strcpy(icons_get_indirected_text_addr (convert_savepdf_window, SAVE_PDF_ICON_USERFILE), config_str_read ("PDFMarkUserFile"));
-		icons_set_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS, config_opt_read ("PreProcess"));
+		icons_strncpy(convert_savepdf_window, SAVE_PDF_ICON_NAME, config_str_read("FileName"));
+		icons_strncpy(convert_savepdf_window, SAVE_PDF_ICON_USERFILE, config_str_read("PDFMarkUserFile"));
+		icons_set_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS, config_opt_read("PreProcess"));
 		encrypt_initialise_settings(&encryption);
 		optimize_initialise_settings(&optimization);
 		version_initialise_settings(&version);
@@ -564,14 +566,13 @@ static void convert_save_dialogue_end(char *output_file)
 
 	string_ctrl_zero_terminate(output_file);
 
-	strcpy(params.output_filename, output_file);
-	strcpy(icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME), output_file);
+	string_copy(params.output_filename, output_file, CONVERT_MAX_FILENAME);
+	icons_strncpy(convert_savepdf_window, SAVE_PDF_ICON_NAME, output_file);
 
 	/* Read and store the options from the window. */
 
 	params.preprocess_in_ps2ps = icons_get_selected(convert_savepdf_window, SAVE_PDF_ICON_PREPROCESS);
-	string_ctrl_strncpy(params.pdfmark_userfile, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), CONVERT_MAX_FILENAME);
-	params.pdfmark_userfile[CONVERT_MAX_FILENAME - 1] = '\0';
+	string_ctrl_copy(params.pdfmark_userfile, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), CONVERT_MAX_FILENAME);
 
 	/* Launch the conversion process. */
 
@@ -598,8 +599,7 @@ static void convert_save_dialogue_queue(void)
 
 	/* Sort out the filenames. */
 
-	string_ctrl_strncpy(filename, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME), CONVERT_MAX_FILENAME);
-	filename[CONVERT_MAX_FILENAME - 1] = '\0';
+	string_ctrl_copy(filename, icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME), CONVERT_MAX_FILENAME);
 	leafname = string_find_leafname(filename);
 
 	list = queue;
@@ -608,8 +608,7 @@ static void convert_save_dialogue_queue(void)
 		if (list->object_type == BEING_PROCESSED) {
 			list->object_type = HELD_IN_QUEUE;
 
-			strcpy(list->display_name, leafname);
-			(list->display_name)[MAX_DISPLAY_NAME-1] = '\0';
+			string_copy(list->display_name, leafname, MAX_DISPLAY_NAME);
 
 			list->include = TRUE;
 		}
@@ -637,7 +636,7 @@ static void convert_save_dialogue_queue(void)
 static osbool convert_handle_save_icon_drop(wimp_message *message)
 {
 	wimp_full_message_data_xfer	*dataload = (wimp_full_message_data_xfer *) message;
-	char				*extension, *leaf, path[256];
+	char				*extension, *leaf, path[212];
 
 	if (dataload->w != convert_savepdf_window)
 		return FALSE;
@@ -648,14 +647,14 @@ static osbool convert_handle_save_icon_drop(wimp_message *message)
 	} else if (dataload != NULL && dataload->w == convert_savepdf_window) {
 		switch (dataload->i) {
 		case SAVE_PDF_ICON_NAME:
-			strcpy(path, dataload->file_name);
+			string_copy(path, dataload->file_name, 212);
 
 			extension = string_find_extension(path);
 			leaf = string_strip_extension(path);
 			string_find_pathname(path);
 
 			if (string_nocase_strcmp(extension, "pdf") != 0) {
-				snprintf(icons_get_indirected_text_addr (convert_savepdf_window, SAVE_PDF_ICON_NAME), 256, "%s.%s/pdf", path, leaf);
+				icons_printf(convert_savepdf_window, SAVE_PDF_ICON_NAME, "%s.%s/pdf", path, leaf);
 
 				icons_replace_caret_in_window (dataload->w);
 				wimp_set_icon_state (dataload->w, dataload->i, 0, 0);
@@ -664,7 +663,7 @@ static osbool convert_handle_save_icon_drop(wimp_message *message)
 
 		case SAVE_PDF_ICON_USERFILE:
 			if (dataload->file_type == 0xfff) {
-				strcpy(icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_USERFILE), dataload->file_name);
+				icons_strncpy(convert_savepdf_window, SAVE_PDF_ICON_USERFILE, dataload->file_name);
 				icons_replace_caret_in_window(dataload->w);
 				wimp_set_icon_state(dataload->w, dataload->i, 0, 0);
 			}
@@ -702,8 +701,8 @@ static osbool convert_progress(conversion_params *params)
 	 */
 
 	if (conversion_state == CONVERSION_STOPPED && params != NULL) {
-		strcpy(output_file, params->output_filename);
-		strcpy(pdfmark_file, params->pdfmark_userfile);
+		string_copy(output_file, params->output_filename, CONVERT_MAX_FILENAME);
+		string_copy(pdfmark_file, params->pdfmark_userfile, CONVERT_MAX_FILENAME);
 
 		preprocess_in_ps2ps = params->preprocess_in_ps2ps;
 
@@ -747,7 +746,7 @@ static osbool convert_progress(conversion_params *params)
 		new = malloc(sizeof(queued_file));
 
 		if (new != NULL) {
-			strcpy(new->filename, intermediate_leaf);
+			string_copy(new->filename, intermediate_leaf, MAX_QUEUE_NAME);
 			*(new->display_name) = '\0';
 			new->object_type = BEING_PROCESSED;
 			new->next = NULL;
@@ -794,7 +793,7 @@ static osbool convert_progress(conversion_params *params)
 
 static osbool convert_launch_ps2ps(char *file_out)
 {
-	char		command[1024], taskname[32];
+	char		command[CONVERT_COMMAND_LENGTH], taskname[32];
 	queued_file	*list;
 	FILE		*param_file;
 	os_error	*error = NULL;
@@ -822,7 +821,7 @@ static osbool convert_launch_ps2ps(char *file_out)
 
 		/* Write all the taskwindow command line details to the command string. */
 
-		snprintf(command, sizeof(command), "TaskWindow \"gs @%s\" %dk -name \"%s\" -quit",
+		string_printf(command, CONVERT_COMMAND_LENGTH, "TaskWindow \"gs @%s\" %dk -name \"%s\" -quit",
 				config_str_read("ParamFile"), config_int_read("TaskMemory"), taskname);
 
 		/* Launch the conversion task. */
@@ -848,7 +847,7 @@ static osbool convert_launch_ps2ps(char *file_out)
 
 static osbool convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file)
 {
-	char		command[1024], taskname[32], encrypt_buf[1024], optimize_buf[1024], version_buf[1024], paper_buf[1024], queue_path[4096];
+	char		command[CONVERT_COMMAND_LENGTH], taskname[32], encrypt_buf[1024], optimize_buf[1024], version_buf[1024], paper_buf[1024], queue_path[4096];
 	queued_file	*list;
 	FILE		*param_file, *pdfmark_file;
 	int		queue_left;
@@ -917,7 +916,7 @@ static osbool convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file)
 
 		/* Write all the taskwindow command line details to the command string. */
 
-		snprintf(command, sizeof(command), "TaskWindow \"gs @%s\" %dk -name \"%s\" -quit",
+		string_printf(command, CONVERT_COMMAND_LENGTH, "TaskWindow \"gs @%s\" %dk -name \"%s\" -quit",
 				config_str_read("ParamFile"), config_int_read("TaskMemory"), taskname);
 
 		#ifdef DEBUG
@@ -1018,12 +1017,10 @@ char *convert_build_queue_filename(char *buffer, size_t len, char *leaf)
 	if (buffer == NULL || len == 0)
 		return NULL;
 
-	if (leaf != NULL) {
-		snprintf(buffer, len, "%s.%s", config_str_read("FileQueue"), leaf);
-		buffer[len - 1] = '\0';
-	} else {
+	if (leaf != NULL)
+		string_printf(buffer, len, "%s.%s", config_str_read("FileQueue"), leaf);
+	else
 		*buffer = '\0';
-	}
 
 	return buffer;
 }
@@ -1842,7 +1839,7 @@ static void convert_decode_queue_pane_help(char *buffer, wimp_w w, wimp_i i, os_
 		else if (icon[QUEUE_PANE_DELETE].extent.x0 <= xpos && icon[QUEUE_PANE_DELETE].extent.x1 >= xpos)
 			column = QUEUE_PANE_DELETE;
 
-		sprintf(buffer, "Col%d", column);
+		string_printf(buffer, IHELP_INAME_LEN, "Col%d", column);
 	}
 }
 
@@ -1852,7 +1849,7 @@ static void convert_decode_queue_pane_help(char *buffer, wimp_w w, wimp_i i, os_
 static void traverse_queue(void)
 {
 	queued_file		*list;
-	char			status[100];
+	char			*status;
 
 	list = queue;
 
@@ -1861,27 +1858,31 @@ static void traverse_queue(void)
 	while (list != NULL) {
 		switch (list->object_type) {
 		case PENDING_ATTENTION:
-			sprintf(status, "Pending");
+			status = "Pending";
 			break;
 
 		case BEING_PROCESSED:
-			sprintf(status, "Process");
+			status = "Process";
 			break;
 
 		case HELD_IN_QUEUE:
-			sprintf(status, "Held");
+			status = "Held";
 			break;
 
 		case DISCARDED:
-			sprintf(status, "Discard");
+			status = "Discard";
 			break;
 
 		case DELETED:
-			sprintf(status, "Deleted");
+			status = "Deleted";
 			break;
+
+		default:
+			status = NULL;
 		}
 
-		debug_printf("%7s %15s %s", status, list->filename, list->display_name);
+		if (status != NULL)
+			debug_printf("%7s %15s %s", status, list->filename, list->display_name);
 
 		list = list->next;
 	}

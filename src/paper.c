@@ -1,4 +1,4 @@
-/* Copyright 2007-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2007-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -29,8 +29,6 @@
 
 /* ANSI C header files */
 
-#include <string.h>
-
 /* Acorn C header files */
 
 /* OSLib header files */
@@ -45,6 +43,7 @@
 #include "sflib/ihelp.h"
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
+#include "sflib/string.h"
 #include "sflib/templates.h"
 #include "sflib/windows.h"
 
@@ -353,11 +352,8 @@ static osbool paper_keypress_handler(wimp_key *key)
 
 void paper_open_dialogue(paper_params *params, wimp_pointer *pointer)
 {
-	sprintf(icons_get_indirected_text_addr(paper_window, PAPER_ICON_SIZE_X),
-			"%.2f", (double) params->width / 100.0);
-
-	sprintf(icons_get_indirected_text_addr(paper_window, PAPER_ICON_SIZE_Y),
-			"%.2f", (double) params->height / 100.0);
+	icons_printf(paper_window, PAPER_ICON_SIZE_X, "%.2f", (double) params->width / 100.0);
+	icons_printf(paper_window, PAPER_ICON_SIZE_Y, "%.2f", (double) params->height / 100.0);
 
 	icons_set_radio_group_selected(paper_window, params->units, 3,
 			PAPER_ICON_MM, PAPER_ICON_INCH, PAPER_ICON_POINT);
@@ -428,7 +424,7 @@ void paper_fill_field(wimp_w window, wimp_i icon, paper_params *params)
 	if (token == NULL)
 		return;
 
-	msgs_lookup((char *) token, icons_get_indirected_text_addr(window, icon), 20);
+	icons_msgs_lookup(window, icon, (char *) token);
 	wimp_set_icon_state(window, icon, 0, 0);
 }
 
@@ -470,12 +466,12 @@ void paper_build_params(char *buffer, size_t len, paper_params *params)
 			break;
 		}
 		
-		snprintf(buffer, len, "-dFIXEDMEDIA -dDEVICEWIDTHPOINTS=%.0f -dDEVICEHEIGHTPOINTS=%.0f", width, height);
+		string_printf(buffer, len, "-dFIXEDMEDIA -dDEVICEWIDTHPOINTS=%.0f -dDEVICEHEIGHTPOINTS=%.0f", width, height);
 	} else {
 		for (i = 0; paper_sizes[i].gsname != NULL && params->preset_size != i; i++);
 		
 		if (paper_sizes[i].gsname != NULL)
-			snprintf(buffer, len, "-dFIXEDMEDIA -sPAPERSIZE=%s", paper_sizes[i].gsname);
+			string_printf(buffer, len, "-dFIXEDMEDIA -sPAPERSIZE=%s", paper_sizes[i].gsname);
 	}
 }
 

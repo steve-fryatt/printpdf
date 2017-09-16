@@ -456,14 +456,19 @@ osbool bookmark_load_and_select_file(bookmark_params *params, char *filename)
 
 void bookmark_fill_field(wimp_w window, wimp_i icon, bookmark_params *params)
 {
+	size_t	length;
+
 	params->bookmarks = bookmark_find_block(params->bookmarks);
 
 	if (params == NULL || params->bookmarks == NULL) {
-		msgs_lookup ("None", icons_get_indirected_text_addr(window, icon), MAX_BOOKMARK_FIELD_LEN);
+		icons_msgs_lookup(window, icon, "None");
 	} else {
-		strncpy(icons_get_indirected_text_addr(window, icon), params->bookmarks->name, MAX_BOOKMARK_FIELD_LEN);
-		if (strlen(params->bookmarks->name) >= MAX_BOOKMARK_FIELD_LEN)
-			strcpy(icons_get_indirected_text_addr(window, icon) + MAX_BOOKMARK_FIELD_LEN - 4, "...");
+		length = icons_get_indirected_text_length(window, icon);
+
+		icons_strncpy(window, icon, params->bookmarks->name);
+
+		if (strlen(params->bookmarks->name) >= length)
+			string_copy(icons_get_indirected_text_addr(window, icon) + length - 4, "...", 4);
 	}
 
 	wimp_set_icon_state(window, icon, 0, 0);
@@ -526,13 +531,13 @@ static bookmark_block *bookmark_create_block(void)
 
 	if (new != NULL) {
 		do {
-			snprintf(number, 10, "%d", untitled_number++);
+			string_printf(number, 10, "%d", untitled_number++);
 			msgs_param_lookup("UntBM", name, MAX_BOOKMARK_BLOCK_NAME,
 					number, NULL, NULL, NULL);
 		} while (bookmark_find_name(name) != NULL);
-		strncpy(new->name, name, MAX_BOOKMARK_BLOCK_NAME);
-		strncpy(new->filename, "", MAX_BOOKMARK_FILENAME);
-		strncpy(new->window_title, "", MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10);
+		string_copy(new->name, name, MAX_BOOKMARK_BLOCK_NAME);
+		string_copy(new->filename, "", MAX_BOOKMARK_FILENAME);
+		string_copy(new->window_title, "", MAX_BOOKMARK_FILENAME + MAX_BOOKMARK_BLOCK_NAME + 10);
 		new->unsaved = FALSE;
 		new->window = NULL;
 		new->toolbar = NULL;
@@ -627,7 +632,7 @@ static bookmark_node *bookmark_insert_node(bookmark_block *bm, bookmark_node *be
 	if (new == NULL)
 		return new;
 
-	strncpy(new->title, "", MAX_BOOKMARK_LEN);
+	string_copy(new->title, "", MAX_BOOKMARK_LEN);
 
 	new->page = 0;
 	new->yoffset = -1;
@@ -979,13 +984,13 @@ static void bookmark_close_window(wimp_close *close)
 	/* Adjust clicks on the close icon open the parent directory. */
 
 	if (pointer.buttons == wimp_CLICK_ADJUST && (len = strlen(bm->filename)) > 0) {
-		path = (char *) malloc(len+1);
-		buffer = (char *) malloc(len+16);
+		path = (char *) malloc(len + 1);
+		buffer = (char *) malloc(len + 16);
 
 		if (path != NULL && buffer != NULL) {
-			strncpy(path, bm->filename, len+1);
+			string_copy(path, bm->filename, len + 1);
 
-			snprintf(buffer, len+16, "%%Filer_OpenDir %s", string_find_pathname(path));
+			string_printf(buffer, len + 16, "%%Filer_OpenDir %s", string_find_pathname(path));
 			xos_cli(buffer);
 		}
 
@@ -1048,7 +1053,7 @@ static void bookmark_window_decode_help(char *buffer, wimp_w w, wimp_i i, os_coo
 	col = bookmark_calculate_window_click_column(bm, &pos, &state);
 
 	if (col != -1)
-		snprintf(buffer, IHELP_INAME_LEN, "Col%d", col);
+		string_printf(buffer, IHELP_INAME_LEN, "Col%d", col);
 }
 
 /**
@@ -1119,7 +1124,7 @@ static void bookmark_redraw_window(wimp_draw *redraw)
 			icon[BOOKMARK_ICON_PAGE].extent.y1 = LINE_Y1(y);
 
 			if (node->page > 0)
-				snprintf(buf, MAX_BOOKMARK_NUM_LEN, "%d", node->page);
+				string_printf(buf, MAX_BOOKMARK_NUM_LEN, "%d", node->page);
 			else
 				*buf = '\0';
 
@@ -1775,11 +1780,11 @@ static int bookmark_place_edit_icon(bookmark_block *bm, int row, int col)
 
 	switch (col) {
 	case BOOKMARK_ICON_TITLE:
-		strncpy(bookmarks_edit_buffer, bm->redraw[row].node->title, buf_len);
+		string_copy(bookmarks_edit_buffer, bm->redraw[row].node->title, buf_len);
 		break;
 	case BOOKMARK_ICON_PAGE:
 		if (bm->redraw[row].node->page > 0)
-			snprintf(bookmarks_edit_buffer, buf_len, "%d", bm->redraw[row].node->page);
+			string_printf(bookmarks_edit_buffer, buf_len, "%d", bm->redraw[row].node->page);
 		else
 			*bookmarks_edit_buffer = '\0';
 		break;
@@ -1858,7 +1863,7 @@ static void bookmark_resync_edit_with_file(void)
 	switch (bookmarks_edit->caret_col) {
 	case BOOKMARK_ICON_TITLE:
 		if (strcmp(bookmarks_edit->redraw[bookmarks_edit->caret_row].node->title, bookmarks_edit_buffer) != 0) {
-			strncpy(bookmarks_edit->redraw[bookmarks_edit->caret_row].node->title, bookmarks_edit_buffer, MAX_BOOKMARK_LEN);
+			string_copy(bookmarks_edit->redraw[bookmarks_edit->caret_row].node->title, bookmarks_edit_buffer, MAX_BOOKMARK_LEN);
 			bookmark_set_unsaved_state(bookmarks_edit, TRUE);
 		}
 		break;
@@ -1887,11 +1892,11 @@ static void bookmark_update_window_title(bookmark_block *bm)
 	asterisk = (bm->unsaved) ? " *" : "";
 
 	if (strlen(bm->filename) > 0) {
-		snprintf(bm->window_title, MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10,
+		string_printf(bm->window_title, MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10,
 				"%s%s", bm->filename, asterisk);
 	} else {
 		msgs_lookup("USTitle", buf, sizeof(buf));
-		snprintf(bm->window_title, MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10,
+		string_printf(bm->window_title, MAX_BOOKMARK_FILENAME+MAX_BOOKMARK_BLOCK_NAME+10,
 				"%s%s", buf, asterisk);
 	}
 
@@ -2423,8 +2428,7 @@ static void bookmark_resync_toolbar_name_with_file(bookmark_block *bm)
 
 	if (strcmp(icons_get_indirected_text_addr(bm->toolbar, BOOKMARK_TB_NAME),
 			bm->name) != 0) {
-		strncpy(bm->name, icons_get_indirected_text_addr(bm->toolbar, BOOKMARK_TB_NAME),
-				MAX_BOOKMARK_BLOCK_NAME);
+		icons_strncpy(bm->toolbar, BOOKMARK_TB_NAME, bm->name);
 		bookmark_set_unsaved_state(bm, TRUE);
 	}
 }
@@ -2649,14 +2653,11 @@ static void bookmark_prepare_file_info_window(bookmark_block *bm)
 				icons_get_indirected_text_addr(bookmark_window_fileinfo, FILEINFO_ICON_DATE),
 				icons_get_indirected_text_length(bookmark_window_fileinfo, FILEINFO_ICON_DATE));
 	} else {
-		msgs_lookup("Unsaved", icons_get_indirected_text_addr(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION),
-				icons_get_indirected_text_length(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION));
-		msgs_lookup("Unsaved", icons_get_indirected_text_addr(bookmark_window_fileinfo, FILEINFO_ICON_DATE),
-				icons_get_indirected_text_length(bookmark_window_fileinfo, FILEINFO_ICON_DATE));
+		icons_msgs_lookup(bookmark_window_fileinfo, FILEINFO_ICON_LOCATION, "Unsaved");
+		icons_msgs_lookup(bookmark_window_fileinfo, FILEINFO_ICON_DATE, "Unsaved");
 	}
 
-	msgs_lookup((bm->unsaved) ? "Yes" : "No", icons_get_indirected_text_addr(bookmark_window_fileinfo, FILEINFO_ICON_MODIFIED),
-				icons_get_indirected_text_length(bookmark_window_fileinfo, FILEINFO_ICON_MODIFIED));
+	icons_msgs_lookup(bookmark_window_fileinfo, FILEINFO_ICON_MODIFIED, (bm->unsaved) ? "Yes" : "No");
 }
 
 
@@ -2768,7 +2769,7 @@ static osbool bookmarks_save_file(char *filename, osbool selection, void *data)
 	bm->datestamp[3] = (exec & 0xff000000) >> 24;
 	bm->datestamp[4] = load & 0xff;
 
-	strncpy(bm->filename, filename, MAX_BOOKMARK_FILENAME);
+	string_copy(bm->filename, filename, MAX_BOOKMARK_FILENAME);
 	bm->unsaved = TRUE; /* Force the titlebar to update, even if the file was already saved. */
 	bookmark_set_unsaved_state(bm, FALSE);
 
@@ -2819,7 +2820,7 @@ bookmark_block *bookmarks_load_file(char *filename)
 
 	hourglass_on();
 
-	strncpy(block->filename, filename, MAX_BOOKMARK_FILENAME);
+	string_copy(block->filename, filename, MAX_BOOKMARK_FILENAME);
 	bookmark_update_window_title(block);
 
 	/* Read the nodes into a linear linked list, ignoring for the time
@@ -2834,13 +2835,12 @@ bookmark_block *bookmarks_load_file(char *filename)
 
 		if (bookmarks) {
 			if (string_nocase_strcmp(token, "Name") == 0) {
-				strncpy(block->name, value, MAX_BOOKMARK_BLOCK_NAME);
+				string_copy(block->name, value, MAX_BOOKMARK_BLOCK_NAME);
 			} else if (string_nocase_strcmp(token, "@") == 0) {
 				new = (bookmark_node *) malloc(sizeof(bookmark_node));
 
 				if (new != NULL) {
-					strncpy(new->title, value, MAX_BOOKMARK_LEN);
-					new->title[MAX_BOOKMARK_LEN - 1] = '\0';
+					string_copy(new->title, value, MAX_BOOKMARK_LEN);
 
 					new->page = 0;
 					new->yoffset = -1;
