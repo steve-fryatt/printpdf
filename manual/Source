@@ -677,6 +677,7 @@ Alpha release for feedback and comment.
 
 <list>
 <li>Bookmark title fields no longer overwrite each other when multiple files are open (ticket&nbsp;#619).
+<li>Remove all unbounded string operations from source code.
 </list>
 
 </chapter>
