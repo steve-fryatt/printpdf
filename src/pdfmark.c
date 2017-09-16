@@ -293,9 +293,9 @@ void pdfmark_fill_field(wimp_w window, wimp_i icon, pdfmark_params *params)
 {
 	if (pdfmark_data_available(params))
 		/* \TODO -- Here we should look for Info and/or Bookmarks and use Info, BMark or InfoBM accordingly. */
-		msgs_lookup("Info", icons_get_indirected_text_addr(window, icon), 20);
+		icons_msgs_lookup(window, icon, "Info");
 	else
-		msgs_lookup("None", icons_get_indirected_text_addr(window, icon), 20);
+		icons_msgs_lookup(window, icon, "None");
 
 	wimp_set_icon_state(window, icon, 0, 0);
 }
