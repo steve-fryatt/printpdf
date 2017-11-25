@@ -52,10 +52,10 @@ Set Alias$@RunType_1D8 Run <PrintPDF$Dir>.!Run -file %%*0
 
 RMEnsure WindowManager 3.98 Error PrintPDF requires the Nested Window Manager.
 
-| Ensure a suitable version of the SCL is available.
+| Ensure that the Castle Shared C Library is present, with C99 support.
 
 RMEnsure SharedCLibrary 5.17 RMLoad System:Modules.CLib
-RMEnsure SharedCLibrary 5.34 Error PrintPDF requires version 5.34 or later of the Shared C Library.
+RMEnsure SharedCLibrary 5.43 Error PrintPDF requires version 5.43 or later of the Shared C Library.
 
 WimpSlot -min 256k -max 256k
 

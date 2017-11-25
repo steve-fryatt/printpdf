@@ -680,6 +680,15 @@ Update to second stable release.
 <li>Remove all unbounded string operations from source code.
 </list>
 
+
+<subhead title="Test Build">
+
+Alpha release for feedback and comment.
+
+<list>
+<li>Correctly ensure that a C99-friendly version of the Shared C Library is present (ticket&nbsp;#635).
+</list>
+
 </chapter>
 
 
