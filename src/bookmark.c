@@ -933,7 +933,7 @@ static void bookmark_open_window(bookmark_block *bm)
 		bookmark_set_window_columns(bm);
 		windows_open(bm->window);
 		windows_open_nested_as_toolbar(bm->toolbar, bm->window,
-				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET);
+				BOOKMARK_TOOLBAR_HEIGHT - BOOKMARK_TOOLBAR_OFFSET, FALSE);
 
 		/* Place the caret. */
 
