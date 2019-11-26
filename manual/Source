@@ -11,8 +11,8 @@ PrintPDF
 #SpriteFile Sprites
 #Sprite 8,0 Logo
 #Align Right
-{f*/:Easy PDF creation with GhostScript†}
-Version $$version$$ ($$date$$)†
+{f*/:Easy PDF creation with GhostScriptÔøΩ}
+Version $$version$$ ($$date$$)ÔøΩ
 #Below
 #Line
 #Align Centre
@@ -20,13 +20,13 @@ Version $$version$$ ($$date$$)†
 
 #Indent 2
 #Table Columns 4
-è <Introduction>
-è <Installing PrintPDF=>Install>
-è <Using PrintPDF=>Use>
-è <The Bookmark Editor=>BMark>
-è <Using the Queue=>Queue>
-è <Setting Choices=>Choices>
-è <Version History=>History>
+ÔøΩ <Introduction>
+ÔøΩ <Installing PrintPDF=>Install>
+ÔøΩ <Using PrintPDF=>Use>
+ÔøΩ <The Bookmark Editor=>BMark>
+ÔøΩ <Using the Queue=>Queue>
+ÔøΩ <Setting Choices=>Choices>
+ÔøΩ <Version History=>History>
 #Endtable
 #Indent
 #Line
@@ -36,7 +36,7 @@ If you have any comments about {f/:PrintPDF}, or would like to report any bugs t
 Updates to {f/:PrintPDF} and more applications for RISC OS computers can be found on my website at <http://www.stevefryatt.org.uk/software/=>#url>.
 
 #Align Centre
-© Stephen Fryatt, 2005-2017 (<steve@stevefryatt.org.uk=>#url mailto:steve@stevefryatt.org.uk>)
+ÔøΩ Stephen Fryatt, 2005-2017 (<steve@stevefryatt.org.uk=>#url mailto:steve@stevefryatt.org.uk>)
 RISC OS 4 and 5 Iconsprites by Richard Hallas
 
 A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$HelpText\>>.
@@ -301,7 +301,7 @@ A bookmarks file contains of a series of bookmark entries, each consisting of a 
 
 A new file initially contains a single line, but more can be inserted using <menu>Insert &msep; Before row</menu> and <menu>Insert &msep; After row</menu> from the bookmarks menu, by pressing <key>tab</key> in the page number column, or by pressing <key>return</key>. Lines can be deleted by using <menu>Delete row</menu> from the menu, or by pressing <key>backspace</key> in an empty title cell (ie. deleting back out of the empty cell).
 
-A set of bookmarks is given a name using the <icon>name</icon> field at the right-hand side of the toolbar: this is used to identify the bookmarks during PDF creation.
+A set of bookmarks is given a name using the <icon>name</icon> field at the right-hand side of the toolbar: this is used to identify the bookmarks during PDF creation. The bookmarks to be used must be chosen in the <icon>Bookmarks</icon> field of the <window>Create PDF</window> window before saving the PDF document.
 
 
 <subhead title="Saving and loading bookmarks">
