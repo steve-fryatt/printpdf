@@ -765,7 +765,7 @@ static osbool convert_progress(conversion_params *params)
 		break;
 
 	case CONVERSION_PS2PDF:
-			osfile_set_type(output_file, 0xadf);
+			osfile_set_type(output_file, dataxfer_TYPE_PDF);
 
 			if (config_opt_read("PopUpAfter"))
 				popup_open(config_int_read("PopUpTime"));
