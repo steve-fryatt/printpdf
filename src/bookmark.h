@@ -31,6 +31,7 @@
 #define PRINTPDF_BOOKMARK
 
 #include <stdio.h>
+#include "sflib/config.h"
 
 /* ==================================================================================================================
  * Static constants
@@ -56,7 +57,7 @@
 #define BOOKMARK_WINDOW_STANDOFF 400
 #define BOOKMARK_WINDOW_OPENSTEP 100
 
-#define BOOKMARK_FILE_LINE_LEN 1024
+#define BOOKMARK_FILE_LINE_LEN (sf_MAX_CONFIG_FILE_BUFFER)
 
 #define BOOKMARK_ABOVE 1
 #define BOOKMARK_BELOW 2
