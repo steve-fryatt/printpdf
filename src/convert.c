@@ -426,7 +426,7 @@ osbool convert_queue_ps_file(char *filename)
  * Called from NULL poll events.
  */
 
-void convert_check_for_pending_files (void)
+void convert_check_for_pending_files(void)
 {
 	queued_file		*list;
 
