@@ -171,6 +171,10 @@ static void main_poll_loop(void)
 			case wimp_CLOSE_WINDOW_REQUEST:
 				wimp_close_window(blk.close.w);
 				break;
+
+			case wimp_KEY_PRESSED:
+				wimp_process_key(blk.key.c);
+				break;
 			}
 		}
 	}
