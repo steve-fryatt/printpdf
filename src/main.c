@@ -1,4 +1,4 @@
-/* Copyright 2005-2017, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2005-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -40,6 +40,7 @@
 #include "oslib/wimp.h"
 #include "oslib/os.h"
 #include "oslib/osbyte.h"
+#include "oslib/osfile.h"
 #include "oslib/osspriteop.h"
 #include "oslib/uri.h"
 #include "oslib/hourglass.h"
@@ -153,9 +154,12 @@ static void main_poll_loop(void)
 		/* Events are passed to Event Lib first; only if this fails
 		 * to handle them do they get passed on to the internal
 		 * inline handlers shown here.
+		 * 
+		 * \TODO -- This should be converted over to use the new
+		 * event scheduling in SFLib.
 		 */
 
-		if (!event_process_event(reason, &blk, 0)) {
+		if (!event_process_event(reason, &blk, 0, NULL)) {
 			switch (reason) {
 			case wimp_NULL_REASON_CODE:
 				popup_test_and_close(poll_time);
@@ -196,12 +200,17 @@ static void main_initialise(void)
 
 	hourglass_on();
 
+	/* Initialise the resources. */
+
 	string_copy(resources, "<PrintPDF$Dir>.Resources", MAIN_FILENAME_BUFFER_LEN);
-	resources_find_path(resources, MAIN_FILENAME_BUFFER_LEN);
+	if (!resources_initialise_paths(resources, MAIN_FILENAME_BUFFER_LEN, "PrintPDF$Language", "UK"))
+		error_report_fatal("Failed to initialise resources.");
 
 	/* Load the messages file. */
 
-	string_printf(res_temp, MAIN_FILENAME_BUFFER_LEN, "%s.Messages", resources);
+	if (!resources_find_file(resources, res_temp, MAIN_FILENAME_BUFFER_LEN, "Messages", osfile_TYPE_TEXT))
+		error_report_fatal("Failed to locate suitable Messages file.");
+
 	msgs_initialise(res_temp);
 
 	/* Initialise the error message system. */
@@ -286,7 +295,9 @@ static void main_initialise(void)
 
 	/* Load the menu structure. */
 
-	string_printf(res_temp, MAIN_FILENAME_BUFFER_LEN, "%s.Menus", resources);
+	if (!resources_find_file(resources, res_temp, MAIN_FILENAME_BUFFER_LEN, "Menus", osfile_TYPE_DATA))
+		error_msgs_param_report_fatal("BadResource", "Menus", NULL, NULL, NULL);
+
 	templates_load_menus(res_temp);
 
 	/* Load the window templates. */
@@ -297,7 +308,9 @@ static void main_initialise(void)
 
 	main_wimp_sprites = sprites;
 
-	string_printf(res_temp, MAIN_FILENAME_BUFFER_LEN, "%s.Templates", resources);
+	if (!resources_find_file(resources, res_temp, MAIN_FILENAME_BUFFER_LEN, "Templates", osfile_TYPE_TEMPLATE))
+		error_msgs_param_report_fatal("BadResource", "Templates", NULL, NULL, NULL);
+
 	templates_open(res_temp);
 
 	/* Initialise the individual modules. */
