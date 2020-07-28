@@ -11,8 +11,8 @@ PrintPDF
 #SpriteFile Sprites
 #Sprite 8,0 Logo
 #Align Right
-{f*/:Easy PDF creation with GhostScriptï¿½}
-Version $$version$$ ($$date$$)ï¿½
+{f*/:Easy PDF creation with GhostScript }
+Version $$version$$ ($$date$$) 
 #Below
 #Line
 #Align Centre
@@ -20,13 +20,13 @@ Version $$version$$ ($$date$$)ï¿½
 
 #Indent 2
 #Table Columns 4
-ï¿½ <Introduction>
-ï¿½ <Installing PrintPDF=>Install>
-ï¿½ <Using PrintPDF=>Use>
-ï¿½ <The Bookmark Editor=>BMark>
-ï¿½ <Using the Queue=>Queue>
-ï¿½ <Setting Choices=>Choices>
-ï¿½ <Version History=>History>
+ <Introduction>
+ <Installing PrintPDF=>Install>
+ <Using PrintPDF=>Use>
+ <The Bookmark Editor=>BMark>
+ <Using the Queue=>Queue>
+ <Setting Choices=>Choices>
+ <Version History=>History>
 #Endtable
 #Indent
 #Line
@@ -36,7 +36,7 @@ If you have any comments about {f/:PrintPDF}, or would like to report any bugs t
 Updates to {f/:PrintPDF} and more applications for RISC OS computers can be found on my website at <http://www.stevefryatt.org.uk/software/=>#url>.
 
 #Align Centre
-ï¿½ Stephen Fryatt, 2005-2017 (<steve@stevefryatt.org.uk=>#url mailto:steve@stevefryatt.org.uk>)
+© Stephen Fryatt, 2005-2017 (<steve@stevefryatt.org.uk=>#url mailto:steve@stevefryatt.org.uk>)
 RISC OS 4 and 5 Iconsprites by Richard Hallas
 
 A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$HelpText\>>.
