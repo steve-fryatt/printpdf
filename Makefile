@@ -32,6 +32,9 @@ HTMLHELP := manual.html
 
 ADDITIONS := Printers
 
+PACKAGE := PrintPDF
+PACKAGELOC := Printing
+
 OBJS := bookmark.o choices.o convert.o encrypt.o iconbar.o main.o optimize.o	\
 	paper.o pdfmark.o pmenu.o popup.o taskman.o version.o
 

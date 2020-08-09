@@ -1,0 +1,34 @@
+Package: PrintPDF
+Version: 1.13-1
+Section: Printing
+Priority: Optional
+Maintainer: Stephen Fryatt <info@stevefryatt.org.uk>
+Standards-Version: 0.6.0
+Environment: arm
+Licence: Free
+Description: PrintPDF allows PDF documents to be created easily
+ PrintPDF is a front-end to GhostScript, allowing PDF documents to be produced
+ more easily under RISC OS. It adds a new "PDF Printer" as part of Printers on
+ the iconbar: using this, any application which can print to paper can now
+ also create a PDF document with ease.
+ .
+ Printing a file to PrintPDF will result in a "Create PDF" dialogue box
+ opening so that the PDF can be saved to disc.
+ .
+ Control is provided over all aspects of the conversion. The version of PDF
+ can be selected, and any images in the document can be optimised for the
+ intended purpose of the file. Details of the document's title, author,
+ subject and keywords can be specified: these can be seen in many PDF viewers.
+ .
+ PDF documents can be password protected and encrypted, and PrintPDF offers
+ full control over the available options. Bookmarks can be included in PDF
+ documents, using the built-in bookmarks editor. Sets of bookmarks can be
+ created and saved alongside the documents they relate to, then loaded back
+ into PrintPDF when the PDF is created.
+ .
+ The PDF Queue allows several separate printouts to be merged together into a
+ single PDF document. The separate files are printed separately to PrintPDF
+ and queued; once assembled, they can be arranged as required and turned into
+ a single PDF.
+Homepage: http://www.stevefryatt.org.uk/software/printpdf/
+Components: Apps.Printing.!PrintPDF (Movable)
