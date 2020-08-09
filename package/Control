@@ -32,3 +32,4 @@ Description: PrintPDF allows PDF documents to be created easily
  a single PDF.
 Homepage: http://www.stevefryatt.org.uk/software/printpdf/
 Components: Apps.Printing.!PrintPDF (Movable)
+Recommends: StrongHelp
