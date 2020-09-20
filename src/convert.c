@@ -354,8 +354,8 @@ void convert_check_for_ps_file(void)
 
 		xosfile_read_stamped_no_path(check_file, &type, NULL, NULL, &size, NULL, NULL);
 
-		if (type == fileswitch_IS_FILE && size > 0 && convert_queue_ps_file (check_file))
-			xosfile_delete (check_file, NULL, NULL, NULL, NULL, NULL);
+		if (type == fileswitch_IS_FILE && size > 0 && convert_queue_ps_file(check_file))
+			xosfile_delete(check_file, NULL, NULL, NULL, NULL, NULL);
 	}
 }
 
@@ -765,7 +765,7 @@ static osbool convert_progress(conversion_params *params)
 		break;
 
 	case CONVERSION_PS2PDF:
-			osfile_set_type(output_file, 0xadf);
+			osfile_set_type(output_file, dataxfer_TYPE_PDF);
 
 			if (config_opt_read("PopUpAfter"))
 				popup_open(config_int_read("PopUpTime"));
@@ -903,14 +903,14 @@ static osbool convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file)
 
 		/* If there is a PDFMark file, pass that in too. */
 
-		if (osfile_read_stamped_no_path (config_str_read("PDFMarkFile"), NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
+		if (osfile_read_stamped_no_path(config_str_read("PDFMarkFile"), NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
 			fprintf(param_file, " %s", config_str_read("PDFMarkFile"));
 
 		/* If there is a PDFMark User File, pass that in too. */
 
 		if (*user_pdfmark_file != '\0' &&
 				osfile_read_stamped_no_path(user_pdfmark_file, NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_FILE)
-			fprintf (param_file, " %s", user_pdfmark_file);
+			fprintf(param_file, " %s", user_pdfmark_file);
 
 		fclose(param_file);
 
