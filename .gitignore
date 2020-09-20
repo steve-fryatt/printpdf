@@ -1,0 +1,11 @@
+.vscode
+build/Licence,fff
+build/manual.html
+build/ReadMe,fff
+build/!PrintPDF/!Help,ffb
+build/!PrintPDF/!RunImage,ff8
+build/!PrintPDF/Resources/UK/HelpText,fff
+build/!PrintPDF/Resources/UK/Menus,ffd
+build/!PrintPDF/Resources/UK/PrintPDF,3d6
+build/package
+obj
