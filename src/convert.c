@@ -1,4 +1,4 @@
-/* Copyright 2005-2017, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2005-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -564,9 +564,7 @@ static void convert_save_dialogue_end(char *output_file)
 
 	/* Sort out the filenames. */
 
-	string_ctrl_zero_terminate(output_file);
-
-	string_copy(params.output_filename, output_file, CONVERT_MAX_FILENAME);
+	string_ctrl_copy(params.output_filename, output_file, CONVERT_MAX_FILENAME);
 	icons_strncpy(convert_savepdf_window, SAVE_PDF_ICON_NAME, output_file);
 
 	/* Read and store the options from the window. */

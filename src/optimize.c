@@ -1,4 +1,4 @@
-/* Copyright 2005-2017, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2005-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of PrintPDF:
  *
@@ -581,9 +581,12 @@ void optimize_process_dialogue(optimize_params *params)
 
 	params->compress_pages = icons_get_selected (optimize_window, OPTIMIZE_ICON_COMPRESS);
 
-	string_ctrl_zero_terminate(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_RESOLUTION));
-	string_ctrl_zero_terminate(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_RESOLUTION));
-	string_ctrl_zero_terminate(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_RESOLUTION));
+	string_ctrl_zero_terminate(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_RESOLUTION),
+			icons_get_indirected_text_length(optimize_window, OPTIMIZE_ICON_COLOUR_RESOLUTION));
+	string_ctrl_zero_terminate(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_RESOLUTION),
+			icons_get_indirected_text_length(optimize_window, OPTIMIZE_ICON_GREY_RESOLUTION));
+	string_ctrl_zero_terminate(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_RESOLUTION),
+			icons_get_indirected_text_length(optimize_window, OPTIMIZE_ICON_MONO_RESOLUTION));
 
 	params->downsample_colour_resolution =
 			atoi(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_RESOLUTION));
@@ -592,9 +595,12 @@ void optimize_process_dialogue(optimize_params *params)
 	params->downsample_mono_resolution =
 			atoi(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_RESOLUTION));
 
-	string_ctrl_zero_terminate(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_THRESHOLD));
-	string_ctrl_zero_terminate(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_THRESHOLD));
-	string_ctrl_zero_terminate(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_THRESHOLD));
+	string_ctrl_zero_terminate(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_THRESHOLD),
+			icons_get_indirected_text_length(optimize_window, OPTIMIZE_ICON_COLOUR_THRESHOLD));
+	string_ctrl_zero_terminate(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_GREY_THRESHOLD),
+			icons_get_indirected_text_length(optimize_window, OPTIMIZE_ICON_GREY_THRESHOLD));
+	string_ctrl_zero_terminate(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_MONO_THRESHOLD),
+			icons_get_indirected_text_length(optimize_window, OPTIMIZE_ICON_MONO_THRESHOLD));
 
 	params->downsample_colour_threshold = (int) 10.0 *
 			atof(icons_get_indirected_text_addr(optimize_window, OPTIMIZE_ICON_COLOUR_THRESHOLD));
