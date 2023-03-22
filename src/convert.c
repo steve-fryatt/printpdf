@@ -157,6 +157,24 @@ typedef struct conversion_params {
 	int			preprocess_in_ps2ps;
 } conversion_params;
 
+/* Message for remote control operation. */
+
+//FIXME: This is a temporary number from a Sine Nomine Software allocation.
+#define message_PRINTPDF_CONTROL         0x546CF    /**< wimp message number */
+
+enum control_reason {
+	CONTROL_SET_FILENAME,		/**< Set up filename to save to.	*/
+	CONTROL_REPORT_SUCCESS,		/**< Conversion completed correctly.	*/
+	CONTROL_REPORT_FAILURE		/**< Conversion failed.			*/
+};
+
+typedef struct {
+	wimp_MESSAGE_HEADER_MEMBERS
+	enum control_reason	reason;
+	char			filename[232];
+} control_message;
+
+
 /* ****************************************************************************
  * Function Prototypes
  * ****************************************************************************/
@@ -171,6 +189,7 @@ static osbool		convert_handle_save_icon_drop(wimp_message *message);
 static osbool		convert_progress(conversion_params *params);
 static osbool		convert_launch_ps2ps(char *file_out);
 static osbool		convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file);
+static void             convert_notify_completion(osbool success);
 static void		convert_cancel_conversion(void);
 
 static void		convert_save_click_handler(wimp_pointer *pointer);
@@ -205,6 +224,7 @@ static void		convert_terminate_queue_entry_drag(wimp_dragged *drag, void *data);
 
 static osbool		convert_check_for_conversion_start(wimp_message *message);
 static osbool		convert_check_for_conversion_end(wimp_message *message);
+static osbool		convert_printpdf_control(wimp_message *message);
 
 static void		convert_decode_queue_pane_help(char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons);
 
@@ -227,6 +247,12 @@ static wimp_menu	*popup_version;
 static wimp_menu	*popup_optimize;
 static wimp_menu	*popup_paper;
 static wimp_menu	*popup_bookmark;
+
+/* Variables to support other tasks stipulating PDF filename via messages. */
+
+static wimp_t           request_task = NULL;
+static int              request_ref = 0;
+static char             request_filename[CONVERT_MAX_FILENAME];
 
 /* Conversion parameters. */
 
@@ -307,6 +333,7 @@ void convert_initialise(void)
 	event_add_message_handler(message_TASK_INITIALISE, EVENT_MESSAGE_INCOMING, convert_check_for_conversion_start);
 	event_add_message_handler(message_TASK_CLOSE_DOWN, EVENT_MESSAGE_INCOMING, convert_check_for_conversion_end);
 	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, convert_handle_save_icon_drop);
+	event_add_message_handler(message_PRINTPDF_CONTROL, EVENT_MESSAGE_INCOMING, convert_printpdf_control);
 
 	/* Initialise the options. */
 
@@ -465,8 +492,13 @@ void convert_check_for_pending_files(void)
 
 	/* If a file was found to convert, open the Save PDF dialogue. */
 
-	if (conversion_in_progress)
-		convert_open_save_dialogue();
+	if (conversion_in_progress) {
+                if ( request_task ) {
+                        convert_save_dialogue_end( request_filename );
+                } else {
+		        convert_open_save_dialogue();
+		}
+	}
 }
 
 
@@ -580,6 +612,7 @@ static void convert_save_dialogue_end(char *output_file)
 		conversion_task = 0;
 		conversion_in_progress = FALSE;
 		convert_remove_current_conversion();
+		convert_notify_completion(FALSE);
 	}
 }
 
@@ -757,7 +790,7 @@ static osbool convert_progress(conversion_params *params)
 			conversion_state = CONVERSION_STOPPED;
 		}
 		break;
-	
+
 	case CONVERSION_PS2PDF_PENDING:
 		conversion_state = CONVERSION_PS2PDF;
 		break;
@@ -770,7 +803,7 @@ static osbool convert_progress(conversion_params *params)
 
 			conversion_state = CONVERSION_STOPPED;
 			break;
-	
+
 	case CONVERSION_STOPPED:
 		break;
 	}
@@ -851,13 +884,13 @@ static osbool convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file)
 	int		queue_left;
 	os_error	*error = NULL;
 	wimp_t		started_task;
-	
+
 	/* Get a canonicalised version of the queue pathname. */
-	
+
 	error = xosfscontrol_canonicalise_path(config_str_read("FileQueue"), queue_path, NULL, NULL, 4096, &queue_left);
 	if (error != NULL || queue_left < 0)
 		return FALSE;
-	
+
 	/* Find the name to use for the child task. */
 
 	msgs_lookup("ChildTaskName", taskname, sizeof(taskname));
@@ -943,20 +976,22 @@ static osbool convert_check_for_conversion_start(wimp_message *message)
 {
 	char	taskname[32];
 	wimp_full_message_task_initialise *task_initialise = (wimp_full_message_task_initialise *) message;
-	
+
 	/* Find the name to use for the child task. */
 
 	msgs_lookup("ChildTaskName", taskname, sizeof(taskname));
 
 	if (task_initialise == NULL || strcmp(task_initialise->task_name, taskname) != 0)
 		return FALSE;
-	
+
 	if (convert_progress(NULL)) {
 		conversion_task = task_initialise->sender;
 	} else {
 		conversion_task = 0;
 		conversion_in_progress = CONVERSION_STOPPED;
 		convert_remove_current_conversion();
+		convert_notify_completion(FALSE);
+//FIXME - conversion failed? Or could it have completed here?
 	}
 
 	return FALSE;
@@ -980,9 +1015,60 @@ static osbool convert_check_for_conversion_end(wimp_message *message)
 		conversion_task = 0;
 		conversion_in_progress = CONVERSION_STOPPED;
 		convert_remove_current_conversion();
+		convert_notify_completion(TRUE);
+//FIXME conversion finished. Is it successful? send message if necessary
 	}
 
 	return FALSE;
+}
+
+
+/**
+ * Process PrintPDF_Control which allows another task to set the file to save
+ * the next job to.
+ *
+ * \param *message		The message data block.
+ * \return			FALSE to allow other claimants to see the message.
+ */
+
+static osbool convert_printpdf_control(wimp_message *message)
+{
+	control_message *mess = (control_message *) message;
+
+	if (mess != NULL && mess->reason == CONTROL_SET_FILENAME) {
+//FIXME: Would need to check for null filename. What if conversion in progress?
+		request_task = mess->sender;
+		request_ref = mess->my_ref;
+		string_copy(request_filename, mess->filename, CONVERT_MAX_FILENAME);
+
+		message->your_ref = message->my_ref;
+		wimp_send_message(wimp_USER_MESSAGE_ACKNOWLEDGE, message, message->sender);
+	}
+
+	return FALSE;
+}
+
+
+/**
+ * Called when conversion completed. Checks if there is a requesting task and
+ * notifies the task of the result.
+ */
+
+static void convert_notify_completion(osbool success)
+{
+	if ( request_task ) {
+
+		control_message message;
+
+		message.your_ref = request_ref;
+		message.action = message_PRINTPDF_CONTROL;
+		message.reason = success ? CONTROL_REPORT_SUCCESS : CONTROL_REPORT_FAILURE;
+		message.size = 24;
+
+		wimp_send_message(wimp_USER_MESSAGE, (wimp_message *) &message, request_task);
+		request_task = NULL;
+		request_ref = 0;
+	}
 }
 
 
@@ -1221,7 +1307,7 @@ static osbool convert_immediate_window_save(void)
 static void convert_drag_end_handler(wimp_pointer *pointer, void *data)
 {
 	char			*leafname;
-	
+
 	leafname = string_find_leafname(icons_get_indirected_text_addr(convert_savepdf_window, SAVE_PDF_ICON_NAME));
 
 	dataxfer_start_save(pointer, leafname, 0, dataxfer_TYPE_PDF, 0, convert_drag_end_save_handler, NULL);
