@@ -986,7 +986,7 @@ static osbool convert_check_for_conversion_start(wimp_message *message)
 		conversion_task = task_initialise->sender;
 	} else {
 		conversion_task = 0;
-		conversion_in_progress = CONVERSION_STOPPED;
+		conversion_in_progress = FALSE;
 		convert_remove_current_conversion();
 		convert_notify_completion(FALSE);
 //FIXME - conversion failed? Or could it have completed here?
@@ -1011,7 +1011,7 @@ static osbool convert_check_for_conversion_end(wimp_message *message)
 {
 	if (message != NULL && message->sender == conversion_task && !convert_progress(NULL)) {
 		conversion_task = 0;
-		conversion_in_progress = CONVERSION_STOPPED;
+		conversion_in_progress = FALSE;
 		convert_remove_current_conversion();
 		convert_notify_completion(TRUE);
 //FIXME conversion finished. Is it successful? send message if necessary
