@@ -250,9 +250,9 @@ static wimp_menu	*popup_bookmark;
 
 /* Variables to support other tasks stipulating PDF filename via messages. */
 
-static wimp_t           request_task = NULL;
-static int              request_ref = 0;
-static char             request_filename[CONVERT_MAX_FILENAME];
+static wimp_t		request_task = NULL;
+static int		request_ref = 0;
+static char		request_filename[CONVERT_MAX_FILENAME];
 
 /* Conversion parameters. */
 
@@ -493,11 +493,10 @@ void convert_check_for_pending_files(void)
 	/* If a file was found to convert, open the Save PDF dialogue. */
 
 	if (conversion_in_progress) {
-                if ( request_task ) {
-                        convert_save_dialogue_end( request_filename );
-                } else {
-		        convert_open_save_dialogue();
-		}
+		if (request_task != NULL)
+			convert_save_dialogue_end(request_filename);
+		else
+			convert_open_save_dialogue();
 	}
 }
 
@@ -1033,13 +1032,13 @@ static osbool convert_check_for_conversion_end(wimp_message *message)
 
 static osbool convert_printpdf_control(wimp_message *message)
 {
-	control_message *mess = (control_message *) message;
+	control_message *control = (control_message *) message;
 
-	if (mess != NULL && mess->reason == CONTROL_SET_FILENAME) {
+	if (control != NULL && control->reason == CONTROL_SET_FILENAME) {
 //FIXME: Would need to check for null filename. What if conversion in progress?
-		request_task = mess->sender;
-		request_ref = mess->my_ref;
-		string_copy(request_filename, mess->filename, CONVERT_MAX_FILENAME);
+		request_task = control->sender;
+		request_ref = control->my_ref;
+		string_copy(request_filename, control->filename, CONVERT_MAX_FILENAME);
 
 		message->your_ref = message->my_ref;
 		wimp_send_message(wimp_USER_MESSAGE_ACKNOWLEDGE, message, message->sender);
@@ -1056,16 +1055,16 @@ static osbool convert_printpdf_control(wimp_message *message)
 
 static void convert_notify_completion(osbool success)
 {
-	if ( request_task ) {
+	if (request_task != NULL) {
 
-		control_message message;
+		control_message control;
 
-		message.your_ref = request_ref;
-		message.action = message_PRINTPDF_CONTROL;
-		message.reason = success ? CONTROL_REPORT_SUCCESS : CONTROL_REPORT_FAILURE;
-		message.size = 24;
+		control.your_ref = request_ref;
+		control.action = message_PRINTPDF_CONTROL;
+		control.reason = success ? CONTROL_REPORT_SUCCESS : CONTROL_REPORT_FAILURE;
+		control.size = 24;
 
-		wimp_send_message(wimp_USER_MESSAGE, (wimp_message *) &message, request_task);
+		wimp_send_message(wimp_USER_MESSAGE, (wimp_message *) &control, request_task);
 		request_task = NULL;
 		request_ref = 0;
 	}
