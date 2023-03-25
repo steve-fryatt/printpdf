@@ -159,13 +159,12 @@ typedef struct conversion_params {
 
 /* Message for remote control operation. */
 
-//FIXME: This is a temporary number from a Sine Nomine Software allocation.
-#define message_PRINTPDF_CONTROL         0x546CF    /**< wimp message number */
+#define message_PRINTPDF_CONTROL	0x5A480	/**< Wimp Message number */
 
 enum control_reason {
-	CONTROL_SET_FILENAME,		/**< Set up filename to save to.	*/
-	CONTROL_REPORT_SUCCESS,		/**< Conversion completed correctly.	*/
-	CONTROL_REPORT_FAILURE		/**< Conversion failed.			*/
+	CONTROL_SET_FILENAME = 0,		/**< Set up filename to save to.	*/
+	CONTROL_REPORT_SUCCESS = 1,		/**< Conversion completed correctly.	*/
+	CONTROL_REPORT_FAILURE = 2		/**< Conversion failed.			*/
 };
 
 typedef struct {
