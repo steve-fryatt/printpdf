@@ -1042,6 +1042,8 @@ static osbool convert_printpdf_control(wimp_message *message)
 
 		message->your_ref = message->my_ref;
 		wimp_send_message(wimp_USER_MESSAGE_ACKNOWLEDGE, message, message->sender);
+
+		return TRUE;
 	}
 
 	return FALSE;
