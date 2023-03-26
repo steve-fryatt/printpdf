@@ -23,7 +23,7 @@
 | permissions and limitations under the Licence.
 
 Set PrintPDF$Help <Obey$Dir>.!Help
-Set PrintPDF$Version "0.10"
+Set PrintPDF$Version "1.13"
 Set PrintPDF$Web "http://www.stevefryatt.org.uk/software/printpdf/"
 Set PrintPDF$Title "PrintPDF"
 Set PrintPDF$Publisher "Stephen Fryatt"
