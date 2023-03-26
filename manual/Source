@@ -11,8 +11,8 @@ PrintPDF
 #SpriteFile Sprites
 #Sprite 8,0 Logo
 #Align Right
-{f*/:Easy PDF creation with GhostScript†}
-Version $$version$$ ($$date$$)†
+{f*/:Easy PDF creation with GhostScriptÔøΩ}
+Version $$version$$ ($$date$$)ÔøΩ
 #Below
 #Line
 #Align Centre
@@ -20,13 +20,13 @@ Version $$version$$ ($$date$$)†
 
 #Indent 2
 #Table Columns 4
-è <Introduction>
-è <Installing PrintPDF=>Install>
-è <Using PrintPDF=>Use>
-è <The Bookmark Editor=>BMark>
-è <Using the Queue=>Queue>
-è <Setting Choices=>Choices>
-è <Version History=>History>
+ÔøΩ <Introduction>
+ÔøΩ <Installing PrintPDF=>Install>
+ÔøΩ <Using PrintPDF=>Use>
+ÔøΩ <The Bookmark Editor=>BMark>
+ÔøΩ <Using the Queue=>Queue>
+ÔøΩ <Setting Choices=>Choices>
+ÔøΩ <Version History=>History>
 #Endtable
 #Indent
 #Line
@@ -36,8 +36,9 @@ If you have any comments about {f/:PrintPDF}, or would like to report any bugs t
 Updates to {f/:PrintPDF} and more applications for RISC OS computers can be found on my website at <http://www.stevefryatt.org.uk/software/=>#url>.
 
 #Align Centre
-© Stephen Fryatt, 2005-2020 (<info@stevefryatt.org.uk=>#url mailto:info@stevefryatt.org.uk>)
+ÔøΩ Stephen Fryatt, 2005-2023 (<info@stevefryatt.org.uk=>#url mailto:info@stevefryatt.org.uk>)
 RISC OS 4 and 5 Iconsprites by Richard Hallas
+Remote Control API by Matthew Phillips
 
 A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$HelpText\>>.
 #Align Left
@@ -72,7 +73,7 @@ A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$Hel
 
 <img src="images/printpdf.gif" alt="" width=34 height=34 class="list-image">
 
-<p><b>Easy PDF creation with GhostScript</b> &ndash; &copy; Stephen Fryatt, 2005-2016<br>
+<p><b>Easy PDF creation with GhostScript</b> &ndash; &copy; Stephen Fryatt, 2005-2023<br>
 Version $$version$$ ($$date$$)</p>
 
 </literal>
@@ -84,7 +85,7 @@ Version $$version$$ ($$date$$)</p>
 =============================================================================
 PrintPDF - Easy PDF creation with GhostScript                    Version $$version$$
 
-(c) Stephen Fryatt, 2005-2020                  $$date$$
+(c) Stephen Fryatt, 2005-2023                  $$date$$
 =============================================================================
 </literal>
 
@@ -688,6 +689,15 @@ Update to second stable release.
 <list>
 <li>Correctly ensure that a C99-friendly version of the Shared C Library is present (ticket&nbsp;#635).
 <li>Use ResConf-style system variables to identify resources.
+</list>
+
+
+<subhead title="Test Build">
+
+For testing and feedback.
+
+<list>
+<li>Add support for external control API, allowing other applications to automatically save generated PDFs to disc.
 </list>
 
 </chapter>
