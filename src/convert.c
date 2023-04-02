@@ -1035,12 +1035,20 @@ static osbool convert_printpdf_control(wimp_message *message)
 
 	if (control != NULL && control->reason == CONTROL_SET_FILENAME) {
 //FIXME: Would need to check for null filename. What if conversion in progress?
-		request_task = control->sender;
-		request_ref = control->my_ref;
-		string_copy(request_filename, control->filename, CONVERT_MAX_FILENAME);
+		if (request_task == NULL) {
+			request_task = control->sender;
+			request_ref = control->my_ref;
+			string_copy(request_filename, control->filename, CONVERT_MAX_FILENAME);
+
+			control->reason = CONTROL_REPORT_SUCCESS;
+			control->size = 24;
+		} else {
+			control->reason = CONTROL_REPORT_FAILURE;
+			control->size = 24;
+		}
 
 		message->your_ref = message->my_ref;
-		wimp_send_message(wimp_USER_MESSAGE_ACKNOWLEDGE, message, message->sender);
+		wimp_send_message(wimp_USER_MESSAGE, message, message->sender);
 
 		return TRUE;
 	}
