@@ -167,6 +167,8 @@ enum control_reason {
 	CONTROL_REPORT_FAILURE = 2		/**< Conversion failed.			*/
 };
 
+#define CONTROL_COMMAND_BASIC_LENGTH 24
+
 typedef struct {
 	wimp_MESSAGE_HEADER_MEMBERS
 	enum control_reason	reason;
@@ -1002,6 +1004,9 @@ static osbool convert_check_for_conversion_start(wimp_message *message)
  *
  * - If it was *ps2ps, take the intermediate file and pass it on to *ps2pdf.
  * - If it was *ps2pdf, reset the flags and take the original queued object from the queue head.
+ * 
+ * Alternatively, if the task handle is the same as the active request task, clear the request
+ * details so that another task can take control.
  *
  * \param *message		The message data block.
  * \return			FALSE to allow other claimants to see the message.
@@ -1009,12 +1014,18 @@ static osbool convert_check_for_conversion_start(wimp_message *message)
 
 static osbool convert_check_for_conversion_end(wimp_message *message)
 {
-	if (message != NULL && message->sender == conversion_task && !convert_progress(NULL)) {
+	if (message == NULL)
+		return FALSE;
+		
+	if (message->sender == conversion_task && !convert_progress(NULL)) {
 		conversion_task = 0;
 		conversion_in_progress = FALSE;
 		convert_remove_current_conversion();
 		convert_notify_completion(TRUE);
 //FIXME conversion finished. Is it successful? send message if necessary
+	} else if (request_task != NULL && message->sender == request_task) {
+		request_task = NULL;
+		request_ref = 0;
 	}
 
 	return FALSE;
@@ -1041,10 +1052,10 @@ static osbool convert_printpdf_control(wimp_message *message)
 			string_copy(request_filename, control->filename, CONVERT_MAX_FILENAME);
 
 			control->reason = CONTROL_REPORT_SUCCESS;
-			control->size = 24;
+			control->size = CONTROL_COMMAND_BASIC_LENGTH;
 		} else {
 			control->reason = CONTROL_REPORT_FAILURE;
-			control->size = 24;
+			control->size = CONTROL_COMMAND_BASIC_LENGTH;
 		}
 
 		message->your_ref = message->my_ref;
@@ -1071,7 +1082,7 @@ static void convert_notify_completion(osbool success)
 		control.your_ref = request_ref;
 		control.action = message_PRINTPDF_CONTROL;
 		control.reason = success ? CONTROL_REPORT_SUCCESS : CONTROL_REPORT_FAILURE;
-		control.size = 24;
+		control.size = CONTROL_COMMAND_BASIC_LENGTH;
 
 		wimp_send_message(wimp_USER_MESSAGE, (wimp_message *) &control, request_task);
 		request_task = NULL;
