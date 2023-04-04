@@ -67,6 +67,7 @@
 
 #include "convert.h"
 
+#include "api.h"
 #include "bookmark.h"
 #include "choices.h"
 #include "encrypt.h"
@@ -157,24 +158,6 @@ typedef struct conversion_params {
 	int			preprocess_in_ps2ps;
 } conversion_params;
 
-/* Message for remote control operation. */
-
-#define message_PRINTPDF_CONTROL	0x5A480	/**< Wimp Message number */
-
-enum control_reason {
-	CONTROL_SET_FILENAME = 0,		/**< Set up filename to save to.	*/
-	CONTROL_REPORT_SUCCESS = 1,		/**< Conversion completed correctly.	*/
-	CONTROL_REPORT_FAILURE = 2		/**< Conversion failed.			*/
-};
-
-#define CONTROL_COMMAND_BASIC_LENGTH 24
-
-typedef struct {
-	wimp_MESSAGE_HEADER_MEMBERS
-	enum control_reason	reason;
-	char			filename[232];
-} control_message;
-
 
 /* ****************************************************************************
  * Function Prototypes
@@ -190,7 +173,6 @@ static osbool		convert_handle_save_icon_drop(wimp_message *message);
 static osbool		convert_progress(conversion_params *params);
 static osbool		convert_launch_ps2ps(char *file_out);
 static osbool		convert_launch_ps2pdf(char *file_out, char *user_pdfmark_file);
-static void             convert_notify_completion(osbool success);
 static void		convert_cancel_conversion(void);
 
 static void		convert_save_click_handler(wimp_pointer *pointer);
@@ -225,7 +207,6 @@ static void		convert_terminate_queue_entry_drag(wimp_dragged *drag, void *data);
 
 static osbool		convert_check_for_conversion_start(wimp_message *message);
 static osbool		convert_check_for_conversion_end(wimp_message *message);
-static osbool		convert_printpdf_control(wimp_message *message);
 
 static void		convert_decode_queue_pane_help(char *buffer, wimp_w w, wimp_i i, os_coord pos, wimp_mouse_state buttons);
 
@@ -248,12 +229,6 @@ static wimp_menu	*popup_version;
 static wimp_menu	*popup_optimize;
 static wimp_menu	*popup_paper;
 static wimp_menu	*popup_bookmark;
-
-/* Variables to support other tasks stipulating PDF filename via messages. */
-
-static wimp_t		request_task = NULL;
-static int		request_ref = 0;
-static char		request_filename[CONVERT_MAX_FILENAME];
 
 /* Conversion parameters. */
 
@@ -334,7 +309,10 @@ void convert_initialise(void)
 	event_add_message_handler(message_TASK_INITIALISE, EVENT_MESSAGE_INCOMING, convert_check_for_conversion_start);
 	event_add_message_handler(message_TASK_CLOSE_DOWN, EVENT_MESSAGE_INCOMING, convert_check_for_conversion_end);
 	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, convert_handle_save_icon_drop);
-	event_add_message_handler(message_PRINTPDF_CONTROL, EVENT_MESSAGE_INCOMING, convert_printpdf_control);
+
+	/* Initialise the control API. */
+
+	api_initialise();
 
 	/* Initialise the options. */
 
@@ -456,7 +434,8 @@ osbool convert_queue_ps_file(char *filename)
 
 void convert_check_for_pending_files(void)
 {
-	queued_file		*list;
+	queued_file	*list;
+	char		*filename;
 
 	/* We can't start a conversion if:
 	 *
@@ -494,8 +473,10 @@ void convert_check_for_pending_files(void)
 	/* If a file was found to convert, open the Save PDF dialogue. */
 
 	if (conversion_in_progress) {
-		if (request_task != NULL)
-			convert_save_dialogue_end(request_filename);
+		filename = api_get_filename();
+
+		if (filename != NULL)
+			convert_save_dialogue_end(filename);
 		else
 			convert_open_save_dialogue();
 	}
@@ -612,7 +593,7 @@ static void convert_save_dialogue_end(char *output_file)
 		conversion_task = 0;
 		conversion_in_progress = FALSE;
 		convert_remove_current_conversion();
-		convert_notify_completion(FALSE);
+		api_notify_conversion_complete(FALSE);
 	}
 }
 
@@ -990,7 +971,7 @@ static osbool convert_check_for_conversion_start(wimp_message *message)
 		conversion_task = 0;
 		conversion_in_progress = FALSE;
 		convert_remove_current_conversion();
-		convert_notify_completion(FALSE);
+		api_notify_conversion_complete(FALSE);
 //FIXME - conversion failed? Or could it have completed here?
 	}
 
@@ -1014,80 +995,15 @@ static osbool convert_check_for_conversion_start(wimp_message *message)
 
 static osbool convert_check_for_conversion_end(wimp_message *message)
 {
-	if (message == NULL)
-		return FALSE;
-		
-	if (message->sender == conversion_task && !convert_progress(NULL)) {
+	if (message != NULL && message->sender == conversion_task && !convert_progress(NULL)) {
 		conversion_task = 0;
 		conversion_in_progress = FALSE;
 		convert_remove_current_conversion();
-		convert_notify_completion(TRUE);
+		api_notify_conversion_complete(TRUE);
 //FIXME conversion finished. Is it successful? send message if necessary
-	} else if (request_task != NULL && message->sender == request_task) {
-		request_task = NULL;
-		request_ref = 0;
 	}
 
 	return FALSE;
-}
-
-
-/**
- * Process PrintPDF_Control which allows another task to set the file to save
- * the next job to.
- *
- * \param *message		The message data block.
- * \return			FALSE to allow other claimants to see the message.
- */
-
-static osbool convert_printpdf_control(wimp_message *message)
-{
-	control_message *control = (control_message *) message;
-
-	if (control != NULL && control->reason == CONTROL_SET_FILENAME) {
-//FIXME: Would need to check for null filename. What if conversion in progress?
-		if (request_task == NULL) {
-			request_task = control->sender;
-			request_ref = control->my_ref;
-			string_copy(request_filename, control->filename, CONVERT_MAX_FILENAME);
-
-			control->reason = CONTROL_REPORT_SUCCESS;
-			control->size = CONTROL_COMMAND_BASIC_LENGTH;
-		} else {
-			control->reason = CONTROL_REPORT_FAILURE;
-			control->size = CONTROL_COMMAND_BASIC_LENGTH;
-		}
-
-		message->your_ref = message->my_ref;
-		wimp_send_message(wimp_USER_MESSAGE, message, message->sender);
-
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
-
-/**
- * Called when conversion completed. Checks if there is a requesting task and
- * notifies the task of the result.
- */
-
-static void convert_notify_completion(osbool success)
-{
-	if (request_task != NULL) {
-
-		control_message control;
-
-		control.your_ref = request_ref;
-		control.action = message_PRINTPDF_CONTROL;
-		control.reason = success ? CONTROL_REPORT_SUCCESS : CONTROL_REPORT_FAILURE;
-		control.size = CONTROL_COMMAND_BASIC_LENGTH;
-
-		wimp_send_message(wimp_USER_MESSAGE, (wimp_message *) &control, request_task);
-		request_task = NULL;
-		request_ref = 0;
-	}
 }
 
 
