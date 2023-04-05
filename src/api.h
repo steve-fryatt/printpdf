@@ -33,6 +33,16 @@
 #include "oslib/types.h"
 
 /**
+ * The reasons which can be returned by Control Failure.
+ */
+
+enum api_failure {
+	API_FAILURE_IN_USE = 0,		/**< There API is already in use.	*/
+	API_FAILURE_NULL_FILENAME = 1,	/**< The supplied filename was empty.	*/
+	API_FAILURE_CONVERSION = 2		/**< The conversion failed.		*/
+};
+
+/**
  * Initialise the control API.
  */
 
@@ -50,13 +60,23 @@ char *api_get_filename(void);
 
 
 /**
- * On completion of a conversion, check if the API is in use. If it
- * is, notify the client task of the result.
+ * On a successful completion of a conversion, check if the API is in
+ * use. If it is, notify the client task of the result.
  * 
  * \param success	TRUE if the conversion was successful;
  *			else FALSE.
  */
 
-void api_notify_conversion_complete(osbool success);
+void api_notify_conversion_success(void);
+
+
+/**
+ * On an unsuccessful completion of a conversion, check if the API is in
+ * use. If it is, notify the client task of the result.
+ * 
+ * \param failure	The reason for failure to pass to the client.
+ */
+
+void api_notify_conversion_failure(enum api_failure failure);
 
 #endif

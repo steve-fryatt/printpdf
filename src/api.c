@@ -59,17 +59,22 @@ enum control_reason {
 };
 
 #define CONTROL_COMMAND_BASIC_LENGTH 24
+#define CONTROL_COMMAND_FAILURE_LENGTH 28
 
 typedef struct {
 	wimp_MESSAGE_HEADER_MEMBERS
 	enum control_reason	reason;
-	char			filename[232];
+	union {
+		char			filename[232];
+		enum api_failure	failure;
+	};
 } control_message;
 
 /* Function Prototypes. */
 
 static osbool api_message_task_close_down_handler(wimp_message *message);
 static osbool api_message_printpdf_control_handler(wimp_message *message);
+static void api_send_conversion_failure(wimp_t task, int your_ref, enum api_failure failure);
 
 
 /**
@@ -118,32 +123,6 @@ char *api_get_filename(void)
 
 
 /**
- * On completion of a conveapi_notify_conversion_completersion, check if the API is in use. If it
- * is, notify the client task of the result.
- * 
- * \param success	TRUE if the conversion was successful;
- *			else FALSE.
- */
-
-void api_notify_conversion_complete(osbool success)
-{
-	if (api_request_task == NULL)
-		return;
-
-	control_message control;
-
-	control.your_ref = api_request_ref;
-	control.action = message_PRINTPDF_CONTROL;
-	control.reason = success ? CONTROL_REPORT_SUCCESS : CONTROL_REPORT_FAILURE;
-	control.size = CONTROL_COMMAND_BASIC_LENGTH;
-
-	wimp_send_message(wimp_USER_MESSAGE, (wimp_message *) &control, api_request_task);
-	api_request_task = NULL;
-	api_request_ref = 0;
-}
-
-
-/**
  * Process Message_TaskCloseDown, in case the current API client has
  * quit.
  *
@@ -179,24 +158,91 @@ static osbool api_message_printpdf_control_handler(wimp_message *message)
 	
 	switch (control->reason) {
 	case CONTROL_SET_FILENAME:
-//FIXME: Would need to check for null filename. What if conversion in progress?
 		if (api_request_task == NULL) {
-			api_request_task = control->sender;
-			api_request_ref = control->my_ref;
-			string_copy(api_request_filename, control->filename, CONVERT_MAX_FILENAME);
+			if (*(control->filename) != '\0') {
+				api_request_task = control->sender;
+				api_request_ref = control->my_ref;
+				string_copy(api_request_filename, control->filename, CONVERT_MAX_FILENAME);
 
-			control->reason = CONTROL_REPORT_SUCCESS;
-			control->size = CONTROL_COMMAND_BASIC_LENGTH;
+				control->your_ref = control->my_ref;
+				wimp_send_message(wimp_USER_MESSAGE_ACKNOWLEDGE, message, message->sender);
+
+			} else {
+				api_send_conversion_failure(message->sender, message->my_ref, API_FAILURE_NULL_FILENAME);
+			}
 		} else {
-			control->reason = CONTROL_REPORT_FAILURE;
-			control->size = CONTROL_COMMAND_BASIC_LENGTH;
+			api_send_conversion_failure(message->sender, message->my_ref, API_FAILURE_IN_USE);
 		}
-
-		message->your_ref = message->my_ref;
-		wimp_send_message(wimp_USER_MESSAGE, message, message->sender);
 
 		return TRUE;
 	}
 
 	return FALSE;
+}
+
+
+/**
+ * On a successful completion of a conversion, check if the API is in
+ * use. If it is, notify the client task of the result.
+ * 
+ * \param success	TRUE if the conversion was successful;
+ *			else FALSE.
+ */
+
+void api_notify_conversion_success(void)
+{
+	if (api_request_task == NULL)
+		return;
+
+	control_message control;
+
+	control.your_ref = api_request_ref;
+	control.action = message_PRINTPDF_CONTROL;
+	control.reason = CONTROL_REPORT_SUCCESS;
+	control.size = CONTROL_COMMAND_BASIC_LENGTH;
+
+	wimp_send_message(wimp_USER_MESSAGE, (wimp_message *) &control, api_request_task);
+	api_request_task = NULL;
+	api_request_ref = 0;
+}
+
+
+/**
+ * On an unsuccessful completion of a conversion, check if the API is in
+ * use. If it is, notify the client task of the result.
+ * 
+ * \param failure	The reason for failure to pass to the client.
+ */
+
+void api_notify_conversion_failure(enum api_failure failure)
+{
+	if (api_request_task == NULL)
+		return;
+
+	api_send_conversion_failure(api_request_task, api_request_ref, failure);
+
+	api_request_task = NULL;
+	api_request_ref = 0;
+}
+
+
+/**
+ * Send a conversion failure message to a client application
+ *
+ * \param task		The task handle of the client.
+ * \param your_ref	The YourRef value for the message to be sent.
+ * \param failure	The reason for failure to pass to the client.
+ */
+
+static void api_send_conversion_failure(wimp_t task, int your_ref, enum api_failure failure)
+{
+	control_message control;
+
+	control.your_ref = your_ref;
+	control.action = message_PRINTPDF_CONTROL;
+	control.reason = CONTROL_REPORT_FAILURE;
+	control.failure = failure;
+	control.size = CONTROL_COMMAND_FAILURE_LENGTH;
+
+	wimp_send_message(wimp_USER_MESSAGE, (wimp_message *) &control, task);
 }

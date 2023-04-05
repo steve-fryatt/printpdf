@@ -593,7 +593,7 @@ static void convert_save_dialogue_end(char *output_file)
 		conversion_task = 0;
 		conversion_in_progress = FALSE;
 		convert_remove_current_conversion();
-		api_notify_conversion_complete(FALSE);
+		api_notify_conversion_failure(API_FAILURE_CONVERSION);
 	}
 }
 
@@ -971,7 +971,7 @@ static osbool convert_check_for_conversion_start(wimp_message *message)
 		conversion_task = 0;
 		conversion_in_progress = FALSE;
 		convert_remove_current_conversion();
-		api_notify_conversion_complete(FALSE);
+		api_notify_conversion_failure(API_FAILURE_CONVERSION);
 //FIXME - conversion failed? Or could it have completed here?
 	}
 
@@ -996,7 +996,7 @@ static osbool convert_check_for_conversion_end(wimp_message *message)
 		conversion_task = 0;
 		conversion_in_progress = FALSE;
 		convert_remove_current_conversion();
-		api_notify_conversion_complete(TRUE);
+		api_notify_conversion_success();
 //FIXME conversion finished. Is it successful? send message if necessary
 	}
 
