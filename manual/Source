@@ -425,7 +425,7 @@ The message should be sent recorded, either direct to <cite>PrintPDF</cite> or b
 
 If the message bounces, this indicates that a suitable version of <cite>PrintPDF</cite> was not running on the computer.
 
-Should the message be accpeted and silently acknowledged, then the application should proceed to print its document in the usual manner. Once the printing is complete, then <cite>PrintPDF</cite> will respond to the original message in one of two ways.
+Should the message be accepted and silently acknowledged, then the application should proceed to print its document in the usual manner. Once the printing is complete, then <cite>PrintPDF</cite> will respond to the original message in one of two ways.
 
 <list spacing=1>
 <li>If the conversion succeeded, then a Success (1) reason code will be returned.
@@ -436,7 +436,7 @@ Whichever outcome is achieved, the API is freed up ready for another conversion 
 
 <subhead title="Cancelling a conversion">
 
-Since the API is locked from the point where a filename is set until the point where the conversion completes, it is possible for an application which sends a Set Filename request and then never initiates a print job (or whose print job failes before any output is generated) to block all future API requests.
+Since the API is locked from the point where a filename is set until the point where the conversion completes, it is possible for an application which sends a Set Filename request and then never initiates a print job (or whose print job fails before any output is generated) to block all future API requests.
 
 To reduce the impact of this, <cite>PrintPDF</cite> will watch for the exit of the task which currently has control of the API. If this occurs, the API is released.
 </chapter>
