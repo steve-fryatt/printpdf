@@ -985,9 +985,6 @@ static osbool convert_check_for_conversion_start(wimp_message *message)
  *
  * - If it was *ps2ps, take the intermediate file and pass it on to *ps2pdf.
  * - If it was *ps2pdf, reset the flags and take the original queued object from the queue head.
- * 
- * Alternatively, if the task handle is the same as the active request task, clear the request
- * details so that another task can take control.
  *
  * \param *message		The message data block.
  * \return			FALSE to allow other claimants to see the message.
