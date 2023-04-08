@@ -55,7 +55,8 @@
 enum control_reason {
 	CONTROL_SET_FILENAME = 0,		/**< Set up filename to save to.	*/
 	CONTROL_REPORT_SUCCESS = 1,		/**< Conversion completed correctly.	*/
-	CONTROL_REPORT_FAILURE = 2		/**< Conversion failed.			*/
+	CONTROL_REPORT_FAILURE = 2,		/**< Conversion failed.			*/
+	CONTROL_CLEAR_FILENAME = 3		/**< Clear an already set filename.	*/
 };
 
 #define CONTROL_COMMAND_BASIC_LENGTH 24
@@ -172,6 +173,19 @@ static osbool api_message_printpdf_control_handler(wimp_message *message)
 			}
 		} else {
 			api_send_conversion_failure(message->sender, message->my_ref, API_FAILURE_IN_USE);
+		}
+
+		return TRUE;
+
+	case CONTROL_CLEAR_FILENAME:
+		if (api_request_task == NULL || api_request_task == control->sender) {
+			api_request_task = NULL;
+			api_request_ref = 0;
+
+			control->your_ref = control->my_ref;
+			wimp_send_message(wimp_USER_MESSAGE_ACKNOWLEDGE, message, message->sender);
+		} else {
+			api_send_conversion_failure(message->sender, message->my_ref, API_FAILURE_NOT_OWNER);
 		}
 
 		return TRUE;

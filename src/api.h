@@ -37,9 +37,10 @@
  */
 
 enum api_failure {
-	API_FAILURE_IN_USE = 0,		/**< There API is already in use.	*/
-	API_FAILURE_NULL_FILENAME = 1,	/**< The supplied filename was empty.	*/
-	API_FAILURE_CONVERSION = 2		/**< The conversion failed.		*/
+	API_FAILURE_IN_USE = 0,		/**< The API is already in use.			*/
+	API_FAILURE_NULL_FILENAME = 1,	/**< The supplied filename was empty.		*/
+	API_FAILURE_CONVERSION = 2,	/**< The conversion failed.			*/
+	API_FAILURE_NOT_OWNER = 3	/**< Can't clear another task's filename.	*/
 };
 
 /**

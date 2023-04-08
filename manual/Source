@@ -439,6 +439,18 @@ Whichever outcome is achieved, the API is freed up ready for another conversion 
 Since the API is locked from the point where a filename is set until the point where the conversion completes, it is possible for an application which sends a Set Filename request and then never initiates a print job (or whose print job fails before any output is generated) to block all future API requests.
 
 To reduce the impact of this, <cite>PrintPDF</cite> will watch for the exit of the task which currently has control of the API. If this occurs, the API is released.
+
+In addition, an application can also clear a filename if it no longer wishes to initiate a print job. To do this, is should send <code>Message_PrintPDFControl</code> to <cite>PrintPDF</cite> with a reason code of Clear Filename (3).
+
+The message should be sent recorded, either direct to <cite>PrintPDF</cite> or broadcast to all tasks. If a suitable version of <cite>PrintPDF</cite> is loaded, then either
+
+<list spacing=1>
+<li>the message will be silently acknowledged if the request is accepted (either because the filename was cleared, or because one was not set in the first place), or
+<li>a response will be sent with a Failure (2) reason code if the request failed. A request will fail if the task making it is not the task which set the filename, in which case there will be an error code of 3 at offset 24.
+</list>
+
+If the message bounces, this indicates that a suitable version of <cite>PrintPDF</cite> was not running on the computer.
+
 </chapter>
 
 
