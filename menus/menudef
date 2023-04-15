@@ -31,7 +31,7 @@ menu(IconBarMenu, "PrintPDF")
 	item("Info") {
 		d_box(ProgInfo);
 	}
-	item("Help") {
+	item("Help...") {
 		dotted;
 	}
 	item("Queue...");
