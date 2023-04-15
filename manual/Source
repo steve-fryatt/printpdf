@@ -33,7 +33,7 @@ Version $$version$$ ($$date$$)�
 #Align Left
 If you have any comments about {f/:PrintPDF}, or would like to report any bugs that you find, you can email me at the address below.
 
-Updates to {f/:PrintPDF} and more applications for RISC OS computers can be found on my website at <http://www.stevefryatt.org.uk/software/=>#url>.
+Updates to {f/:PrintPDF} and more applications for RISC OS computers can be found on my website at <http://www.stevefryatt.org.uk/risc-os=>#url>.
 
 #Align Centre
 � Stephen Fryatt, 2005-2023 (<info@stevefryatt.org.uk=>#url mailto:info@stevefryatt.org.uk>)
@@ -101,9 +101,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 See the Licence for the specific language governing permissions and limitations under the Licence.
 
-The source for <cite>PrintPDF</cite> can be found alongside this binary download, at <link ref="#url http://www.stevefryatt.org.uk/software">http://www.stevefryatt.org.uk/software</link>
-
-The necessary libraries and build tools can be found at <link ref="#url http://www.stevefryatt.org.uk/software/build">http://www.stevefryatt.org.uk/software/build</link>
+The source for <cite>PrintPDF</cite> can be found on GitHub, at <link ref="#url https://github.com/steve-fryatt/printpdf">https://github.com/steve-fryatt/printpdf</link>
 
 </chapter>
 
@@ -849,7 +847,7 @@ fStd
 
 <p>If you have any comments about <cite>PrintPDF</cite>, or would like to report any bugs that you find, you can email me at the address below.</p>
 
-<p>Updates to <cite>PrintPDF</cite> and more programs for RISC&nbsp;OS computers can be found on my website at <a href="http://www.stevefryatt.org.uk/software/">http://www.stevefryatt.org.uk/software/</a></p></div>
+<p>Updates to <cite>PrintPDF</cite> and more programs for RISC&nbsp;OS computers can be found on my website at <a href="http://www.stevefryatt.org.uk/risc-os">http://www.stevefryatt.org.uk/risc-os</a></p></div>
 
 <p class="breadcrumb">[ <a href="../../" class="breadcrumb">Home</a>
 | <a href="../" class="breadcrumb">RISC&nbsp;OS Software</a>
@@ -886,7 +884,7 @@ Updates and Contacting Me
   that you find, you can email me at the address below.
 
   Updates to PrintPDF and more software for RISC OS computers can be found
-  on my website at http://www.stevefryatt.org.uk/software/
+  on my website at http://www.stevefryatt.org.uk/risc-os
 
   Stephen Fryatt
   email: info@stevefryatt.org.uk

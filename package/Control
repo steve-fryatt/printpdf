@@ -30,6 +30,6 @@ Description: PrintPDF allows PDF documents to be created easily
  single PDF document. The separate files are printed separately to PrintPDF
  and queued; once assembled, they can be arranged as required and turned into
  a single PDF.
-Homepage: http://www.stevefryatt.org.uk/software/printpdf/
+Homepage: http://www.stevefryatt.org.uk/risc-os/printpdf/
 Components: Apps.Printing.!PrintPDF (Movable)
 Recommends: StrongHelp
