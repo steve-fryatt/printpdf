@@ -4,7 +4,7 @@
 |
 | This file is part of PrintPDF:
 |
-|   http://www.stevefryatt.org.uk/software/
+|   http://www.stevefryatt.org.uk/risc-os/
 |
 | Licensed under the EUPL, Version 1.2 only (the "Licence");
 | You may not use this work except in compliance with the
@@ -24,7 +24,7 @@
 
 Set PrintPDF$Help <Obey$Dir>.!Help
 Set PrintPDF$Version "{{VERSION}}"
-Set PrintPDF$Web "http://www.stevefryatt.org.uk/software/printpdf/"
+Set PrintPDF$Web "http://www.stevefryatt.org.uk/risc-os/printpdf/"
 Set PrintPDF$Title "PrintPDF"
 Set PrintPDF$Publisher "Stephen Fryatt"
 Set PrintPDF$Description "PostScript to PDF Conversion"

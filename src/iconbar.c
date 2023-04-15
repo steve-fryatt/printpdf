@@ -2,7 +2,7 @@
  *
  * This file is part of PrintPDF:
  *
- *   http://www.stevefryatt.org.uk/software/
+ *   http://www.stevefryatt.org.uk/risc-os/
  *
  * Licensed under the EUPL, Version 1.2 only (the "Licence");
  * You may not use this work except in compliance with the
@@ -243,7 +243,7 @@ static osbool iconbar_proginfo_web_click(wimp_pointer *pointer)
 {
 	char		temp_buf[256];
 
-	msgs_lookup("SupportURL:http://www.stevefryatt.org.uk/software/", temp_buf, sizeof(temp_buf));
+	msgs_lookup("SupportURL:http://www.stevefryatt.org.uk/risc-os", temp_buf, sizeof(temp_buf));
 	url_launch(temp_buf);
 
 	if (pointer->buttons == wimp_CLICK_SELECT)
