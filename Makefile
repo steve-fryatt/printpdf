@@ -50,5 +50,7 @@ OBJS := api.o		\
 	taskman.o	\
 	version.o
 
+SUBS := !Boot,feb !Run,feb
+
 include $(SFTOOLS_MAKE)/CApp
 

@@ -1,21 +1,22 @@
 {
 	"configurations": [
-	    {
+		{
 		"name": "RISC OS",
 		"includePath": [
-		    "${workspaceFolder}/**",
-		    "/home/steve/gccsdk/env/include/",
-		    "/home/steve/gccsdk/cross/lib/gcc/arm-unknown-riscos/4.7.4/include/"
+			"${workspaceFolder}/**",
+			"/home/steve/gccsdk/env/include/",
+			"/home/steve/gccsdk/cross/lib/gcc/arm-unknown-riscos/4.7.4/include/"
 		],
 		"defines": [
-		    "BUILD_DATE=\"1 Jan 1970\"",
-		    "BUILD_VERSION=\"0.00\"",
-		    "RISCOS"
+			"BUILD_DATE=\"1 Jan 1970\"",
+			"BUILD_VERSION=\"0.00\"",
+			"RISCOS"
 		],
 		"compilerPath": "/home/steve/gccsdk/cross/arm-unknown-riscos/bin/gcc",
 		"cStandard": "gnu18",
-		"cppStandard": "gnu++14"
-	    }
+		"cppStandard": "gnu++14",
+	//	"configurationProvider": "ms-vscode.makefile-tools"
+		}
 	],
 	"version": 4
-    }
+	}
