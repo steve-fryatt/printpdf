@@ -1,6 +1,8 @@
 build/Licence,fff
 build/manual.html
 build/ReadMe,fff
+build/!PrintPDF/!Boot,feb
+build/!PrintPDF/!Run,feb
 build/!PrintPDF/!Help,ffb
 build/!PrintPDF/!RunImage,ff8
 build/!PrintPDF/Resources/UK/HelpText,fff
