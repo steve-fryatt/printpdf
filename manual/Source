@@ -36,8 +36,9 @@ If you have any comments about {f/:PrintPDF}, or would like to report any bugs t
 Updates to {f/:PrintPDF} and more applications for RISC OS computers can be found on my website at <http://www.stevefryatt.org.uk/risc-os=>#url>.
 
 #Align Centre
-� Stephen Fryatt, 2005-2020 (<info@stevefryatt.org.uk=>#url mailto:info@stevefryatt.org.uk>)
+� Stephen Fryatt, 2005-2023 (<info@stevefryatt.org.uk=>#url mailto:info@stevefryatt.org.uk>)
 RISC OS 4 and 5 Iconsprites by Richard Hallas
+Remote Control API by Matthew Phillips
 
 A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$HelpText\>>.
 #Align Left
@@ -72,7 +73,7 @@ A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$Hel
 
 <img src="images/printpdf.gif" alt="" width=34 height=34 class="list-image">
 
-<p><b>Easy PDF creation with GhostScript</b> &ndash; &copy; Stephen Fryatt, 2005-2016<br>
+<p><b>Easy PDF creation with GhostScript</b> &ndash; &copy; Stephen Fryatt, 2005-2023<br>
 Version $$version$$ ($$date$$)</p>
 
 </literal>
@@ -84,7 +85,7 @@ Version $$version$$ ($$date$$)</p>
 =============================================================================
 PrintPDF - Easy PDF creation with GhostScript                    Version $$version$$
 
-(c) Stephen Fryatt, 2005-2020                  $$date$$
+(c) Stephen Fryatt, 2005-2023                  $$date$$
 =============================================================================
 </literal>
 
@@ -383,6 +384,74 @@ To set the options, click on <icon>Apply</icon>; to save them to disc for future
 The <window>PrintPDF choices</window> dialogue can not be opened when there is a conversion in progress.  Conversely, new conversions will not start until the dialogue has been closed (and any files which are printed or dragged to the iconbar will be queued).
 
 </chapter>
+
+
+
+
+<chapter title="External Control API" file="API">
+
+To enable third-party applications to make use of <cite>PrintPDF</cite>, an external control API is provided using the <code>Message_PrintPDFControl</code> Wimp User Message. Using this message, application authors can prime <cite>PrintPDF</cite> for a pending conversion, supplying a filename to which the resulting PDF should be saved. The application can then initiate printing in the usual way, after which <cite>PrintPDF</cite> will notify it of the end of the conversion by sending it a User Message in reply.
+
+<subhead title="Message_PrintPDFControl (&amp;5A480)">
+
+A single User Message is used in the control API: <code>Message_PrintPDFControl</code>, which has the number &amp;5A480. Every message contains a single reason code at offset 20 into the message block, which identifies its purpose.
+
+There are two reason codes used by <cite>PrintPDF</cite> to respond to messages from an application, which indicate the outcome of an operation.
+
+<definition target="Success (1)">
+The Success code is used to indicate that a conversion has completed without error, and the resulting PDF has been saved to the specified file.
+
+There is no additional data in the message block.
+</definition>
+
+<definition target="Failure (2)">
+The Failure code is used to indicate that either a command could not be accepted, or that a conversion failed.
+
+The message block contains an additional error code at offset 24, which is described in the appropriate places below.
+</list>
+
+<subhead title="Initiating a conversion">
+
+To initiate a conversion under the API, an application should send <code>Message_PrintPDFControl</code> to <cite>PrintPDF</cite> with a reason code of Set Filename (0). The full filename to which the PDF is to be written should be supplied from offset 24 into the block.
+
+The message should be sent recorded, either direct to <cite>PrintPDF</cite> or broadcast to all tasks. If a suitable version of <cite>PrintPDF</cite> is loaded, then either
+
+<list spacing=1>
+<li>the message will be silently acknowledged if the request is accepted, or
+<li>a response will be sent with a Failure (2) reason code if the request failed. There are two reasons why a request may fail: the API is already in use by an application, which has an error code of 0 at offset 24, or the filename was empty, which has an error code of 1.
+</list>
+
+If the message bounces, this indicates that a suitable version of <cite>PrintPDF</cite> was not running on the computer.
+
+Should the message be accepted and silently acknowledged, then the application should proceed to print its document in the usual manner. Once the printing is complete, then <cite>PrintPDF</cite> will respond to the original message in one of two ways.
+
+<list spacing=1>
+<li>If the conversion succeeded, then a Success (1) reason code will be returned.
+<li>If the conversion failed, then a Failure (2) reason code will be returned, with an error code at offset 24 indicating a possible cause of the problem. At present, the only value is 2, which indicates a general conversion failure.
+</list>
+
+Whichever outcome is achieved, the API is freed up ready for another conversion to be started.
+
+<subhead title="Cancelling a conversion">
+
+Since the API is locked from the point where a filename is set until the point where the conversion completes, it is possible for an application which sends a Set Filename request and then never initiates a print job (or whose print job fails before any output is generated) to block all future API requests.
+
+To reduce the impact of this, <cite>PrintPDF</cite> will watch for the exit of the task which currently has control of the API. If this occurs, the API is released.
+
+In addition, an application can also clear a filename if it no longer wishes to initiate a print job. To do this, is should send <code>Message_PrintPDFControl</code> to <cite>PrintPDF</cite> with a reason code of Clear Filename (3).
+
+The message should be sent recorded, either direct to <cite>PrintPDF</cite> or broadcast to all tasks. If a suitable version of <cite>PrintPDF</cite> is loaded, then either
+
+<list spacing=1>
+<li>the message will be silently acknowledged if the request is accepted (either because the filename was cleared, or because one was not set in the first place), or
+<li>a response will be sent with a Failure (2) reason code if the request failed. A request will fail if the task making it is not the task which set the filename, in which case there will be an error code of 3 at offset 24.
+</list>
+
+If the message bounces, this indicates that a suitable version of <cite>PrintPDF</cite> was not running on the computer.
+
+</chapter>
+
+
 
 
 
@@ -686,6 +755,15 @@ Update to second stable release.
 <list>
 <li>Correctly ensure that a C99-friendly version of the Shared C Library is present (ticket&nbsp;#635).
 <li>Use ResConf-style system variables to identify resources.
+</list>
+
+
+<subhead title="Test Build">
+
+For testing and feedback.
+
+<list>
+<li>Add support for external control API, allowing other applications to automatically save generated PDFs to disc.
 </list>
 
 </chapter>

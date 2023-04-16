@@ -30,6 +30,9 @@
 #ifndef PRINTPDF_CONVERT
 #define PRINTPDF_CONVERT
 
+#include <stddef.h>
+#include "oslib/wimp.h"
+
 /* ==================================================================================================================
  * Static constants
  */
