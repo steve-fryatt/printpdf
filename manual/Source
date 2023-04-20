@@ -11,8 +11,8 @@ PrintPDF
 #SpriteFile Sprites
 #Sprite 8,0 Logo
 #Align Right
-{f*/:Easy PDF creation with GhostScriptÔøΩ}
-Version $$version$$ ($$date$$)ÔøΩ
+{f*/:Easy PDF creation with GhostScript†}
+Version $$version$$ ($$date$$)†
 #Below
 #Line
 #Align Centre
@@ -20,13 +20,14 @@ Version $$version$$ ($$date$$)ÔøΩ
 
 #Indent 2
 #Table Columns 4
-ÔøΩ <Introduction>
-ÔøΩ <Installing PrintPDF=>Install>
-ÔøΩ <Using PrintPDF=>Use>
-ÔøΩ <The Bookmark Editor=>BMark>
-ÔøΩ <Using the Queue=>Queue>
-ÔøΩ <Setting Choices=>Choices>
-ÔøΩ <Version History=>History>
+è <Introduction>
+è <Installing PrintPDF=>Install>
+è <Using PrintPDF=>Use>
+è <The Bookmark Editor=>BMark>
+è <Using the Queue=>Queue>
+è <External Control API=>API>
+è <Setting Choices=>Choices>
+è <Version History=>History>
 #Endtable
 #Indent
 #Line
@@ -36,9 +37,9 @@ If you have any comments about {f/:PrintPDF}, or would like to report any bugs t
 Updates to {f/:PrintPDF} and more applications for RISC OS computers can be found on my website at <http://www.stevefryatt.org.uk/risc-os=>#url>.
 
 #Align Centre
-ÔøΩ Stephen Fryatt, 2005-2023 (<info@stevefryatt.org.uk=>#url mailto:info@stevefryatt.org.uk>)
+© Stephen Fryatt, 2005-2023 (<info@stevefryatt.org.uk=>#url mailto:info@stevefryatt.org.uk>)
 RISC OS 4 and 5 Iconsprites by Richard Hallas
-Remote Control API by Matthew Phillips
+External Control API by Matthew Phillips
 
 A plain text version of this manual is available <here=>*Filer_Run <PrintPDF$HelpText\>>.
 #Align Left
@@ -758,12 +759,12 @@ Update to second stable release.
 </list>
 
 
-<subhead title="Test Build">
+<subhead title="1.20 (20 April 2023)">
 
-For testing and feedback.
+Third stable release.
 
 <list>
-<li>Add support for external control API, allowing other applications to automatically save generated PDFs to disc.
+<li>Add support for an external control API, allowing other applications to automate the process of generating PDFs.
 </list>
 
 </chapter>
